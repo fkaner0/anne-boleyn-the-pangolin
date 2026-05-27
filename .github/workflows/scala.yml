@@ -35,6 +35,8 @@ jobs:
     - name: Set up sbt launcher
       uses: sbt/setup-sbt@v1
     - name: Compile
+      working-directory: ./backend/pangolin-backend
       run: sbt compile
     - name: Run tests
+      working-directory: ./backend/pangolin-backend
       run: sbt test
