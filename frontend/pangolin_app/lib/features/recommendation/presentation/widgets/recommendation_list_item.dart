@@ -26,6 +26,16 @@ class RecommendationListItem extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.network(
+              recommendation.imageUrl,
+              width: 90,
+              height: 90,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(12),
@@ -57,6 +67,7 @@ class RecommendationListItem extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
                 onPressed: onAccept,
@@ -68,16 +79,6 @@ class RecommendationListItem extends StatelessWidget {
                 icon: const Icon(Icons.cancel, color: Colors.red),
               ),
             ],
-          ),
-          const SizedBox(width: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              recommendation.imageUrl,
-              width: 90,
-              height: 90,
-              fit: BoxFit.cover,
-            ),
           ),
         ],
       ),
