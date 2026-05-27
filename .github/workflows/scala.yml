@@ -33,7 +33,7 @@ jobs:
         distribution: 'temurin'
         cache: 'sbt'
     - name: Set up sbt launcher
-        uses: sbt/setup-sbt@v1
+      uses: sbt/setup-sbt@v1
     - name: Compile
       run: sbt compile
     - name: Run tests
