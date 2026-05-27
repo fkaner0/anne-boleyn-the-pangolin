@@ -32,18 +32,23 @@ jobs:
           cache: true
 
       - name: Install dependencies
+        working-directory: frontend/pangolin_app
         run: flutter pub get
 
       - name: Verify formatting
+        working-directory: frontend/pangolin_app
         run: dart format --output=none --set-exit-if-changed .
 
       - name: Analyze project source
+        working-directory: frontend/pangolin_app
         run: flutter analyze
 
       - name: Run tests
+        working-directory: frontend/pangolin_app
         run: flutter test
 
       - name: Build web app
+        working-directory: frontend/pangolin_app
         run: flutter build web --release
 
       - name: Upload web artifact
