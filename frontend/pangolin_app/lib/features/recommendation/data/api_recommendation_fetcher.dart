@@ -9,12 +9,17 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
   final String host;
   final int port;
 
-  const ApiRecommendationFetcher({this.host = 'localhost', required this.port});
+  const ApiRecommendationFetcher({this.host = 'localhost', this.port = -1});
 
   @override
   Future<List<Recommendation>> fetchRecommendations() async {
-    // final uri = Uri.http('api.openopus.org', '/composer/list/pop.json');
-    final uri = Uri.http('$host:$port', '/recommendations');
+    String baseUrl;
+    if (port == -1) {
+      baseUrl = host;
+    } else {
+      baseUrl = '$host:$port';
+    }
+    final uri = Uri.https(baseUrl, '/recommendations');
 
     final response = await http.get(uri);
 
