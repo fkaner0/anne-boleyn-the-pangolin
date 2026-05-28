@@ -7,7 +7,7 @@ COPY build.sbt ./
 COPY . .
 
 RUN sbt clean assembly
-RUN find target -name "*.jar" -type f | head -n 1 | xargs -I {} cp {} /app/app.jar
+RUN cp target/scala-3.8.3/app.jar /app/app.jar
 
 FROM eclipse-temurin:21-jre
 
