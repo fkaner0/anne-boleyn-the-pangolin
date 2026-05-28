@@ -102,7 +102,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
                 onAccept: () {
                   _handleDecision(
                     recommendation: recommendation,
-                    rejected: false,
+                    rejected: true,
                   );
                 },
                 onReject: () {
