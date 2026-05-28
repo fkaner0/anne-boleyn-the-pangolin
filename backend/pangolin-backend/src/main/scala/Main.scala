@@ -63,7 +63,7 @@ val profileEndpoint = endpoint
     }
   }
 
-val reccomendationEndpoint = endpoint
+val reccomendationsEndpoint = endpoint
   .get
   .in("recommendations")
   .out(jsonBody[List[Recommendation]])
@@ -72,7 +72,7 @@ val reccomendationEndpoint = endpoint
 @main
 def main(): Unit = {
   NettySyncServer().port(8080)
-    .addEndpoint(reccomendationEndpoint)
+    .addEndpoint(reccomendationsEndpoint)
     .addEndpoint(profileEndpoint)
     .startAndWait()
 }
