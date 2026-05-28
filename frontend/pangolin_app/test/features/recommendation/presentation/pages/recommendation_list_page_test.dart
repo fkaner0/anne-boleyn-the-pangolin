@@ -5,8 +5,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/domain/recommendation.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 
-class MockRecommendationFetcher extends Mock
-    implements RecommendationFetcher {}
+class MockRecommendationFetcher extends Mock implements RecommendationFetcher {}
 
 void main() {
   late MockRecommendationFetcher mockFetcher;
@@ -42,9 +41,7 @@ void main() {
   });
 
   testWidgets('shows empty state', (tester) async {
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer(
-      (_) async => [],
-    );
+    when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -58,9 +55,9 @@ void main() {
   });
 
   testWidgets('shows error state', (tester) async {
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer(
-      (_) async => throw Exception('Fetch failed'),
-    );
+    when(
+      () => mockFetcher.fetchRecommendations(),
+    ).thenAnswer((_) async => throw Exception('Fetch failed'));
 
     await tester.pumpWidget(
       MaterialApp(
