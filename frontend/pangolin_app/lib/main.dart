@@ -10,7 +10,7 @@ void main() {
 class MyApp extends StatelessWidget {
   MyApp({super.key});
   final RecommendationFetcher recommendationFetcher =
-      MockRecommendationRepository();
+      MockRecommendationFetcher();
 
   @override
   Widget build(BuildContext context) {
