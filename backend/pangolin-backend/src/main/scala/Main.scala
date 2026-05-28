@@ -3,6 +3,13 @@ import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.*
 import upickle.default.*
+import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
+import sttp.tapir.server.netty.sync.NettySyncServerOptions
+import scala.concurrent.Future
+import sttp.tapir.server.interceptor.RequestInterceptor
+import sttp.model.headers.Origin
+import sttp.model.Method
+import scala.concurrent.duration.DurationInt
 
 case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String)
 object Recommendation {
@@ -67,11 +74,29 @@ val reccomendationsEndpoint = endpoint
   .get
   .in("recommendations")
   .out(jsonBody[List[Recommendation]])
-  .handleSuccess { _ => recommendations }
+  .handleSuccess { _ => 
+    { 
+      println("handling recommendation")
+      recommendations
+    }
+  }
+
+val nettyServerOptions: NettySyncServerOptions =
+  NettySyncServerOptions.customiseInterceptors
+    .corsInterceptor(CORSInterceptor.customOrThrow(
+    CORSConfig.default
+      .allowAllHeaders
+      .allowAllOrigins
+      .allowAllMethods
+      // .allowMethods(Method.GET)
+      // .allowHeaders()
+      // .allowCredentials
+      .maxAge(42.seconds) // TODO
+  )).options
 
 @main
 def main(): Unit = {
-  NettySyncServer().port(8080)
+  NettySyncServer(nettyServerOptions).port(8080)
     .addEndpoint(reccomendationsEndpoint)
     .addEndpoint(profileEndpoint)
     .startAndWait()
