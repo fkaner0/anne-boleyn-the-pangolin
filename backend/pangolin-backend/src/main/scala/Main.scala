@@ -74,14 +74,6 @@ object PangolinHttp4sServer extends IOApp {
     .get
     .in("profile" / path[Int]("userId"))
     .out(jsonBody[Profile])
-    .handle { userId =>
-      userId match {
-        case 0 => Right(tim)
-        case 1 => Right(sally)
-        case 2 => Right(selena)
-        case _ => Left(s"Unknown user ID $userId")
-      }
-    }
 
   val reccomendationsEndpoint: PublicEndpoint[Unit, Unit, List[Recommendation], Any] = endpoint
     .get
@@ -105,13 +97,24 @@ object PangolinHttp4sServer extends IOApp {
   val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
   val recommendationsRoutes: HttpRoutes[IO] =
-  serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(recommendations))))
+    serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(recommendations))))
+
+  val profileRoutes: HttpRoutes[IO] =
+    serverInterpreter.toRoutes(profileEndpoint.serverLogic { userId =>
+      userId match {
+        case 0 => IO(Right(tim))
+        case 1 => IO(Right(sally))
+        case 2 => IO(Right(selena))
+        case _ => IO(Left(s"Unknown user ID $userId"))
+      }
+    }
+  )
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
       .bindHttp(8080, "0.0.0.0")
-      .withHttpApp(Router("/" -> recommendationsRoutes).orNotFound)
+      .withHttpApp(Router("/" -> recommendationsRoutes, "/" -> profileRoutes).orNotFound)
       .resource
       .useForever
 }
