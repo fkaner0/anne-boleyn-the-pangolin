@@ -1,3 +1,4 @@
+import cats.effect.*
 import sttp.tapir.*
 import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.generic.auto.*
@@ -10,6 +11,10 @@ import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.model.headers.Origin
 import sttp.model.Method
 import scala.concurrent.duration.DurationInt
+import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
+import org.http4s.HttpRoutes
+
+import scala.concurrent.ExecutionContext
 
 case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String)
 object Recommendation {
@@ -57,47 +62,58 @@ val selena = Profile(
 val profiles = List(tim, sally, selena)
 val recommendations = profiles.map(Recommendation.fromProfile)
 
-val profileEndpoint = endpoint
-  .get
-  .in("profile" / path[Int]("userId"))
-  .out(jsonBody[Profile])
-  .handle { userId =>
-    userId match {
-      case 0 => Right(tim)
-      case 1 => Right(sally)
-      case 2 => Right(selena)
-      case _ => Left(s"Unknown user ID $userId")
+object PangolinHttp4sServer extends IOApp {
+
+  val profileEndpoint = endpoint
+    .get
+    .in("profile" / path[Int]("userId"))
+    .out(jsonBody[Profile])
+    .handle { userId =>
+      userId match {
+        case 0 => Right(tim)
+        case 1 => Right(sally)
+        case 2 => Right(selena)
+        case _ => Left(s"Unknown user ID $userId")
+      }
     }
+
+  val reccomendationsEndpoint = endpoint
+    .get
+    .in("recommendations")
+    .out(jsonBody[List[Recommendation]])
+    .handleSuccess { _ => 
+      { 
+        println("handling recommendation")
+        recommendations
+      }
+    }
+  
+  val recommendationsRoutes: HttpRoutes[IO] =
+    Http4sServerInterpreter[IO]().toRoutes(reccomendationsEndpoint.serverLogic(name => Right("AAaaa")))
+
+  // given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+
+  val http4sOptions: Http4sServerOptions[IO] =
+    Http4sServerOptions.customiseInterceptors
+      .corsInterceptor(CORSInterceptor.customOrThrow(
+      CORSConfig.default
+        .allowAllHeaders
+        .allowAllOrigins
+        .allowAllMethods
+        // .allowMethods(Method.GET)
+        // .allowHeaders()
+        // .allowCredentials
+        .maxAge(42.seconds) // TODO
+    )).options
+
+  @main
+  def main(): Unit = {
+    // NettySyncServer(nettyServerOptions).port(8080)
+    //   .addEndpoint(reccomendationsEndpoint)
+    //   .addEndpoint(profileEndpoint)
+    //   .startAndWait()
+
   }
 
-val reccomendationsEndpoint = endpoint
-  .get
-  .in("recommendations")
-  .out(jsonBody[List[Recommendation]])
-  .handleSuccess { _ => 
-    { 
-      println("handling recommendation")
-      recommendations
-    }
-  }
-
-val nettyServerOptions: NettySyncServerOptions =
-  NettySyncServerOptions.customiseInterceptors
-    .corsInterceptor(CORSInterceptor.customOrThrow(
-    CORSConfig.default
-      .allowAllHeaders
-      .allowAllOrigins
-      .allowAllMethods
-      // .allowMethods(Method.GET)
-      // .allowHeaders()
-      // .allowCredentials
-      .maxAge(42.seconds) // TODO
-  )).options
-
-@main
-def main(): Unit = {
-  NettySyncServer(nettyServerOptions).port(8080)
-    .addEndpoint(reccomendationsEndpoint)
-    .addEndpoint(profileEndpoint)
-    .startAndWait()
 }
+
