@@ -18,30 +18,30 @@ class MockProfileFetcher implements ProfileFetcher {
 
     return switch (userId) {
       0 => Profile(
-          userId: 0,
-          name: 'Tim Johnson',
-          location: 'Harrow, London',
-          bio: 'Budding watercolour artist, been enjoying painting ponds.',
-          profileImageUrl: placeholderProfile,
-          imageUrls: placeholderImages,
-        ),
+        userId: 0,
+        name: 'Tim Johnson',
+        location: 'Harrow, London',
+        bio: 'Budding watercolour artist, been enjoying painting ponds.',
+        profileImageUrl: placeholderProfile,
+        imageUrls: placeholderImages,
+      ),
       1 => Profile(
-          userId: 1,
-          name: 'Sally Parks',
-          location: 'Hammersmith, London',
-          bio:
-              'I love apples. I love still life. I love drawing apples in still life.',
-          profileImageUrl: placeholderProfile,
-          imageUrls: placeholderImages,
-        ),
+        userId: 1,
+        name: 'Sally Parks',
+        location: 'Hammersmith, London',
+        bio:
+            'I love apples. I love still life. I love drawing apples in still life.',
+        profileImageUrl: placeholderProfile,
+        imageUrls: placeholderImages,
+      ),
       2 => Profile(
-          userId: 2,
-          name: 'Selena Davis',
-          location: 'Richmond, London',
-          bio: 'Finger painting fanatic, check out my pangolin art.',
-          profileImageUrl: placeholderProfile,
-          imageUrls: placeholderImages,
-        ),
+        userId: 2,
+        name: 'Selena Davis',
+        location: 'Richmond, London',
+        bio: 'Finger painting fanatic, check out my pangolin art.',
+        profileImageUrl: placeholderProfile,
+        imageUrls: placeholderImages,
+      ),
       _ => throw Exception('No mock profile found for userId: $userId'),
     };
   }
