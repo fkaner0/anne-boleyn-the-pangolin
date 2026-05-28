@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
@@ -54,6 +55,15 @@ class RecommendationListPage extends StatelessWidget {
                 onReject: () {
                   debugPrint('Rejected ${recommendation.name}');
                 },
+                  onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => RecommendationProfilePage(
+                      recommendation: recommendation,
+                    ),
+                  ),
+                );
+              },
               );
             },
           );
