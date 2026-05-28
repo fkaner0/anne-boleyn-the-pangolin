@@ -22,51 +22,54 @@ import org.http4s.server.Router
 import sttp.client4.SyncBackend
 import sttp.client4.*
 
-case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String)
+case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String, rejected: Boolean)
 object Recommendation {
   given ReadWriter[Recommendation] = macroRW
 
   def fromProfile(profile: Profile): Recommendation = {
-    Recommendation(profile.userId, profile.name, profile.location, profile.bio, profile.profileImageUrl)
+    Recommendation(profile.userId, profile.name, profile.location, profile.bio, profile.profileImageUrl, profile.rejected)
   }
 }
 
-case class Profile(userId: Int, name: String, location: String, bio: String, profileImageUrl: String, imageUrls: List[String])
+case class Profile(userId: Int, name: String, location: String, bio: String, profileImageUrl: String, imageUrls: List[String], rejected: Boolean)
 object Profile {
   given ReadWriter[Profile] = macroRW
 }
 
 val defaultImageUrl = "https://via.placeholder.com/150"
 
-val tim = Profile(
+var tim = Profile(
   userId = 0,
   name = "Tim Johnson",
   location = "Hounslow, London",
   bio = "Budding watercolour artist, been enjoying painting ponds.",
   profileImageUrl = defaultImageUrl,
-  imageUrls = List(defaultImageUrl)
+  imageUrls = List(defaultImageUrl),
+  rejected = false,
 )
 
-val sally = Profile(
+var sally = Profile(
   userId = 1,
   name = "Sally Parks",
   location = "Hammersmith, London",
   bio = "I love apples. I love still life. I love drawing apples in still life.",
   profileImageUrl = defaultImageUrl,
-  imageUrls = List(defaultImageUrl, defaultImageUrl)
+  imageUrls = List(defaultImageUrl, defaultImageUrl),
+  rejected = false,
 )
 
-val selena = Profile(
+var selena = Profile(
   userId = 2,
   name = "Selena Davis",
   location = "Richmond, London",
   bio = "Finger painting fanatic, check out my pangolin art.",
   profileImageUrl = "https://via.placeholder.com/150",
-  imageUrls = List(defaultImageUrl, defaultImageUrl, defaultImageUrl)
+  imageUrls = List(defaultImageUrl, defaultImageUrl, defaultImageUrl),
+  rejected = false,
 )
 
-val profiles = List(tim, sally, selena)
-val recommendations = profiles.map(Recommendation.fromProfile)
+def profiles = List(tim, sally, selena)
+def recommendations = profiles.map(Recommendation.fromProfile).filter(!_.rejected)
 
 object PangolinHttp4sServer extends IOApp {
 
@@ -79,6 +82,11 @@ object PangolinHttp4sServer extends IOApp {
     .get
     .in("recommendations")
     .out(jsonBody[List[Recommendation]])
+
+  val rejectProfileEndpoint = endpoint
+    .put
+    .in("profile" / path[Int]("userId"))
+    .in(query[Boolean]("rejected"))
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -97,7 +105,7 @@ object PangolinHttp4sServer extends IOApp {
   val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
   val recommendationsRoutes: HttpRoutes[IO] =
-    serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(recommendations))))
+    serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(recommendations.filter(!_.rejected)))))
 
   val profileRoutes: HttpRoutes[IO] =
     serverInterpreter.toRoutes(profileEndpoint.serverLogic { userId =>
@@ -105,16 +113,36 @@ object PangolinHttp4sServer extends IOApp {
         case 0 => IO(Right(tim))
         case 1 => IO(Right(sally))
         case 2 => IO(Right(selena))
-        case _ => IO(Left(s"Unknown user ID $userId"))
+        case _ => IO(Left(()))
       }
     }
   )
+
+  val rejectProfileRoutes: HttpRoutes[IO] =
+    serverInterpreter.toRoutes(rejectProfileEndpoint.serverLogic { (userId, rejected) =>
+      userId match {
+        case 0 => {
+          tim = tim.copy(rejected = rejected)
+          IO(Right(()))
+        }
+        case 1 => {
+          sally = sally.copy(rejected = rejected)
+          IO(Right(()))
+        }
+        case 2 => {
+          selena = selena.copy(rejected = rejected)
+          IO(Right(()))
+        }
+        case _ => IO(Left(()))
+      }
+      }
+    )
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
       .bindHttp(8080, "0.0.0.0")
-      .withHttpApp(Router("/" -> recommendationsRoutes, "/" -> profileRoutes).orNotFound)
+      .withHttpApp(Router("/" -> recommendationsRoutes, "/" -> profileRoutes, "/" -> rejectProfileRoutes).orNotFound)
       .resource
       .useForever
 }
