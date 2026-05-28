@@ -22,7 +22,7 @@ class Profile {
       location: json['location'] as String,
       bio: json['bio'] as String,
       profileImageUrl: json['profileImageUrl'] as String,
-      imageUrls: json['imageUrls'] as List<String>,
+      imageUrls: (json['imageUrls'] as List<dynamic>).map((url) => url as String).toList(),
     );
   }
 }
