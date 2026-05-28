@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pangolin_app/features/recommendation/data/api_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_recommendation_fetcher.dart';
 import 'features/recommendation/presentation/pages/recommendation_list_page.dart';
