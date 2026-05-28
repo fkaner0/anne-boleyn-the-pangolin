@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import '../../data/recommendation_fetcher.dart';
@@ -7,10 +8,12 @@ import '../widgets/recommendation_list_item.dart';
 
 class RecommendationListPage extends StatelessWidget {
   final RecommendationFetcher recommendationFetcher;
+  final ProfileRejectionDecider profileRejectionDecider;
 
   const RecommendationListPage({
     super.key,
     required this.recommendationFetcher,
+    required this.profileRejectionDecider
   });
 
   @override
@@ -43,10 +46,10 @@ class RecommendationListPage extends StatelessWidget {
               return RecommendationListItem(
                 recommendation: recommendation,
                 onAccept: () {
-                  debugPrint('Accepted ${recommendation.name}');
+                  profileRejectionDecider.putProfileRejection(userId: recommendation.userId, rejected: false);
                 },
                 onReject: () {
-                  debugPrint('Rejected ${recommendation.name}');
+                  profileRejectionDecider.putProfileRejection(userId: recommendation.userId, rejected: true);
                 },
                 onTap: () {
                   Navigator.of(context).push(
