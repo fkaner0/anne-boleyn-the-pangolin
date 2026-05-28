@@ -43,6 +43,15 @@ class RecommendationListItem extends StatelessWidget {
                         width: 90,
                         height: 90,
                         fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: 90,
+                          height: 90,
+                          color: Colors.grey.shade300,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.person),
+                        );
+                        },
                       ),
                     ),
                     const SizedBox(width: 12),
