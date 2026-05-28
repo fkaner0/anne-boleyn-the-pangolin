@@ -120,7 +120,7 @@ object PangolinHttp4sServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
-      .bindHttp(8080, "localhost")
+      .bindHttp(8080, "0.0.0.0")
       .withHttpApp(Router("/" -> recommendationsRoutes).orNotFound)
       .resource
       .useForever
