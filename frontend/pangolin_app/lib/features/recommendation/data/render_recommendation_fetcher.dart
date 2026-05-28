@@ -4,7 +4,7 @@ import 'recommendation_fetcher.dart';
 
 class RenderRecommendationFetcher implements RecommendationFetcher {
   final ApiRecommendationFetcher _delegate = const ApiRecommendationFetcher(
-    host: 'anne-boleyn-the-pangolin.onrender.com',
+    host: 'anne-boleyn-the-pangolin.onrender-huqk.com',
   );
 
   @override
