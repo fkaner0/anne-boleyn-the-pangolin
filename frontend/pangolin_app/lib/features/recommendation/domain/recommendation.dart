@@ -19,7 +19,7 @@ class Recommendation {
       name: json['name'] as String,
       location: json['location'] as String,
       bio: json['bio'] as String,
-      imageUrl: json['imageUrl'] as String,
+      imageUrl: json['profileImageUrl'] as String,
     );
   }
 }
