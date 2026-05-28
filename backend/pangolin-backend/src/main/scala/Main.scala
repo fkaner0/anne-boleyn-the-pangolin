@@ -1,4 +1,5 @@
 import cats.effect.*
+import cats.syntax.all.*
 import sttp.tapir.*
 import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.generic.auto.*
@@ -14,7 +15,12 @@ import scala.concurrent.duration.DurationInt
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
 import org.http4s.HttpRoutes
 
+import sttp.client4.httpclient.HttpClientSyncBackend
 import scala.concurrent.ExecutionContext
+import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.server.Router
+import sttp.client4.SyncBackend
+import sttp.client4.*
 
 case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String)
 object Recommendation {
@@ -77,43 +83,60 @@ object PangolinHttp4sServer extends IOApp {
       }
     }
 
-  val reccomendationsEndpoint = endpoint
+  val reccomendationsEndpoint: PublicEndpoint[Unit, Unit, String, Any] = endpoint
     .get
     .in("recommendations")
-    .out(jsonBody[List[Recommendation]])
-    .handleSuccess { _ => 
-      { 
-        println("handling recommendation")
-        recommendations
-      }
-    }
+    .out(stringBody)
+    // .out(jsonBody[List[Recommendation]])
+    // .handleSuccess { _ => 
+    //   { 
+    //     println("handling recommendation")
+    //     recommendations
+    //   }
+    // }
   
   val recommendationsRoutes: HttpRoutes[IO] =
-    Http4sServerInterpreter[IO]().toRoutes(reccomendationsEndpoint.serverLogic(name => Right("AAaaa")))
+    Http4sServerInterpreter[IO]().toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(
+      "{}"
+    ))))
 
-  // given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val http4sOptions: Http4sServerOptions[IO] =
-    Http4sServerOptions.customiseInterceptors
-      .corsInterceptor(CORSInterceptor.customOrThrow(
-      CORSConfig.default
-        .allowAllHeaders
-        .allowAllOrigins
-        .allowAllMethods
-        // .allowMethods(Method.GET)
-        // .allowHeaders()
-        // .allowCredentials
-        .maxAge(42.seconds) // TODO
-    )).options
+  // val http4sOptions: Http4sServerOptions[IO] =
+  //   Http4sServerOptions.customiseInterceptors
+  //     .corsInterceptor(CORSInterceptor.customOrThrow(
+  //     CORSConfig.default
+  //       .allowAllHeaders
+  //       .allowAllOrigins
+  //       .allowAllMethods
+  //       // .allowMethods(Method.GET)
+  //       // .allowHeaders()
+  //       // .allowCredentials
+  //       .maxAge(42.seconds) // TODO
+  //   )).options
 
-  @main
-  def main(): Unit = {
-    // NettySyncServer(nettyServerOptions).port(8080)
-    //   .addEndpoint(reccomendationsEndpoint)
-    //   .addEndpoint(profileEndpoint)
-    //   .startAndWait()
+  // @main
+  // def main(): Unit = {
+  //   // NettySyncServer(nettyServerOptions).port(8080)
+  //   //   .addEndpoint(reccomendationsEndpoint)
+  //   //   .addEndpoint(profileEndpoint)
+  //   //   .startAndWait()
 
-  }
+  // }
 
+  override def run(args: List[String]): IO[ExitCode] =
+    BlazeServerBuilder[IO]
+      .withExecutionContext(ec)
+      .bindHttp(8080, "localhost")
+      .withHttpApp(Router("/" -> recommendationsRoutes).orNotFound)
+      .resource
+      .use { _ =>
+        IO {
+          val backend: SyncBackend = HttpClientSyncBackend()
+          val result: String = basicRequest.response(asStringAlways).get(uri"http://localhost:8080/hello?name=Frodo").send(backend).body
+          println("Got result: " + result)
+          assert(result == "Hello, Frodo!")
+        }
+      }
+      .as(ExitCode.Success)
 }
-

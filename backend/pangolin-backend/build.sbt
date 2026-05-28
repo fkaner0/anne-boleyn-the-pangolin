@@ -17,4 +17,5 @@ lazy val root = project
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.3",
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.0" % Test,
     libraryDependencies += "org.http4s" %% "http4s-blaze-server" % "0.23.16",
+    libraryDependencies += "com.softwaremill.sttp.client4" %% "core" % "4.0.0-RC3"
   )
