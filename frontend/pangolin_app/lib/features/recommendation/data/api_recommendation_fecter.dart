@@ -9,10 +9,7 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
   final String host;
   final int port;
 
-  const ApiRecommendationFetcher({
-    this.host = 'localhost',
-    required this.port,
-  });
+  const ApiRecommendationFetcher({this.host = 'localhost', required this.port});
 
   @override
   Future<List<Recommendation>> fetchRecommendations() async {
@@ -33,11 +30,7 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
     }
 
     return decoded
-        .map(
-          (item) => Recommendation.fromJson(
-            item as Map<String, dynamic>,
-          ),
-        )
+        .map((item) => Recommendation.fromJson(item as Map<String, dynamic>))
         .toList();
   }
 }

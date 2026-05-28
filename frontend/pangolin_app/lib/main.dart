@@ -9,13 +9,16 @@ void main() {
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-  final RecommendationFetcher recommendationFetcher = MockRecommendationRepository();
+  final RecommendationFetcher recommendationFetcher =
+      MockRecommendationRepository();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pangolin App',
-      home: RecommendationListPage(recommendationFetcher: recommendationFetcher),
+      home: RecommendationListPage(
+        recommendationFetcher: recommendationFetcher,
+      ),
     );
   }
 }

@@ -19,7 +19,8 @@ class MockRecommendationRepository implements RecommendationFetcher {
         userId: 1,
         name: 'Sally Parks',
         location: 'Hammersmith, London',
-        bio: 'I love apples. I love still life. I love drawing apples in still life.',
+        bio:
+            'I love apples. I love still life. I love drawing apples in still life.',
         imageUrl: 'https://via.placeholder.com/150',
       ),
       Recommendation(

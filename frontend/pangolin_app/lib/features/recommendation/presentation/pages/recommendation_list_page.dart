@@ -15,30 +15,22 @@ class RecommendationListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recommendations'),
-      ),
+      appBar: AppBar(title: const Text('Recommendations')),
       body: FutureBuilder<List<Recommendation>>(
         future: recommendationFetcher.fetchRecommendations(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           final recommendations = snapshot.data ?? [];
 
           if (recommendations.isEmpty) {
-            return const Center(
-              child: Text('No recommendations available'),
-            );
+            return const Center(child: Text('No recommendations available'));
           }
 
           return ListView.builder(
@@ -55,15 +47,15 @@ class RecommendationListPage extends StatelessWidget {
                 onReject: () {
                   debugPrint('Rejected ${recommendation.name}');
                 },
-                  onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => RecommendationProfilePage(
-                      recommendation: recommendation,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => RecommendationProfilePage(
+                        recommendation: recommendation,
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
               );
             },
           );
