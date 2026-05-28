@@ -4,7 +4,7 @@ import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 
 class RenderProfileFetcher implements ProfileFetcher {
   final ApiProfileFetcher _delegate = const ApiProfileFetcher(
-    host: 'anne-boleyn-the-pangolin.onrender.com',
+    host: 'anne-boleyn-the-pangolin-huqk.onrender.com',
   );
 
   @override
