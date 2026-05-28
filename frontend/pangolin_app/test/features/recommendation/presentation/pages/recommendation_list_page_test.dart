@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:pangolin_app/features/recommendation/data/mock_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/recommendation.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
@@ -9,9 +10,11 @@ class MockRecommendationFetcher extends Mock implements RecommendationFetcher {}
 
 void main() {
   late MockRecommendationFetcher mockFetcher;
+  late MockProfileRejectionDecider mockProfileRejectionDecider;
 
   setUp(() {
     mockFetcher = MockRecommendationFetcher();
+    mockProfileRejectionDecider = MockProfileRejectionDecider();
   });
 
   testWidgets('shows fetched recommendations', (tester) async {
@@ -29,7 +32,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: RecommendationListPage(recommendationFetcher: mockFetcher),
+        home: RecommendationListPage(
+          recommendationFetcher: mockFetcher,
+          profileRejectionDecider: mockProfileRejectionDecider,
+        ),
       ),
     );
 
@@ -45,7 +51,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: RecommendationListPage(recommendationFetcher: mockFetcher),
+        home: RecommendationListPage(
+          recommendationFetcher: mockFetcher,
+          profileRejectionDecider: mockProfileRejectionDecider,
+        ),
       ),
     );
 
@@ -61,7 +70,10 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: RecommendationListPage(recommendationFetcher: mockFetcher),
+        home: RecommendationListPage(
+          recommendationFetcher: mockFetcher,
+          profileRejectionDecider: mockProfileRejectionDecider,
+        ),
       ),
     );
 

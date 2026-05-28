@@ -13,7 +13,7 @@ class RecommendationListPage extends StatelessWidget {
   const RecommendationListPage({
     super.key,
     required this.recommendationFetcher,
-    required this.profileRejectionDecider
+    required this.profileRejectionDecider,
   });
 
   @override
@@ -46,10 +46,16 @@ class RecommendationListPage extends StatelessWidget {
               return RecommendationListItem(
                 recommendation: recommendation,
                 onAccept: () {
-                  profileRejectionDecider.putProfileRejection(userId: recommendation.userId, rejected: false);
+                  profileRejectionDecider.putProfileRejection(
+                    userId: recommendation.userId,
+                    rejected: false,
+                  );
                 },
                 onReject: () {
-                  profileRejectionDecider.putProfileRejection(userId: recommendation.userId, rejected: true);
+                  profileRejectionDecider.putProfileRejection(
+                    userId: recommendation.userId,
+                    rejected: true,
+                  );
                 },
                 onTap: () {
                   Navigator.of(context).push(
