@@ -90,37 +90,22 @@ object PangolinHttp4sServer extends IOApp {
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  val http4sOptions: Http4sServerOptions[IO] =
-    Http4sServerOptions.customiseInterceptors[IO]
-      .corsInterceptor(CORSInterceptor.customOrThrow(
-      CORSConfig.default
-        .allowAllHeaders
-        .allowAllOrigins
-        .allowAllMethods
-        // .allowMethods(Method.GET)
-        // .allowHeaders()
-        // .allowCredentials
-        .maxAge(42.seconds) // TODO
-    )).options
+  val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
+    .customiseInterceptors[IO]
+    .corsInterceptor(
+      CORSInterceptor.customOrThrow(
+        CORSConfig.default
+          .allowAllHeaders
+          .allowAllOrigins
+          .allowAllMethods
+          .maxAge(42.seconds) // TODO
+        )
+      ).options
 
   val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
-  val x = serverInterpreter.http4sServerOptions._1
-
-  val y = http4sOptions._1
 
   val recommendationsRoutes: HttpRoutes[IO] =
-  serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(
-    recommendations
-  ))))
-
-  // @main
-  // def main(): Unit = {
-  //   // NettySyncServer(nettyServerOptions).port(8080)
-  //   //   .addEndpoint(reccomendationsEndpoint)
-  //   //   .addEndpoint(profileEndpoint)
-  //   //   .startAndWait()
-
-  // }
+  serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(recommendations))))
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
