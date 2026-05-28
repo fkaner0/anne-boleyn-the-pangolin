@@ -2,7 +2,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 
 import '../domain/recommendation.dart';
 
-class MockRecommendationRepository implements RecommendationFetcher {
+class MockRecommendationFetcher implements RecommendationFetcher {
   @override
   Future<List<Recommendation>> fetchRecommendations() async {
     await Future.delayed(const Duration(milliseconds: 500));

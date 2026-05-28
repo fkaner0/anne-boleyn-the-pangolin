@@ -17,5 +17,20 @@ lazy val root = project
     libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.3",
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.0" % Test,
     libraryDependencies += "org.http4s" %% "http4s-blaze-server" % "0.23.16",
-    libraryDependencies += "com.softwaremill.sttp.client4" %% "core" % "4.0.0-RC3"
+    libraryDependencies += "com.softwaremill.sttp.client4" %% "core" % "4.0.0-RC3",
+
+    assembly / assemblyJarName := "app.jar",
+
+    assembly / assemblyMergeStrategy := {
+      case PathList("module-info.class") =>
+        MergeStrategy.discard
+      case PathList("META-INF", "versions", "11", "module-info.class") =>
+        MergeStrategy.discard
+      case PathList("META-INF", "io.netty.versions.properties") =>
+        MergeStrategy.first
+      case PathList("META-INF", xs @ _*) =>
+        MergeStrategy.discard
+      case _ =>
+        MergeStrategy.first
+    }
   )

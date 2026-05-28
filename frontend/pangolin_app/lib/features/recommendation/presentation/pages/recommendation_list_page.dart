@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
@@ -51,7 +52,8 @@ class RecommendationListPage extends StatelessWidget {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(
-                        recommendation: recommendation,
+                        profileFetcher: MockProfileFetcher(),
+                        userId: recommendation.userId,
                       ),
                     ),
                   );
