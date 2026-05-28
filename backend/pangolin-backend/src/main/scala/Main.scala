@@ -95,18 +95,20 @@ object PangolinHttp4sServer extends IOApp {
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  // val http4sOptions: Http4sServerOptions[IO] =
-  //   Http4sServerOptions.customiseInterceptors
-  //     .corsInterceptor(CORSInterceptor.customOrThrow(
-  //     CORSConfig.default
-  //       .allowAllHeaders
-  //       .allowAllOrigins
-  //       .allowAllMethods
-  //       // .allowMethods(Method.GET)
-  //       // .allowHeaders()
-  //       // .allowCredentials
-  //       .maxAge(42.seconds) // TODO
-  //   )).options
+  val http4sOptions: Http4sServerOptions[IO] =
+    Http4sServerOptions.customiseInterceptors[IO]
+      .corsInterceptor(CORSInterceptor.customOrThrow(
+      CORSConfig.default
+        .allowAllHeaders
+        .allowAllOrigins
+        .allowAllMethods
+        // .allowMethods(Method.GET)
+        // .allowHeaders()
+        // .allowCredentials
+        .maxAge(42.seconds) // TODO
+    )).options
+
+  val http4sServerInterpreter: Http4sServerInterpreter[IO] = Http4sServerInterpreter(http4sOptions)
 
   // @main
   // def main(): Unit = {
@@ -120,7 +122,7 @@ object PangolinHttp4sServer extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
-      .bindHttp(8080, "localhost")
+      .bindHttp(8080, "0.0.0.0")
       .withHttpApp(Router("/" -> recommendationsRoutes).orNotFound)
       .resource
       .useForever
