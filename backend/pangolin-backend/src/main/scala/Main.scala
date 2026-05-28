@@ -83,21 +83,14 @@ object PangolinHttp4sServer extends IOApp {
       }
     }
 
-  val reccomendationsEndpoint: PublicEndpoint[Unit, Unit, String, Any] = endpoint
+  val reccomendationsEndpoint: PublicEndpoint[Unit, Unit, List[Recommendation], Any] = endpoint
     .get
     .in("recommendations")
-    .out(stringBody)
-    // .out(jsonBody[List[Recommendation]])
-    // .handleSuccess { _ => 
-    //   { 
-    //     println("handling recommendation")
-    //     recommendations
-    //   }
-    // }
+    .out(jsonBody[List[Recommendation]])
   
   val recommendationsRoutes: HttpRoutes[IO] =
     Http4sServerInterpreter[IO]().toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(
-      "{}"
+      recommendations
     ))))
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -130,13 +123,5 @@ object PangolinHttp4sServer extends IOApp {
       .bindHttp(8080, "localhost")
       .withHttpApp(Router("/" -> recommendationsRoutes).orNotFound)
       .resource
-      .use { _ =>
-        IO {
-          val backend: SyncBackend = HttpClientSyncBackend()
-          val result: String = basicRequest.response(asStringAlways).get(uri"http://localhost:8080/hello?name=Frodo").send(backend).body
-          println("Got result: " + result)
-          assert(result == "Hello, Frodo!")
-        }
-      }
-      .as(ExitCode.Success)
+      .useForever
 }
