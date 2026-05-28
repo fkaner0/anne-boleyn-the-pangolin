@@ -7,13 +7,19 @@ import 'recommendation_fetcher.dart';
 
 class ApiRecommendationFetcher implements RecommendationFetcher {
   final String host;
-  final int port;
+  final int? port;
 
-  const ApiRecommendationFetcher({this.host = 'localhost', required this.port});
+  const ApiRecommendationFetcher({this.host = 'localhost', this.port});
 
   @override
   Future<List<Recommendation>> fetchRecommendations() async {
-    final uri = Uri.http('$host:$port', '/recommendations');
+    String baseUrl;
+    if (port == null) {
+      baseUrl = host;
+    } else {
+      baseUrl = '$host:$port';
+    }
+    final uri = Uri.https(baseUrl, '/recommendations');
 
     final response = await http.get(uri);
 
