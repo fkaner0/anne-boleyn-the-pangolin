@@ -8,5 +8,5 @@ lazy val root = project
 
     scalaVersion := scala3Version,
 
-    libraryDependencies += "org.scalameta" %% "munit" % "1.3.0" % Test
+    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.13.19"
   )
