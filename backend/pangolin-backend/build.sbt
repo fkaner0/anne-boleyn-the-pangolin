@@ -10,9 +10,9 @@ lazy val root = project
 
     cancelable in Global := true,
 
-    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.13.19",
-    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.13.19",
-    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-json-upickle" % "1.13.19",
-    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.3",
+    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.13.19" % "provided",
+    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.13.19" % "provided",
+    libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-json-upickle" % "1.13.19" % "provided",
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "4.4.3" % "provided",
     libraryDependencies += "org.scalameta" %% "munit" % "1.3.0" % Test
   )
