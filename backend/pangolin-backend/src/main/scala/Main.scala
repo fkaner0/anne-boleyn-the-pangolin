@@ -87,11 +87,6 @@ object PangolinHttp4sServer extends IOApp {
     .get
     .in("recommendations")
     .out(jsonBody[List[Recommendation]])
-  
-  val recommendationsRoutes: HttpRoutes[IO] =
-    Http4sServerInterpreter[IO]().toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(
-      recommendations
-    ))))
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -108,7 +103,15 @@ object PangolinHttp4sServer extends IOApp {
         .maxAge(42.seconds) // TODO
     )).options
 
-  val http4sServerInterpreter: Http4sServerInterpreter[IO] = Http4sServerInterpreter(http4sOptions)
+  val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
+  val x = serverInterpreter.http4sServerOptions._1
+
+  val y = http4sOptions._1
+
+  val recommendationsRoutes: HttpRoutes[IO] =
+  serverInterpreter.toRoutes(reccomendationsEndpoint.serverLogic(name => IO(Right(
+    recommendations
+  ))))
 
   // @main
   // def main(): Unit = {
