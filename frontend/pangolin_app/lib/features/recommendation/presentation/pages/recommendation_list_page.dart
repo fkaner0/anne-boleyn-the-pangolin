@@ -33,8 +33,8 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
 
   Future<void> _loadRecommendations() async {
     try {
-      final recommendations =
-          await widget.recommendationFetcher.fetchRecommendations();
+      final recommendations = await widget.recommendationFetcher
+          .fetchRecommendations();
 
       setState(() {
         _recommendations = recommendations;
@@ -68,9 +68,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update profile decision: $e'),
-        ),
+        SnackBar(content: Text('Failed to update profile decision: $e')),
       );
     }
   }
@@ -78,27 +76,19 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Recommendations'),
-      ),
+      appBar: AppBar(title: const Text('Recommendations')),
       body: Builder(
         builder: (context) {
           if (_isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (_errorMessage != null) {
-            return Center(
-              child: Text(_errorMessage!),
-            );
+            return Center(child: Text(_errorMessage!));
           }
 
           if (_recommendations.isEmpty) {
-            return const Center(
-              child: Text('No recommendations available'),
-            );
+            return const Center(child: Text('No recommendations available'));
           }
 
           return ListView.builder(
