@@ -7,14 +7,14 @@ import 'recommendation_fetcher.dart';
 
 class ApiRecommendationFetcher implements RecommendationFetcher {
   final String host;
-  final int port;
+  final int? port;
 
-  const ApiRecommendationFetcher({this.host = 'localhost', this.port = -1});
+  const ApiRecommendationFetcher({this.host = 'localhost', this.port});
 
   @override
   Future<List<Recommendation>> fetchRecommendations() async {
     String baseUrl;
-    if (port == -1) {
+    if (port == null) {
       baseUrl = host;
     } else {
       baseUrl = '$host:$port';
