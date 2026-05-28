@@ -8,6 +8,8 @@ lazy val root = project
 
     scalaVersion := scala3Version,
 
+    cancelable in Global := true,
+
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-core" % "1.13.19",
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-netty-server-sync" % "1.13.19",
     libraryDependencies += "com.softwaremill.sttp.tapir" %% "tapir-json-upickle" % "1.13.19",
