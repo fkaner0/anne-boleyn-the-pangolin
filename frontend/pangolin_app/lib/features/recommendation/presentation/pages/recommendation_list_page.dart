@@ -76,7 +76,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Your Recommendations')),
+      appBar: AppBar(title: const Text('Your recommendations')),
       body: Builder(
         builder: (context) {
           if (_isLoading) {
