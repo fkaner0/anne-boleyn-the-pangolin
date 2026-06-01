@@ -33,9 +33,7 @@ class RecommendationListItem extends StatelessWidget {
             child: InkWell(
               onTap: onTap,
               borderRadius: BorderRadius.circular(8),
-              child: InfoBox(
-                recommendation: recommendation,
-              ),
+              child: InfoBox(recommendation: recommendation),
             ),
           ),
           const SizedBox(width: 12),

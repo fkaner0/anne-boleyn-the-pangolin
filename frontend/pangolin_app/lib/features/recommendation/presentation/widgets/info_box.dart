@@ -4,10 +4,7 @@ import '../../domain/recommendation.dart';
 class InfoBox extends StatelessWidget {
   final Recommendation recommendation;
 
-  const InfoBox({
-    super.key,
-    required this.recommendation,
-  });
+  const InfoBox({super.key, required this.recommendation});
 
   @override
   Widget build(BuildContext context) {
