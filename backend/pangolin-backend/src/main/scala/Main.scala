@@ -22,6 +22,11 @@ import org.http4s.server.Router
 import sttp.client4.SyncBackend
 import sttp.client4.*
 
+import org.postgresql.ds.PGSimpleDataSource
+import org.postgresql.xa.PGXADataSource
+
+import com.augustnagro.magnum.*
+
 case class Recommendation(userId: Int, name: String, location: String, bio: String, profileImageUrl: String, rejected: Boolean)
 object Recommendation {
   given ReadWriter[Recommendation] = macroRW
@@ -35,6 +40,18 @@ case class Profile(userId: Int, name: String, location: String, bio: String, pro
 object Profile {
   given ReadWriter[Profile] = macroRW
 }
+
+val dataSource: javax.sql.DataSource = {
+  val ds = PGSimpleDataSource()
+  ds.setDatabaseName("pangolindb")
+  ds.setUser("pangolindbuser")
+  ds.setPassword(sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt")))
+  ds.setPortNumber(5432)
+  ds.setUrl("jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com")
+  ds
+}
+
+val transactor = Transactor(dataSource)
 
 val defaultImageUrl = "https://via.placeholder.com/150"
 
@@ -68,7 +85,7 @@ var selena = Profile(
   rejected = false,
 )
 
-def profiles = List(tim, sally, selena)
+def profiles = Vector(tim, sally, selena)
 def recommendations = profiles.map(Recommendation.fromProfile).filter(!_.rejected)
 
 object PangolinHttp4sServer extends IOApp {
@@ -78,10 +95,10 @@ object PangolinHttp4sServer extends IOApp {
     .in("profile" / path[Int]("userId"))
     .out(jsonBody[Profile])
 
-  val reccomendationsEndpoint: PublicEndpoint[Unit, Unit, List[Recommendation], Any] = endpoint
+  val reccomendationsEndpoint = endpoint
     .get
     .in("recommendations")
-    .out(jsonBody[List[Recommendation]])
+    .out(jsonBody[Vector[Recommendation]])
 
   val rejectProfileEndpoint = endpoint
     .put
