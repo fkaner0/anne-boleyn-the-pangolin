@@ -1,13 +1,10 @@
 import cats.effect.*
 import cats.syntax.all.*
 import sttp.tapir.*
-import sttp.tapir.server.netty.sync.NettySyncServer
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.*
 import upickle.default.*
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
-import sttp.tapir.server.netty.sync.NettySyncServerOptions
-import scala.concurrent.Future
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.model.headers.Origin
 import sttp.model.Method
@@ -23,7 +20,6 @@ import sttp.client4.SyncBackend
 import sttp.client4.*
 
 import org.postgresql.ds.PGSimpleDataSource
-import org.postgresql.xa.PGXADataSource
 
 import com.augustnagro.magnum.*
 
@@ -39,37 +35,87 @@ object Recommendation {
   given ReadWriter[Recommendation] = macroRW
 }
 
-case class Image(
+case class ProfileImageCreator(
     url: String,
     x: Int,
     y: Int,
     rotation: Int,
-)
-object Image {
-  given ReadWriter[Image] = macroRW
+) derives DbCodec
+
+@Table(PostgresDbType, SqlNameMapper.SameCase)
+case class ProfileImage(
+    @Id id: Int,
+    userId: Int,
+    url: String,
+    x: Int,
+    y: Int,
+    rotation: Int,
+) derives DbCodec
+
+object ProfileImage {
+  given ReadWriter[ProfileImage] = macroRW
+  val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
 }
 
-case class TextBox(
+val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
+
+case class ProfileTextBoxCreator(
     title: String,
     body: String,
     x: Int,
     y: Int,
     rotation: Int,
-)
-object TextBox {
-  given ReadWriter[TextBox] = macroRW
+) derives DbCodec
+
+@Table(PostgresDbType, SqlNameMapper.SameCase)
+case class ProfileTextBox(
+    @Id id: Int,
+    userId: Int,
+    title: String,
+    body: String,
+    x: Int,
+    y: Int,
+    rotation: Int,
+) derives DbCodec
+
+object ProfileTextBox {
+  given ReadWriter[ProfileTextBox] = macroRW
+  val Table = TableInfo[ProfileTextBoxCreator, ProfileTextBox, Int]
 }
 
+val profileTextBoxRepo = Repo[ProfileTextBoxCreator, ProfileTextBox, Int]
+
+case class ProfileCreator(
+    name: String,
+    location: String,
+    profileImageUrl: String,
+) derives DbCodec
+
+@Table(PostgresDbType, SqlNameMapper.SameCase)
 case class Profile(
+    @Id id: Int,
+    name: String,
+    location: String,
+    profileImageUrl: String,
+) derives DbCodec
+
+object Profile {
+  val Table = TableInfo[ProfileCreator, Profile, Int]
+}
+
+val profileRepo = Repo[ProfileCreator, Profile, Int]
+
+case class FullProfile(
     userId: Int,
     name: String,
     location: String,
     profileImageUrl: String,
-    images: Vector[Image],
-    textBoxes: Vector[TextBox],
+    images: Vector[ProfileImage],
+    textBoxes: Vector[ProfileTextBox],
 )
-object Profile {
-  given ReadWriter[Profile] = macroRW
+
+object FullProfile {
+  given ReadWriter[FullProfile] = macroRW
 }
 
 val dataSource: javax.sql.DataSource = {
@@ -94,7 +140,7 @@ object PangolinHttp4sServer extends IOApp {
 
   val profileEndpoint = endpoint.get
     .in("profile" / path[Int]("userId"))
-    .out(jsonBody[Profile])
+    .out(jsonBody[FullProfile])
 
   val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -119,22 +165,46 @@ object PangolinHttp4sServer extends IOApp {
 
   val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
-  val recommendationsRoutes: HttpRoutes[IO] =
-    serverInterpreter.toRoutes(
-      reccomendationsEndpoint.serverLogic(name =>
-        ???
-      ),
-    )
-
-  val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(profileEndpoint.serverLogic { userId =>
-      ???
-    }
+  val recommendationsRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    reccomendationsEndpoint.serverLogic { _ => ??? },
   )
 
-  val rejectProfileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(rejectProfileEndpoint.serverLogic {
-      (userId, rejected) =>
-        ???
-    }
+  private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
+    .where(sql"${ProfileImage.Table.userId} = $userId")
+
+  private def profileTextBoxesSpec(userId: Int) = Spec[ProfileTextBox]
+    .where(sql"${ProfileTextBox.Table.userId} = $userId")
+
+  val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    profileEndpoint.serverLogic { userId =>
+      transact(dataSource) {
+        val result =
+          profileRepo
+            .findById(userId)
+            .toRight(())
+            .map {
+              case Profile(userId, name, location, profileImageUrl) =>
+                val images = profileImageRepo.findAll(profileImagesSpec(userId))
+                val textBoxes =
+                  profileTextBoxRepo.findAll(profileTextBoxesSpec(userId))
+                FullProfile(
+                  userId = userId,
+                  name = name,
+                  location = location,
+                  profileImageUrl = profileImageUrl,
+                  images = images,
+                  textBoxes = textBoxes,
+                )
+            }
+        IO(result)
+      }
+    },
+  )
+
+  val rejectProfileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    rejectProfileEndpoint.serverLogic { (userId, rejected) =>
+      ???
+    },
   )
 
   override def run(args: List[String]): IO[ExitCode] =
