@@ -1,17 +1,10 @@
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
-
-import '../domain/profile.dart';
+import 'package:pangolin_app/features/recommendation/domain/position.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 class MockProfileFetcher implements ProfileFetcher {
-  final String placeholderProfile = 'https://via.placeholder.com/150';
-
-  final List<String> placeholderImages = [
-    'https://via.placeholder.com/150',
-    'https://via.placeholder.com/150',
-    'https://via.placeholder.com/150',
-    'https://via.placeholder.com/150',
-  ];
-
   @override
   Future<Profile> fetchProfile(int userId) async {
     await Future.delayed(const Duration(milliseconds: 500));
@@ -21,28 +14,100 @@ class MockProfileFetcher implements ProfileFetcher {
         userId: 0,
         name: 'Tim Johnson',
         location: 'Harrow, London',
-        bio: 'Budding watercolour artist, been enjoying painting ponds.',
-        profileImageUrl: placeholderProfile,
-        imageUrls: placeholderImages,
+        images: [
+          _image('Tim+1', 40, 40, -8),
+          _image('Tim+2', 250, 90, 6),
+          _image('Tim+3', 110, 260, -3),
+        ],
+        textboxes: [
+          _textbox(
+            'About my work',
+            'Budding watercolour artist, been enjoying painting ponds.',
+            420,
+            60,
+            2,
+          ),
+          _textbox(
+            'Current focus',
+            'Trying to capture reflections and soft greens in nature.',
+            360,
+            250,
+            -4,
+          ),
+        ],
       ),
+
       1 => Profile(
         userId: 1,
         name: 'Sally Parks',
         location: 'Hammersmith, London',
-        bio:
+        images: [
+          _image('Sally+1', 60, 70, -5),
+          _image('Sally+2', 290, 50, 8),
+          _image('Sally+3', 180, 260, -2),
+          _image('Sally+4', 460, 220, 5),
+        ],
+        textboxes: [
+          _textbox(
+            'Still life obsession',
             'I love apples. I love still life. I love drawing apples in still life.',
-        profileImageUrl: placeholderProfile,
-        imageUrls: placeholderImages,
+            500,
+            40,
+            -3,
+          ),
+          _textbox(
+            'Favourite subjects',
+            'Fruit bowls, table cloth folds, and afternoon window light.',
+            390,
+            340,
+            4,
+          ),
+        ],
       ),
+
       2 => Profile(
         userId: 2,
         name: 'Selena Davis',
         location: 'Richmond, London',
-        bio: 'Finger painting fanatic, check out my pangolin art.',
-        profileImageUrl: placeholderProfile,
-        imageUrls: placeholderImages,
+        images: [
+          _image('Selena+1', 50, 40, 7),
+          _image('Selena+2', 240, 130, -6),
+          _image('Selena+3', 430, 70, 3),
+        ],
+        textboxes: [
+          _textbox(
+            'Pangolin series',
+            'Finger painting fanatic, check out my pangolin art.',
+            390,
+            250,
+            -5,
+          ),
+          _textbox(
+            'Materials',
+            'Mostly poster paint, fingers, cardboard, and lots of mess.',
+            110,
+            320,
+            3,
+          ),
+        ],
       ),
+
       _ => throw Exception('No mock profile found for userId: $userId'),
     };
+  }
+
+  ProfileImage _image(String label, int x, int y, int rotation) {
+    return ProfileImage(
+      url: 'https://via.placeholder.com/300?text=$label',
+      position: Position(x: x, y: y, rotation: rotation),
+    );
+  }
+
+  ProfileText _textbox(String title, String body, int x, int y, int rotation) {
+    return ProfileText(
+      title: title,
+      body: body,
+      position: Position(x: x, y: y, rotation: rotation),
+    );
   }
 }
