@@ -44,12 +44,12 @@ abstract class BedroomWallInteractiveBase extends StatelessWidget {
                 ),
               ],
         ),
-        clipBehavior: Clip.antiAlias,
+        clipBehavior: Clip.none,
         child: Stack(
           children: [
             buildInner(context),
             Positioned(
-              left: 8,
+              right: 8,
               bottom: 8,
               child: Container(
                 decoration: const BoxDecoration(

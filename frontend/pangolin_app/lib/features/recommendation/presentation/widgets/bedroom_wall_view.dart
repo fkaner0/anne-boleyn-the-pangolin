@@ -28,6 +28,7 @@ class BedroomWallView extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           for (final image in profile.images)
             BedroomWallImageItem(image: image, onTap: () => onImageTap(image)),

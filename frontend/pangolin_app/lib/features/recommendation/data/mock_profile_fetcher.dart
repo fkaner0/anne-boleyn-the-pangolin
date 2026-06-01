@@ -99,7 +99,13 @@ class MockProfileFetcher implements ProfileFetcher {
   ProfileImage _image(String label, int x, int y, int rotation) {
     return ProfileImage(
       url: 'https://via.placeholder.com/300?text=$label',
-      position: Position(x: x, y: y, rotation: rotation),
+      position: Position(
+        x: x,
+        y: y,
+        rotation: rotation,
+        aspectRatio: 1.0,
+        scale: 1.0,
+      ),
     );
   }
 
@@ -107,7 +113,13 @@ class MockProfileFetcher implements ProfileFetcher {
     return ProfileText(
       title: title,
       body: body,
-      position: Position(x: x, y: y, rotation: rotation),
+      position: Position(
+        x: x,
+        y: y,
+        rotation: rotation,
+        aspectRatio: 1.0,
+        scale: 1.0,
+      ),
     );
   }
 }
