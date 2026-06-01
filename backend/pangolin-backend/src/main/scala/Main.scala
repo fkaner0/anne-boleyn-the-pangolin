@@ -33,31 +33,40 @@ case class Recommendation(
     location: String,
     bio: String,
     profileImageUrl: String,
-    rejected: Boolean
+    rejected: Boolean,
 )
 object Recommendation {
   given ReadWriter[Recommendation] = macroRW
+}
 
-  def fromProfile(profile: Profile): Recommendation = {
-    Recommendation(
-      profile.userId,
-      profile.name,
-      profile.location,
-      profile.bio,
-      profile.profileImageUrl,
-      profile.rejected
-    )
-  }
+case class Image(
+    url: String,
+    x: Int,
+    y: Int,
+    rotation: Int,
+)
+object Image {
+  given ReadWriter[Image] = macroRW
+}
+
+case class TextBox(
+    title: String,
+    body: String,
+    x: Int,
+    y: Int,
+    rotation: Int,
+)
+object TextBox {
+  given ReadWriter[TextBox] = macroRW
 }
 
 case class Profile(
     userId: Int,
     name: String,
     location: String,
-    bio: String,
     profileImageUrl: String,
-    imageUrls: List[String],
-    rejected: Boolean
+    images: Vector[Image],
+    textBoxes: Vector[TextBox],
 )
 object Profile {
   given ReadWriter[Profile] = macroRW
@@ -68,11 +77,11 @@ val dataSource: javax.sql.DataSource = {
   ds.setDatabaseName("pangolindb")
   ds.setUser("pangolindbuser")
   ds.setPassword(
-    sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt"))
+    sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt")),
   )
   ds.setPortNumber(5432)
   ds.setUrl(
-    "jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com"
+    "jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com",
   )
   ds
 }
@@ -80,41 +89,6 @@ val dataSource: javax.sql.DataSource = {
 val transactor = Transactor(dataSource)
 
 val defaultImageUrl = "https://via.placeholder.com/150"
-
-var tim = Profile(
-  userId = 0,
-  name = "Tim Johnson",
-  location = "Hounslow, London",
-  bio = "Budding watercolour artist, been enjoying painting ponds.",
-  profileImageUrl = defaultImageUrl,
-  imageUrls = List(defaultImageUrl),
-  rejected = false
-)
-
-var sally = Profile(
-  userId = 1,
-  name = "Sally Parks",
-  location = "Hammersmith, London",
-  bio =
-    "I love apples. I love still life. I love drawing apples in still life.",
-  profileImageUrl = defaultImageUrl,
-  imageUrls = List(defaultImageUrl, defaultImageUrl),
-  rejected = false
-)
-
-var selena = Profile(
-  userId = 2,
-  name = "Selena Davis",
-  location = "Hampstead, London",
-  bio = "Finger painting fanatic, check out my pangolin art.",
-  profileImageUrl = "https://via.placeholder.com/150",
-  imageUrls = List(defaultImageUrl, defaultImageUrl, defaultImageUrl),
-  rejected = false
-)
-
-def profiles = Vector(tim, sally, selena)
-def recommendations =
-  profiles.map(Recommendation.fromProfile).filter(!_.rejected)
 
 object PangolinHttp4sServer extends IOApp {
 
@@ -138,8 +112,8 @@ object PangolinHttp4sServer extends IOApp {
     .corsInterceptor(
       CORSInterceptor.customOrThrow(
         CORSConfig.default.allowAllHeaders.allowAllOrigins.allowAllMethods
-          .maxAge(42.seconds) // TODO
-      )
+          .maxAge(42.seconds), // TODO
+      ),
     )
     .options
 
@@ -148,39 +122,20 @@ object PangolinHttp4sServer extends IOApp {
   val recommendationsRoutes: HttpRoutes[IO] =
     serverInterpreter.toRoutes(
       reccomendationsEndpoint.serverLogic(name =>
-        IO(Right(recommendations.filter(!_.rejected)))
-      )
+        ???
+      ),
     )
 
-  val profileRoutes: HttpRoutes[IO] =
-    serverInterpreter.toRoutes(profileEndpoint.serverLogic { userId =>
-      userId match {
-        case 0 => IO(Right(tim))
-        case 1 => IO(Right(sally))
-        case 2 => IO(Right(selena))
-        case _ => IO(Left(()))
-      }
-    })
+  val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(profileEndpoint.serverLogic { userId =>
+      ???
+    }
+  )
 
-  val rejectProfileRoutes: HttpRoutes[IO] =
-    serverInterpreter.toRoutes(rejectProfileEndpoint.serverLogic {
+  val rejectProfileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(rejectProfileEndpoint.serverLogic {
       (userId, rejected) =>
-        userId match {
-          case 0 => {
-            tim = tim.copy(rejected = rejected)
-            IO(Right(()))
-          }
-          case 1 => {
-            sally = sally.copy(rejected = rejected)
-            IO(Right(()))
-          }
-          case 2 => {
-            selena = selena.copy(rejected = rejected)
-            IO(Right(()))
-          }
-          case _ => IO(Left(()))
-        }
-    })
+        ???
+    }
+  )
 
   override def run(args: List[String]): IO[ExitCode] =
     BlazeServerBuilder[IO]
@@ -190,8 +145,8 @@ object PangolinHttp4sServer extends IOApp {
         Router(
           "/" -> recommendationsRoutes,
           "/" -> profileRoutes,
-          "/" -> rejectProfileRoutes
-        ).orNotFound
+          "/" -> rejectProfileRoutes,
+        ).orNotFound,
       )
       .resource
       .useForever
