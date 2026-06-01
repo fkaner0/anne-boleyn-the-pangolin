@@ -7,7 +7,11 @@ class BedroomWallImageItem extends StatelessWidget {
   final ProfileImage image;
   final VoidCallback onTap;
 
-  const BedroomWallImageItem({super.key, required this.image, required this.onTap});
+  const BedroomWallImageItem({
+    super.key,
+    required this.image,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

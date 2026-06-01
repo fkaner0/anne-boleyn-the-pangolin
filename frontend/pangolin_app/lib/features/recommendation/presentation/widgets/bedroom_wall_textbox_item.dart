@@ -7,7 +7,11 @@ class BedroomWallTextBoxItem extends StatelessWidget {
   final ProfileText textbox;
   final VoidCallback onTap;
 
-  const BedroomWallTextBoxItem({super.key, required this.textbox, required this.onTap});
+  const BedroomWallTextBoxItem({
+    super.key,
+    required this.textbox,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {

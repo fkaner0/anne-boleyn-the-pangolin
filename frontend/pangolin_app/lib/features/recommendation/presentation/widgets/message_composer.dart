@@ -4,7 +4,11 @@ class MessageComposer extends StatefulWidget {
   final String hintText;
   final void Function(String message) onSend;
 
-  const MessageComposer({super.key, required this.hintText, required this.onSend});
+  const MessageComposer({
+    super.key,
+    required this.hintText,
+    required this.onSend,
+  });
 
   @override
   State<MessageComposer> createState() => _MessageComposerState();
@@ -46,12 +50,13 @@ class _MessageComposerState extends State<MessageComposer> {
           controller: _controller,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             filled: true,
             fillColor: Colors.grey.shade100,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           minLines: 3,
           maxLines: 5,
@@ -65,7 +70,9 @@ class _MessageComposerState extends State<MessageComposer> {
             icon: const Icon(Icons.send),
             label: const Text('Send'),
             style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ),

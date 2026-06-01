@@ -25,6 +25,7 @@ class BedroomWallInteractiveItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: onTap,
       child: Container(
         width: width,
@@ -33,13 +34,15 @@ class BedroomWallInteractiveItem extends StatelessWidget {
           color: backgroundColor,
           borderRadius: borderRadius,
           border: border,
-          boxShadow: boxShadow ?? const [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 6,
-              offset: Offset(0, 2),
-            ),
-          ],
+          boxShadow:
+              boxShadow ??
+              const [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(

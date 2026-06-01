@@ -16,7 +16,10 @@ class BedroomWallDetailPage extends StatefulWidget {
     required this.profile,
     this.image,
     this.textbox,
-  }) : assert(image != null || textbox != null, 'Either image or textbox must be provided.');
+  }) : assert(
+         image != null || textbox != null,
+         'Either image or textbox must be provided.',
+       );
 
   @override
   State<BedroomWallDetailPage> createState() => _BedroomWallDetailPageState();
@@ -53,7 +56,10 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
             Expanded(
               child: SingleChildScrollView(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Column(
                     children: [
                       AnimatedContainer(

@@ -30,10 +30,7 @@ class BedroomWallView extends StatelessWidget {
       child: Stack(
         children: [
           for (final image in profile.images)
-            BedroomWallImageItem(
-              image: image,
-              onTap: () => onImageTap(image),
-            ),
+            BedroomWallImageItem(image: image, onTap: () => onImageTap(image)),
           for (final textbox in profile.textboxes)
             BedroomWallTextBoxItem(
               textbox: textbox,
