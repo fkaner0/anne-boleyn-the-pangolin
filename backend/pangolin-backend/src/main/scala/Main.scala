@@ -177,27 +177,26 @@ object PangolinHttp4sServer extends IOApp {
 
   val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     profileEndpoint.serverLogic { userId =>
-      transact(dataSource) {
-        val result =
+      IO.blocking(
+        transact(dataSource) {
           profileRepo
             .findById(userId)
-            .toRight(())
-            .map {
-              case Profile(userId, name, location, profileImageUrl) =>
-                val images = profileImageRepo.findAll(profileImagesSpec(userId))
-                val textBoxes =
-                  profileTextBoxRepo.findAll(profileTextBoxesSpec(userId))
-                FullProfile(
-                  userId = userId,
-                  name = name,
-                  location = location,
-                  profileImageUrl = profileImageUrl,
-                  images = images,
-                  textBoxes = textBoxes,
-                )
+            .map { case Profile(userId, name, location, profileImageUrl) =>
+              val images = profileImageRepo.findAll(profileImagesSpec(userId))
+              val textBoxes =
+                profileTextBoxRepo.findAll(profileTextBoxesSpec(userId))
+              FullProfile(
+                userId = userId,
+                name = name,
+                location = location,
+                profileImageUrl = profileImageUrl,
+                images = images,
+                textBoxes = textBoxes,
+              )
             }
-        IO(result)
-      }
+            .toRight(())
+        },
+      )
     },
   )
 
