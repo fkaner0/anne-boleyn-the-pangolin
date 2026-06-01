@@ -127,7 +127,7 @@ val dataSource: javax.sql.DataSource = {
   )
   ds.setPortNumber(5432)
   ds.setUrl(
-    "jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com",
+    "jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com/",
   )
   ds
 }
