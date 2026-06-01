@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-class BedroomWallInteractiveItem extends StatelessWidget {
-  final Widget child;
+abstract class BedroomWallInteractiveBase extends StatelessWidget {
   final VoidCallback onTap;
   final double width;
   final double? height;
@@ -10,9 +9,8 @@ class BedroomWallInteractiveItem extends StatelessWidget {
   final BoxBorder? border;
   final List<BoxShadow>? boxShadow;
 
-  const BedroomWallInteractiveItem({
+  const BedroomWallInteractiveBase({
     super.key,
-    required this.child,
     required this.onTap,
     required this.width,
     this.height,
@@ -21,6 +19,8 @@ class BedroomWallInteractiveItem extends StatelessWidget {
     this.border,
     this.boxShadow,
   });
+
+  Widget buildInner(BuildContext context);
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class BedroomWallInteractiveItem extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Stack(
           children: [
-            Positioned.fill(child: child),
+            buildInner(context),
             Positioned(
               left: 8,
               bottom: 8,
