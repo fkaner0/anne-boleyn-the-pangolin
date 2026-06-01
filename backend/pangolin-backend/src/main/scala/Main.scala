@@ -86,7 +86,7 @@ object PangolinHttp4sServer extends IOApp {
   val rejectProfileEndpoint = endpoint
     .put
     .in("profile" / path[Int]("userId"))
-    .in(query[Boolean]("rejected"))
+    .in(jsonBody[Boolean])
 
   given ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 

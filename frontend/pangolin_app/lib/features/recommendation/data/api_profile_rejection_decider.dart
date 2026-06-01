@@ -24,13 +24,13 @@ class ApiProfileRejectionDecider implements ProfileRejectionDecider {
       authority = '$host:$port';
     }
 
-    final queryParameters = {'rejected': rejected.toString()};
+    final body = rejected.toString();
 
     final uri = useHttps
-        ? Uri.https(authority, '/profile/$userId', queryParameters)
-        : Uri.http(authority, '/profile/$userId', queryParameters);
+        ? Uri.https(authority, '/profile/$userId')
+        : Uri.http(authority, '/profile/$userId');
 
-    final response = await http.put(uri);
+    final response = await http.put(uri, body: body);
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
