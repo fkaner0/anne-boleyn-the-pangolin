@@ -42,7 +42,7 @@ case class ProfileImageCreator(
     rotation: Int,
 ) derives DbCodec
 
-@Table(PostgresDbType, SqlNameMapper.SameCase)
+@Table(PostgresDbType)
 case class ProfileImage(
     @Id id: Int,
     userId: Int,
@@ -67,7 +67,7 @@ case class ProfileTextBoxCreator(
     rotation: Int,
 ) derives DbCodec
 
-@Table(PostgresDbType, SqlNameMapper.SameCase)
+@Table(PostgresDbType)
 case class ProfileTextBox(
     @Id id: Int,
     userId: Int,
@@ -91,7 +91,7 @@ case class ProfileCreator(
     profileImageUrl: String,
 ) derives DbCodec
 
-@Table(PostgresDbType, SqlNameMapper.SameCase)
+@Table(PostgresDbType)
 case class Profile(
     @Id id: Int,
     name: String,
@@ -223,7 +223,7 @@ object PangolinHttp4sServer extends IOApp {
     },
   )
 
-  override def run(args: List[String]): IO[ExitCode] =
+  override def run(args: List[String]): IO[ExitCode] = {
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
       .bindHttp(8080, "0.0.0.0")
@@ -236,4 +236,5 @@ object PangolinHttp4sServer extends IOApp {
       )
       .resource
       .useForever
+  }
 }
