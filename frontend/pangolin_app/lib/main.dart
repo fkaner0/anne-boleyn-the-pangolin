@@ -15,8 +15,10 @@ void main() {
 
 class MyApp extends StatelessWidget {
   MyApp({super.key});
-  final RecommendationFetcher recommendationFetcher = getIt<RecommendationFetcher>();
-  final ProfileRejectionDecider profileRejectionDecider = getIt<ProfileRejectionDecider>();
+  final RecommendationFetcher recommendationFetcher =
+      getIt<RecommendationFetcher>();
+  final ProfileRejectionDecider profileRejectionDecider =
+      getIt<ProfileRejectionDecider>();
 
   @override
   Widget build(BuildContext context) {

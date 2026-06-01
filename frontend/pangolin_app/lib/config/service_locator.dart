@@ -22,22 +22,38 @@ void configureDependencies(BackendMode backend) {
 
   switch (backend) {
     case BackendMode.mock:
-      getIt.registerLazySingleton<RecommendationFetcher>(() => MockRecommendationFetcher());
+      getIt.registerLazySingleton<RecommendationFetcher>(
+        () => MockRecommendationFetcher(),
+      );
       getIt.registerLazySingleton<ProfileFetcher>(() => MockProfileFetcher());
-      getIt.registerLazySingleton<ProfileRejectionDecider>(() => MockProfileRejectionDecider());
+      getIt.registerLazySingleton<ProfileRejectionDecider>(
+        () => MockProfileRejectionDecider(),
+      );
       break;
     case BackendMode.local:
       // Default to render for now; local implementations can be added later
       final hostLocal = Env.apiHost;
-      getIt.registerLazySingleton<RecommendationFetcher>(() => RenderRecommendationFetcher(host: hostLocal));
-      getIt.registerLazySingleton<ProfileFetcher>(() => RenderProfileFetcher(host: hostLocal));
-      getIt.registerLazySingleton<ProfileRejectionDecider>(() => RenderProfileRejectionDecider(host: hostLocal));
+      getIt.registerLazySingleton<RecommendationFetcher>(
+        () => RenderRecommendationFetcher(host: hostLocal),
+      );
+      getIt.registerLazySingleton<ProfileFetcher>(
+        () => RenderProfileFetcher(host: hostLocal),
+      );
+      getIt.registerLazySingleton<ProfileRejectionDecider>(
+        () => RenderProfileRejectionDecider(host: hostLocal),
+      );
       break;
     case BackendMode.render:
       final host = Env.apiHost;
-      getIt.registerLazySingleton<RecommendationFetcher>(() => RenderRecommendationFetcher(host: host));
-      getIt.registerLazySingleton<ProfileFetcher>(() => RenderProfileFetcher(host: host));
-      getIt.registerLazySingleton<ProfileRejectionDecider>(() => RenderProfileRejectionDecider(host: host));
+      getIt.registerLazySingleton<RecommendationFetcher>(
+        () => RenderRecommendationFetcher(host: host),
+      );
+      getIt.registerLazySingleton<ProfileFetcher>(
+        () => RenderProfileFetcher(host: host),
+      );
+      getIt.registerLazySingleton<ProfileRejectionDecider>(
+        () => RenderProfileRejectionDecider(host: host),
+      );
       break;
   }
 }

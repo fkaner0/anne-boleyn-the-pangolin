@@ -118,7 +118,8 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(
-                        profileFetcher: widget.profileFetcher ?? getIt<ProfileFetcher>(),
+                        profileFetcher:
+                            widget.profileFetcher ?? getIt<ProfileFetcher>(),
                         userId: recommendation.userId,
                       ),
                     ),
