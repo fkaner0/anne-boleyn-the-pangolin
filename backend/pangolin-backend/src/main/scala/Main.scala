@@ -166,7 +166,23 @@ object PangolinHttp4sServer extends IOApp {
   val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
   val recommendationsRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    reccomendationsEndpoint.serverLogic { _ => ??? },
+    reccomendationsEndpoint.serverLogic { _ =>
+      IO.blocking(
+        connect(dataSource) {
+          profileRepo.findAll.map {
+            case Profile(id, name, location, profileImageUrl) =>
+              Recommendation(
+                userId = id,
+                name = name,
+                location = location,
+                bio = "",
+                profileImageUrl = profileImageUrl,
+                rejected = false,
+              )
+          }.asRight
+        },
+      )
+    },
   )
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
@@ -202,7 +218,8 @@ object PangolinHttp4sServer extends IOApp {
 
   val rejectProfileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     rejectProfileEndpoint.serverLogic { (userId, rejected) =>
-      ???
+      // TODO: Remove
+      IO(().asRight)
     },
   )
 
