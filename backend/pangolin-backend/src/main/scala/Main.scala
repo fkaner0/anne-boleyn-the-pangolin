@@ -36,11 +36,15 @@ object Recommendation {
 }
 
 case class ProfileImageCreator(
+    userId: Int,
     url: String,
     x: Int,
     y: Int,
     rotation: Int,
 ) derives DbCodec
+object ProfileImageCreator {
+  given ReadWriter[ProfileImageCreator] = macroRW
+}
 
 @Table(PostgresDbType)
 case class ProfileImage(
@@ -60,12 +64,16 @@ object ProfileImage {
 val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
 
 case class ProfileTextBoxCreator(
+    userId: Int,
     title: String,
     body: String,
     x: Int,
     y: Int,
     rotation: Int,
 ) derives DbCodec
+object ProfileTextBoxCreator {
+  given ReadWriter[ProfileTextBoxCreator] = macroRW
+}
 
 @Table(PostgresDbType)
 case class ProfileTextBox(
@@ -90,6 +98,9 @@ case class ProfileCreator(
     location: String,
     profileImageUrl: String,
 ) derives DbCodec
+object ProfileCreator {
+  given ReadWriter[ProfileCreator] = macroRW
+}
 
 @Table(PostgresDbType)
 case class Profile(
@@ -149,6 +160,18 @@ object PangolinHttp4sServer extends IOApp {
   val rejectProfileEndpoint = endpoint.put
     .in("profile" / path[Int]("userId"))
     .in(jsonBody[Boolean])
+
+  val insertProfileEndpoint = endpoint.put
+    .in("profile")
+    .in(jsonBody[ProfileCreator])
+
+  val insertProfileImageEndpoint = endpoint.put
+    .in("profile" / "image")
+    .in(jsonBody[ProfileImageCreator])
+
+  val insertProfileTextBoxEndpoint = endpoint.put
+    .in("profile" / "textBox")
+    .in(jsonBody[ProfileTextBoxCreator])
 
   given ec: ExecutionContext =
     scala.concurrent.ExecutionContext.Implicits.global
@@ -223,6 +246,36 @@ object PangolinHttp4sServer extends IOApp {
     },
   )
 
+  val insertProfileRoutes = serverInterpreter.toRoutes(
+    insertProfileEndpoint.serverLogic { profileCreator =>
+      IO.blocking {
+        connect(dataSource) {
+          profileRepo.insert(profileCreator).asRight
+        }
+      }
+    },
+  )
+
+  val insertProfileImageRoutes = serverInterpreter.toRoutes(
+    insertProfileImageEndpoint.serverLogic { profileImageCreator =>
+      IO.blocking {
+        connect(dataSource) {
+          profileImageRepo.insert(profileImageCreator).asRight
+        }
+      }
+    },
+  )
+
+  val insertProfileTextBoxRoutes = serverInterpreter.toRoutes(
+    insertProfileTextBoxEndpoint.serverLogic { profileTextBoxCreator =>
+      IO.blocking {
+        connect(dataSource) {
+          profileTextBoxRepo.insert(profileTextBoxCreator).asRight
+        }
+      }
+    },
+  )
+
   override def run(args: List[String]): IO[ExitCode] = {
     BlazeServerBuilder[IO]
       .withExecutionContext(ec)
@@ -232,6 +285,9 @@ object PangolinHttp4sServer extends IOApp {
           "/" -> recommendationsRoutes,
           "/" -> profileRoutes,
           "/" -> rejectProfileRoutes,
+          "/" -> insertProfileRoutes,
+          "/" -> insertProfileImageRoutes,
+          "/" -> insertProfileTextBoxRoutes,
         ).orNotFound,
       )
       .resource
