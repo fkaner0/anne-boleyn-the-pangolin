@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../domain/profile.dart';
 import '../../data/profile_fetcher.dart';
+import '../../domain/profile.dart';
+import '../widgets/bedroom_wall_view.dart';
+import '../widgets/profile_header_bar.dart';
 
 class RecommendationProfilePage extends StatelessWidget {
   final ProfileFetcher profileFetcher;
@@ -25,108 +27,43 @@ class RecommendationProfilePage extends StatelessWidget {
 
         if (snapshot.hasError) {
           return Scaffold(
-            appBar: AppBar(title: const Text('Profile')),
-            body: Center(child: Text('Error: ${snapshot.error}')),
+            body: SafeArea(
+              child: Column(
+                children: [
+                  ProfileHeaderBar(
+                    name: 'Profile',
+                    location: 'Error',
+                    onBackPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  Expanded(
+                    child: Center(child: Text('Error: ${snapshot.error}')),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
         final profile = snapshot.data!;
 
         return Scaffold(
-          appBar: AppBar(title: Text(profile.name)),
-          body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+          body: SafeArea(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        profile.profileImageUrl,
-                        width: 140,
-                        height: 140,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 140,
-                            height: 140,
-                            color: Colors.grey.shade300,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.person, size: 48),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            profile.name,
-                            style: const TextStyle(
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            profile.location,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade700,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            profile.bio,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  "${profile.name}'s works:",
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: profile.imageUrls.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1,
-                  ),
-                  itemBuilder: (context, index) {
-                    final imageUrl = profile.imageUrls[index];
-
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        imageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            color: Colors.grey.shade300,
-                            alignment: Alignment.center,
-                            child: const Icon(Icons.broken_image),
-                          );
-                        },
-                      ),
-                    );
+                ProfileHeaderBar(
+                  name: profile.name,
+                  location: profile.location,
+                  onBackPressed: () {
+                    Navigator.of(context).pop();
                   },
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: BedroomWallView(profile: profile),
+                  ),
                 ),
               ],
             ),
