@@ -47,7 +47,7 @@ val dataSource: javax.sql.DataSource = {
   ds.setUser("pangolindbuser")
   ds.setPassword(sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt")))
   ds.setPortNumber(5432)
-  ds.setUrl("jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com")
+  ds.setUrl("jdbc:postgresql://dpg-d8cbgu3eo5us73eq2hl0-a.frankfurt-postgres.render.com/")
   ds
 }
 

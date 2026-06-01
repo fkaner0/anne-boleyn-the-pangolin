@@ -1,11 +1,14 @@
+import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/features/recommendation/data/api_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 
 class RenderProfileRejectionDecider implements ProfileRejectionDecider {
-  final ApiProfileRejectionDecider _delegate = const ApiProfileRejectionDecider(
-    host: 'anne-boleyn-the-pangolin-huqk.onrender.com',
-    useHttps: true,
-  );
+  final ApiProfileRejectionDecider _delegate;
+
+  RenderProfileRejectionDecider({
+    String host = defaultRenderHost,
+    bool useHttps = true,
+  }) : _delegate = ApiProfileRejectionDecider(host: host, useHttps: useHttps);
 
   @override
   Future<void> putProfileRejection({
