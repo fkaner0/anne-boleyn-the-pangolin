@@ -1,11 +1,13 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../domain/profile_image.dart';
+import 'bedroom_wall_interactive_item.dart';
 
 class BedroomWallImageItem extends StatelessWidget {
   final ProfileImage image;
+  final VoidCallback onTap;
 
-  const BedroomWallImageItem({super.key, required this.image});
+  const BedroomWallImageItem({super.key, required this.image, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -14,21 +16,10 @@ class BedroomWallImageItem extends StatelessWidget {
       top: image.position.y.toDouble(),
       child: Transform.rotate(
         angle: image.position.rotation * math.pi / 180,
-        child: Container(
+        child: BedroomWallInteractiveItem(
           width: 160,
           height: 160,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 6,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
+          onTap: onTap,
           child: Image.network(
             image.url,
             fit: BoxFit.cover,
