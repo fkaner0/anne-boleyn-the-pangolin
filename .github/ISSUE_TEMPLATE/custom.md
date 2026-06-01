@@ -1,10 +1,18 @@
 ---
-name: Custom issue template
-about: Describe this issue template's purpose here.
-title: My issue placeholder
-labels: bug
+name: DRP HCD Template
+about: HCD-Style Issue Template
+title: MY ISSUE PLACEHOLDER
+labels: User Requirement
 assignees: kainites, fkaner0
 
 ---
+# User Story
+As a [person], I [action], so that [result].
 
-My Template Content Desc thing
+# Evidence
+> Really relevant and cool quote.
+
+PERSON
+
+# Feedback
+None
