@@ -1,25 +1,50 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
+
+final Uint8List _onePixelPng = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+class _FakeImageFilePicker implements ImageFilePicker {
+  final PickedImage? result;
+
+  const _FakeImageFilePicker(this.result);
+
+  @override
+  Future<PickedImage?> pickImage() async => result;
+}
 
 void main() {
   setUp(() async {
-    // Start from a clean container each test, then resolve the recommendation
-    // dependencies the "Next" navigation pulls from.
     await getIt.reset();
     configureDependencies(BackendMode.mock);
   });
 
-  Future<void> pumpPage(WidgetTester tester) {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    BedroomWallCreatorController? controller,
+  }) {
     return tester.pumpWidget(
-      const MaterialApp(home: BedroomWallCreatorPage()),
+      MaterialApp(home: BedroomWallCreatorPage(controller: controller)),
+    );
+  }
+
+  BedroomWallCreatorController controllerWith(PickedImage? picked) {
+    return BedroomWallCreatorController(
+      imagePicker: _FakeImageFilePicker(picked),
     );
   }
 
   testWidgets('shows the top bar with Back and Next', (tester) async {
-    await pumpPage(tester);
+    await pumpPage(tester, controller: controllerWith(null));
 
     expect(find.text('Create your wall'), findsOneWidget);
     expect(find.byTooltip('Back'), findsOneWidget);
@@ -27,27 +52,39 @@ void main() {
   });
 
   testWidgets('shows the three creation tools', (tester) async {
-    await pumpPage(tester);
+    await pumpPage(tester, controller: controllerWith(null));
 
     expect(find.text('Text box'), findsOneWidget);
     expect(find.text('Image'), findsOneWidget);
     expect(find.text('Sticker'), findsOneWidget);
   });
 
-  testWidgets('the creation tools are pressable but do nothing', (tester) async {
-    await pumpPage(tester);
+  testWidgets('cancelling the image picker adds nothing', (tester) async {
+    await pumpPage(tester, controller: controllerWith(null));
 
-    await tester.tap(find.text('Text box'));
-    await tester.tap(find.text('Image'));
-    await tester.tap(find.text('Sticker'));
-    await tester.pump();
+    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+    await tester.pumpAndSettle();
 
-    // Still on the creator page; nothing navigated or threw.
+    expect(find.byType(Image, skipOffstage: false), findsNothing);
     expect(find.text('Create your wall'), findsOneWidget);
   });
 
+  testWidgets('picking an image adds it to the canvas', (tester) async {
+    await pumpPage(
+      tester,
+      controller: controllerWith(
+        PickedImage(bytes: _onePixelPng, aspectRatio: 1),
+      ),
+    );
+
+    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(Image, skipOffstage: false), findsOneWidget);
+  });
+
   testWidgets('Next opens the recommendations page', (tester) async {
-    await pumpPage(tester);
+    await pumpPage(tester, controller: controllerWith(null));
 
     await tester.tap(find.widgetWithText(TextButton, 'Next'));
     await tester.pumpAndSettle();
@@ -56,7 +93,7 @@ void main() {
   });
 
   testWidgets('Back on recommendations returns to the creator', (tester) async {
-    await pumpPage(tester);
+    await pumpPage(tester, controller: controllerWith(null));
 
     await tester.tap(find.widgetWithText(TextButton, 'Next'));
     await tester.pumpAndSettle();

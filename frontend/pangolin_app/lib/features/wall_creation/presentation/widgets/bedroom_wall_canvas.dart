@@ -1,24 +1,52 @@
 import 'package:flutter/material.dart';
+import '../../domain/canvas_image_item.dart';
 import '../../domain/virtual_canvas.dart';
+import 'interactive_canvas_item.dart';
 
 class BedroomWallCanvas extends StatelessWidget {
-  final VirtualCanvas canvas;
+  static const double _imageBaseWidth = 160;
 
-  const BedroomWallCanvas({super.key, required this.canvas});
+  final VirtualCanvas canvas;
+  final List<CanvasImageItem> imageItems;
+  final void Function(int id, Offset center, double scale) onImageTransform;
+
+  const BedroomWallCanvas({
+    super.key,
+    required this.canvas,
+    required this.imageItems,
+    required this.onImageTransform,
+  });
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final height = width * (canvas.height / canvas.width);
+        final renderScale = constraints.maxWidth / canvas.width;
 
-        return Container(
-          width: width,
-          height: height,
-          color: Colors.grey.shade100,
-          clipBehavior: Clip.none,
-          child: const Stack(),
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: canvas.height * renderScale,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(child: ColoredBox(color: Colors.grey.shade100)),
+              for (final item in imageItems)
+                InteractiveCanvasItem(
+                  key: ValueKey(item.id),
+                  initialCenter: item.center * renderScale,
+                  initialScale: item.scale,
+                  baseSize:
+                      Size(
+                        _imageBaseWidth,
+                        _imageBaseWidth / item.aspectRatio,
+                      ) *
+                      renderScale,
+                  onTransformEnd: (center, scale) =>
+                      onImageTransform(item.id, center / renderScale, scale),
+                  child: Image.memory(item.bytes, fit: BoxFit.cover),
+                ),
+            ],
+          ),
         );
       },
     );

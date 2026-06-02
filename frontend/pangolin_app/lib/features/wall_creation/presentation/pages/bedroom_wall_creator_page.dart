@@ -4,20 +4,29 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import '../../data/gallery_image_file_picker.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
 
 class BedroomWallCreatorPage extends StatefulWidget {
-  const BedroomWallCreatorPage({super.key});
+  final BedroomWallCreatorController? controller;
+
+  const BedroomWallCreatorPage({super.key, this.controller});
 
   @override
   State<BedroomWallCreatorPage> createState() => _BedroomWallCreatorPageState();
 }
 
 class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
-  final BedroomWallCreatorController _controller =
-      BedroomWallCreatorController();
+  late final BedroomWallCreatorController _controller =
+      widget.controller ??
+      BedroomWallCreatorController(imagePicker: GalleryImageFilePicker());
+
+  Future<void> _addImage() async {
+    await _controller.addImage();
+    if (mounted) setState(() {});
+  }
 
   void _openRecommendations() {
     Navigator.of(context).push(
@@ -39,7 +48,6 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          // Intentionally does nothing for now.
           onPressed: () {},
         ),
         actions: [
@@ -52,21 +60,22 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       body: SafeArea(
         child: Stack(
           children: [
-            // The canvas fills the screen and scrolls vertically when its
-            // height exceeds the viewport.
             Positioned.fill(
               child: SingleChildScrollView(
-                child: BedroomWallCanvas(canvas: _controller.canvas),
+                child: BedroomWallCanvas(
+                  canvas: _controller.canvas,
+                  imageItems: _controller.imageItems,
+                  onImageTransform: _controller.updateImageTransform,
+                ),
               ),
             ),
-            // The creation tools float over the canvas, pinned to the bottom.
             Positioned(
               left: 0,
               right: 0,
               bottom: 16,
               child: CreatorToolBar(
                 onAddTextBox: _controller.addTextBox,
-                onAddImage: _controller.addImage,
+                onAddImage: _addImage,
                 onAddSticker: _controller.addSticker,
               ),
             ),
