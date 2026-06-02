@@ -41,6 +41,8 @@ case class ProfileImageCreator(
     x: Int,
     y: Int,
     rotation: Int,
+    aspectRatio: Double,
+    scale: Double,
 ) derives DbCodec
 object ProfileImageCreator {
   given ReadWriter[ProfileImageCreator] = macroRW
@@ -54,6 +56,8 @@ case class ProfileImage(
     x: Int,
     y: Int,
     rotation: Int,
+    aspectRatio: Double,
+    scale: Double,
 ) derives DbCodec
 
 object ProfileImage {
@@ -70,6 +74,8 @@ case class ProfileTextBoxCreator(
     x: Int,
     y: Int,
     rotation: Int,
+    aspectRatio: Double,
+    scale: Double,
 ) derives DbCodec
 object ProfileTextBoxCreator {
   given ReadWriter[ProfileTextBoxCreator] = macroRW
@@ -84,6 +90,8 @@ case class ProfileTextBox(
     x: Int,
     y: Int,
     rotation: Int,
+    aspectRatio: Double,
+    scale: Double,
 ) derives DbCodec
 
 object ProfileTextBox {
