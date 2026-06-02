@@ -8,7 +8,6 @@ import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
 
-
 class BedroomWallCreatorPage extends StatefulWidget {
   const BedroomWallCreatorPage({super.key});
 
