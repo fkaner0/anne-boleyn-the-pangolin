@@ -17,7 +17,7 @@ import org.postgresql.ds.PGSimpleDataSource
 
 object repo {
 
-  trait Positionned {
+  trait Positioned {
     val x: Int
     val y: Int
     val rotation: Int
@@ -33,7 +33,7 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
   case class ProfileImage(
@@ -45,7 +45,7 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   object ProfileImage {
     val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
@@ -60,7 +60,7 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
   case class ProfileTextBox(
@@ -73,7 +73,7 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   object ProfileTextBox {
     val Table = TableInfo[ProfileTextBoxCreator, ProfileTextBox, Int]

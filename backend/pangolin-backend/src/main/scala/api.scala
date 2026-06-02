@@ -136,13 +136,13 @@ object api {
     )
   }
 
-  extension (positionned: repo.Positionned) {
+  extension (positioned: repo.Positioned) {
     private def position = Position(
-      positionned.x,
-      positionned.y,
-      positionned.rotation,
-      positionned.aspectRatio,
-      positionned.scale,
+      positioned.x,
+      positioned.y,
+      positioned.rotation,
+      positioned.aspectRatio,
+      positioned.scale,
     )
   }
 
