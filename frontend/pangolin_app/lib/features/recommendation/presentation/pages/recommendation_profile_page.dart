@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/profile_fetcher.dart';
 import '../../domain/profile.dart';
+import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
 import '../widgets/profile_header_bar.dart';
 
@@ -62,7 +63,29 @@ class RecommendationProfilePage extends StatelessWidget {
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
-                    child: BedroomWallView(profile: profile),
+                    child: BedroomWallView(
+                      profile: profile,
+                      onImageTap: (image) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => BedroomWallDetailPage(
+                              profile: profile,
+                              image: image,
+                            ),
+                          ),
+                        );
+                      },
+                      onTextTap: (textbox) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => BedroomWallDetailPage(
+                              profile: profile,
+                              textbox: textbox,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ],

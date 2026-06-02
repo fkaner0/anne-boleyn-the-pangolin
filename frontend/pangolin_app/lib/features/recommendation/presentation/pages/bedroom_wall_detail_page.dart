@@ -1,0 +1,109 @@
+import 'package:flutter/material.dart';
+import '../../domain/profile.dart';
+import '../../domain/profile_image.dart';
+import '../../domain/profile_text.dart';
+import '../widgets/bedroom_wall_detail_content.dart';
+import '../widgets/message_composer.dart';
+import '../widgets/profile_header_bar.dart';
+
+class BedroomWallDetailPage extends StatefulWidget {
+  final Profile profile;
+  final ProfileImage? image;
+  final ProfileText? textbox;
+
+  const BedroomWallDetailPage({
+    super.key,
+    required this.profile,
+    this.image,
+    this.textbox,
+  }) : assert(
+         image != null || textbox != null,
+         'Either image or textbox must be provided.',
+       );
+
+  @override
+  State<BedroomWallDetailPage> createState() => _BedroomWallDetailPageState();
+}
+
+class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final prompt = 'Talk to ${widget.profile.name} about this...';
+
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: [
+            ProfileHeaderBar(
+              name: widget.profile.name,
+              location: widget.profile.location,
+              onBackPressed: () => Navigator.of(context).pop(),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOut,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.grey.shade300),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: BedroomWallDetailContent(
+                            image: widget.image,
+                            textbox: widget.textbox,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      MessageComposer(
+                        hintText: prompt,
+                        onSend: (message) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Message sent: "$message"')),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
