@@ -24,7 +24,7 @@ class Profile {
       images: (json['images'] as List<dynamic>)
           .map((item) => ProfileImage.fromJson(item as Map<String, dynamic>))
           .toList(),
-      textboxes: (json['textboxes'] as List<dynamic>)
+      textboxes: (json['textBoxes'] as List<dynamic>)
           .map((item) => ProfileText.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
