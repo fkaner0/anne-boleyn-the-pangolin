@@ -83,6 +83,40 @@ void main() {
     expect(find.byType(Image, skipOffstage: false), findsOneWidget);
   });
 
+  testWidgets('adding a text box shows placeholder text', (tester) async {
+    await pumpPage(tester, controller: controllerWith(null));
+
+    await tester.tap(find.byIcon(Icons.title));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your text', skipOffstage: false), findsOneWidget);
+  });
+
+  testWidgets('text typed into a text box is kept after editing', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = controllerWith(null);
+    await pumpPage(tester, controller: controller);
+
+    await tester.tap(find.byIcon(Icons.title));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Your text'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), 'Hello wall');
+    await tester.pumpAndSettle();
+
+    await tester.tapAt(const Offset(20, 200));
+    await tester.pumpAndSettle();
+
+    expect(controller.textItems.single.text, 'Hello wall');
+    expect(find.text('Hello wall', skipOffstage: false), findsOneWidget);
+  });
+
   testWidgets('Next opens the recommendations page', (tester) async {
     await pumpPage(tester, controller: controllerWith(null));
 

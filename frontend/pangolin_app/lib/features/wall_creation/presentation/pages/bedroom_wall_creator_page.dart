@@ -28,6 +28,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     if (mounted) setState(() {});
   }
 
+  void _addTextBox() {
+    setState(_controller.addTextBox);
+  }
+
   void _openRecommendations() {
     Navigator.of(context).push(
       MaterialPageRoute(
@@ -65,7 +69,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                 child: BedroomWallCanvas(
                   canvas: _controller.canvas,
                   imageItems: _controller.imageItems,
+                  textItems: _controller.textItems,
                   onImageTransform: _controller.updateImageTransform,
+                  onTextTransform: _controller.updateTextTransform,
+                  onTextChanged: _controller.updateText,
                 ),
               ),
             ),
@@ -74,7 +81,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               right: 0,
               bottom: 16,
               child: CreatorToolBar(
-                onAddTextBox: _controller.addTextBox,
+                onAddTextBox: _addTextBox,
                 onAddImage: _addImage,
                 onAddSticker: _controller.addSticker,
               ),
