@@ -31,5 +31,6 @@ metals.sbt
 .idea_modules
 /.worksheet/
 
-# DB
-db-password.txt
+# SECRETS
+db-password.txt     # this is old
+.env
