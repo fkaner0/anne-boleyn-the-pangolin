@@ -72,10 +72,14 @@ class _ImageContent extends StatelessWidget {
       children: [
         Icon(Icons.add, color: color, size: 26),
         const SizedBox(height: 6),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: color, fontSize: 11, height: 1.3),
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 3,
+            style: TextStyle(color: color, fontSize: 11, height: 1.3),
+          ),
         ),
       ],
     );
