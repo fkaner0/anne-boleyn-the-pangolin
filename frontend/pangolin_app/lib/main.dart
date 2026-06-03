@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'theme/app_palette.dart';
+import 'theme/app_theme.dart';
 import 'features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 
 void main() {
@@ -15,9 +17,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'Pangolin App',
-      home: BedroomWallCreatorPage(),
+      theme: buildAppTheme(appPalette),
+      home: const BedroomWallCreatorPage(),
     );
   }
 }
