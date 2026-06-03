@@ -16,7 +16,7 @@ CREATE TABLE profileImage (
   scale double precision NOT NULL,
 );
 
-CREATE TABLE profileTextBox (
+CREATE TABLE profileTextbox (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
   title text NOT NULL,

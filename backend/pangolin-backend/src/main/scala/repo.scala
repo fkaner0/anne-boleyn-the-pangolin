@@ -51,7 +51,7 @@ object repo {
     val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
   }
 
-  case class ProfileTextBoxCreator(
+  case class ProfileTextboxCreator(
       userId: Int,
       title: String,
       body: String,
@@ -63,7 +63,7 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileTextBox(
+  case class ProfileTextbox(
       @Id id: Int,
       userId: Int,
       title: String,
@@ -75,8 +75,8 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileTextBox {
-    val Table = TableInfo[ProfileTextBoxCreator, ProfileTextBox, Int]
+  object ProfileTextbox {
+    val Table = TableInfo[ProfileTextboxCreator, ProfileTextbox, Int]
   }
 
   case class ProfileCreator(
@@ -112,15 +112,17 @@ object repo {
   }
 
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextBoxRepo =
-    Repo[ProfileTextBoxCreator, ProfileTextBox, Int]
+  private val profileTextboxRepo =
+    Repo[ProfileTextboxCreator, ProfileTextbox, Int]
+  private val profileStickerRepo = ???
+ 
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
 
-  private def profileTextBoxesSpec(userId: Int) = Spec[ProfileTextBox]
-    .where(sql"${ProfileTextBox.Table.userId} = $userId")
+  private def profileTextboxesSpec(userId: Int) = Spec[ProfileTextbox]
+    .where(sql"${ProfileTextbox.Table.userId} = $userId")
 
   val getRecommendations = IO.blocking {
     connect(dataSource) {
@@ -134,9 +136,11 @@ object repo {
         .findById(userId)
         .map { profile =>
           val images = profileImageRepo.findAll(profileImagesSpec(userId))
-          val textBoxes =
-            profileTextBoxRepo.findAll(profileTextBoxesSpec(userId))
-          (profile, images, textBoxes)
+          val textboxes =
+            profileTextboxRepo.findAll(profileTextboxesSpec(userId))
+          val stickers = Vector.empty ///TODO
+            // profileStickerRepo.findAll(profileStickersSpec(userId))
+          (profile, images, textboxes, stickers)
         }
         .toRight(())
     }

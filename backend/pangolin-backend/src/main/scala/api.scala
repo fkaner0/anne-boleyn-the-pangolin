@@ -47,32 +47,40 @@ object api {
     given ReadWriter[ProfileImage] = macroRW
   }
 
-  case class ProfileTextBox(
+  case class ProfileTextbox(
       title: String,
       body: String,
       position: Position,
   )
-  object ProfileTextBox {
-    given ReadWriter[ProfileTextBox] = macroRW
+  object ProfileTextbox {
+    given ReadWriter[ProfileTextbox] = macroRW
   }
 
-  case class Profile(
+  case class ProfileSticker(
+      name: String, // plain name. no extension
+      position: Position,
+  )
+  object ProfileSticker {
+    given ReadWriter[ProfileSticker] = macroRW
+  }
+
+  case class FullProfile(
       userId: Int,
       name: String,
       location: String,
       profileImageUrl: String,
-      images: Vector[ProfileImage],
-      textBoxes: Vector[ProfileTextBox],
+      bio: String,
+      wallImages: Vector[ProfileImage],
+      wallTextboxes: Vector[ProfileTextbox],
+      wallStickers: Vector[ProfileSticker],
   )
-  object Profile {
-    given ReadWriter[Profile] = macroRW
+  object FullProfile {
+    given ReadWriter[FullProfile] = macroRW
   }
 
   case class UploadRequest(
     image: Part[Array[Byte]]
   )
-
-  /// TODO: frontend may want something return
   case class UploadResponse(
     url: String
   )
@@ -80,9 +88,13 @@ object api {
     given ReadWriter[UploadResponse] = macroRW
   }
 
-  private val profileEndpoint = endpoint.get
-    .in("profile" / path[Int]("userId"))
-    .out(jsonBody[Profile])
+  private val profileViewEndpoint = endpoint.get
+    .in("profile" / "view" / path[Int]("userId"))
+    .out(jsonBody[FullProfile])
+
+  private val profileEditEndpoint = endpoint.put
+    .in(jsonBody[FullProfile])
+    // .out() /// TODO: is nothing ok?
 
   private val uploadWallImageEndpoint = endpoint.post
     .in("wallImage")
@@ -126,21 +138,30 @@ object api {
     )
   }
 
-  private val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    profileEndpoint.serverLogic { userId =>
+  private val profileViewRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    profileViewEndpoint.serverLogic { userId =>
       repo
         .getProfile(userId)
-        .map(_.map { (user, images, textBoxes) =>
-          Profile(
+        .map(_.map { (user, images, textboxes, stickers) =>
+          FullProfile(
             userId = user.id,
             name = user.name,
             location = user.location,
+            bio = "placeholderbio", /// TODO: add to DB
             profileImageUrl = user.profileImageUrl,
-            images = images.map(_.toApi),
-            textBoxes = textBoxes.map(_.toApi),
+            wallImages = images.map(_.toApi),
+            wallTextboxes = textboxes.map(_.toApi),
+            wallStickers = Vector.empty //stickers.map(_.toApi), /// TODO: add to DB
           )
         })
     },
+  )
+
+  private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    profileEditEndpoint.serverLogic { userId =>
+      println("WOULD HAVE UPDATED STUFF BUT I DIDNT!!!")
+      ???
+    }
   )
 
   private val uploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
@@ -163,11 +184,11 @@ object api {
     )
   }
 
-  extension (textBox: repo.ProfileTextBox) {
-    private def toApi = ProfileTextBox(
-      title = textBox.title,
-      body = textBox.body,
-      position = textBox.position,
+  extension (textbox: repo.ProfileTextbox) {
+    private def toApi = ProfileTextbox(
+      title = textbox.title,
+      body = textbox.body,
+      position = textbox.position,
     )
   }
 
@@ -183,7 +204,8 @@ object api {
 
   val router = Router(
     "/" -> api.recommendationsRoutes,
-    "/" -> api.profileRoutes,
+    "/" -> api.profileViewRoutes,
+    "/" -> api.profileEditRoutes,
     "/" -> api.uploadRoutes
   ).orNotFound
 }
