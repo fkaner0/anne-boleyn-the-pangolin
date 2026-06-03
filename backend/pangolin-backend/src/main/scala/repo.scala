@@ -155,36 +155,30 @@ object repo {
   private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
     .where(sql"${ProfileSticker.Table.userId} = $userId")
 
-  val getRecommendations = IO.blocking {
-    connect(dataSource) {
-      profileRepo.findAll.asRight
-    }
+  val getRecommendations = inDatabase {
+    profileRepo.findAll.asRight
   }
 
-  def getProfile(userId: Int) = IO.blocking {
-    connect(dataSource) {
-      profileRepo
-        .findById(userId)
-        .map { profile =>
-          val images = profileImageRepo.findAll(profileImagesSpec(userId))
-          val textboxes =
-            profileTextboxRepo.findAll(profileTextboxesSpec(userId))
-          val stickers =
-            profileStickerRepo.findAll(profileStickersSpec(userId))
-          (profile, images, textboxes, stickers)
-        }
-        .toRight(())
-    }
+  def getProfile(userId: Int) = inDatabase {
+    profileRepo
+      .findById(userId)
+      .map { profile =>
+        val images = profileImageRepo.findAll(profileImagesSpec(userId))
+        val textboxes =
+          profileTextboxRepo.findAll(profileTextboxesSpec(userId))
+        val stickers =
+          profileStickerRepo.findAll(profileStickersSpec(userId))
+        (profile, images, textboxes, stickers)
+      }
+      .toRight(())
   }
 
-  def newProfile(): IO[Either[Nothing, Int]] = IO.blocking {
-    connect(dataSource) {
-      profileRepo.insertReturning(ProfileCreator(
-        "Placeholder Name",
-        "Placeholder Location",
-        "https://placehold.co/400x400.jpg"
-      )).id.asRight
-    }
+  def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
+    profileRepo.insertReturning(ProfileCreator(
+      "Placeholder Name",
+      "Placeholder Location",
+      "https://placehold.co/400x400.jpg"
+    )).id.asRight
   }
 
   private def removeBySpec[EC, E, I](table: Repo[EC, E, I], spec: Spec[E], getId: E => I)(using DbCon)
