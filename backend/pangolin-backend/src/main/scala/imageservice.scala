@@ -34,7 +34,6 @@ private object imageUploaderAPI {
     type ImageUploadType = InputStream | ImageURL
 
     trait ImageUploader {
-        /// TODO: input type?
         def upload(imageFile: ImageUploadType): Option[ImageURL]
     }
 
@@ -67,7 +66,7 @@ private object imageUploaderAPI {
             }
 
         case class ImageUploadResults(
-            cloudId: String, /// TODO
+            cloudId: String,    
             publicId: ImagePublicID,
             imgType: ImageTypeSuffix,
         ) {

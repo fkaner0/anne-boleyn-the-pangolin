@@ -168,7 +168,7 @@ object repo {
           val images = profileImageRepo.findAll(profileImagesSpec(userId))
           val textboxes =
             profileTextboxRepo.findAll(profileTextboxesSpec(userId))
-          val stickers = // Vector.empty ///TODO
+          val stickers =
             profileStickerRepo.findAll(profileStickersSpec(userId))
           (profile, images, textboxes, stickers)
         }
