@@ -3,6 +3,7 @@ import 'dart:ui' show Offset;
 import '../../data/image_file_picker.dart';
 import '../../domain/canvas_image_item.dart';
 import '../../domain/canvas_text_item.dart';
+import '../../domain/canvas_transform.dart';
 import '../../domain/virtual_canvas.dart';
 
 class BedroomWallCreatorController {
@@ -21,6 +22,10 @@ class BedroomWallCreatorController {
 
   List<CanvasTextItem> get textItems => List.unmodifiable(_textItems);
 
+  CanvasTransform _centeredTransform() {
+    return CanvasTransform(center: Offset(canvas.width / 2, canvas.height / 2));
+  }
+
   Future<void> addImage() async {
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
@@ -30,39 +35,29 @@ class BedroomWallCreatorController {
         id: _nextId++,
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
-        center: Offset(canvas.width / 2, canvas.height / 2),
+        transform: _centeredTransform(),
       ),
     );
   }
 
-  void updateImageTransform(int id, Offset center, double scale) {
+  void updateImageTransform(int id, CanvasTransform transform) {
     final index = _imageItems.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
-    _imageItems[index] = _imageItems[index].copyWith(
-      center: center,
-      scale: scale,
-    );
+    _imageItems[index] = _imageItems[index].copyWith(transform: transform);
   }
 
   void addTextBox() {
     _textItems.add(
-      CanvasTextItem(
-        id: _nextId++,
-        text: '',
-        center: Offset(canvas.width / 2, canvas.height / 2),
-      ),
+      CanvasTextItem(id: _nextId++, text: '', transform: _centeredTransform()),
     );
   }
 
-  void updateTextTransform(int id, Offset center, double scale) {
+  void updateTextTransform(int id, CanvasTransform transform) {
     final index = _textItems.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
-    _textItems[index] = _textItems[index].copyWith(
-      center: center,
-      scale: scale,
-    );
+    _textItems[index] = _textItems[index].copyWith(transform: transform);
   }
 
   void updateText(int id, String text) {

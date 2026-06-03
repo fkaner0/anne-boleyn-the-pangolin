@@ -43,6 +43,19 @@ void main() {
     );
   }
 
+  test('updateTextTransform persists rotation', () {
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    final item = controller.textItems.single;
+
+    controller.updateTextTransform(
+      item.id,
+      item.transform.copyWith(rotation: 0.5),
+    );
+
+    expect(controller.textItems.single.transform.rotation, 0.5);
+  });
+
   testWidgets('shows the top bar with Back and Next', (tester) async {
     await pumpPage(tester, controller: controllerWith(null));
 

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/canvas_transform.dart';
+
 class InteractiveCanvasItem extends StatefulWidget {
-  final Offset initialCenter;
-  final double initialScale;
+  final CanvasTransform initialTransform;
   final Size baseSize;
   final Widget child;
-  final void Function(Offset center, double scale) onTransformEnd;
+  final void Function(CanvasTransform transform) onTransformEnd;
   final double minScale;
   final double maxScale;
 
   const InteractiveCanvasItem({
     super.key,
-    required this.initialCenter,
-    required this.initialScale,
+    required this.initialTransform,
     required this.baseSize,
     required this.child,
     required this.onTransformEnd,
@@ -25,61 +25,64 @@ class InteractiveCanvasItem extends StatefulWidget {
 }
 
 class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
-  late Offset _center = widget.initialCenter;
-  late double _scale = widget.initialScale;
+  late CanvasTransform _transform = widget.initialTransform;
 
   bool _gesturing = false;
   Offset _startFocalPoint = Offset.zero;
-  Offset _startCenter = Offset.zero;
-  double _startScale = 1.0;
+  CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
 
   @override
   void didUpdateWidget(InteractiveCanvasItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_gesturing) {
-      _center = widget.initialCenter;
-      _scale = widget.initialScale;
+    if (!_gesturing && widget.initialTransform != oldWidget.initialTransform) {
+      _transform = widget.initialTransform;
     }
   }
 
   void _onScaleStart(ScaleStartDetails details) {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
-    _startCenter = _center;
-    _startScale = _scale;
+    _startTransform = _transform;
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
     setState(() {
-      _scale = (_startScale * details.scale).clamp(
-        widget.minScale,
-        widget.maxScale,
+      _transform = _startTransform.copyWith(
+        center:
+            _startTransform.center + (details.focalPoint - _startFocalPoint),
+        scale: (_startTransform.scale * details.scale).clamp(
+          widget.minScale,
+          widget.maxScale,
+        ),
+        rotation: _startTransform.rotation + details.rotation,
       );
-      _center = _startCenter + (details.focalPoint - _startFocalPoint);
     });
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
-    widget.onTransformEnd(_center, _scale);
+    widget.onTransformEnd(_transform);
   }
 
   @override
   Widget build(BuildContext context) {
-    final width = widget.baseSize.width * _scale;
-    final height = widget.baseSize.height * _scale;
+    final width = widget.baseSize.width * _transform.scale;
+    final height = widget.baseSize.height * _transform.scale;
 
     return Positioned(
-      left: _center.dx - width / 2,
-      top: _center.dy - height / 2,
+      left: _transform.center.dx - width / 2,
+      top: _transform.center.dy - height / 2,
       width: width,
       height: height,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onScaleStart: _onScaleStart,
-        onScaleUpdate: _onScaleUpdate,
-        onScaleEnd: _onScaleEnd,
-        child: widget.child,
+      child: Transform.rotate(
+        angle: _transform.rotation,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onScaleStart: _onScaleStart,
+          onScaleUpdate: _onScaleUpdate,
+          onScaleEnd: _onScaleEnd,
+          child: widget.child,
+        ),
       ),
     );
   }

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/canvas_transform.dart';
+
 class EditableCanvasTextItem extends StatefulWidget {
-  final Offset initialCenter;
-  final double initialScale;
+  final CanvasTransform initialTransform;
   final double baseFontSize;
   final double maxWidth;
   final String text;
   final String placeholder;
-  final void Function(Offset center, double scale) onTransformEnd;
+  final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
   final double minScale;
   final double maxScale;
 
   const EditableCanvasTextItem({
     super.key,
-    required this.initialCenter,
-    required this.initialScale,
+    required this.initialTransform,
     required this.baseFontSize,
     required this.maxWidth,
     required this.text,
@@ -36,14 +36,12 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   );
   final FocusNode _focusNode = FocusNode();
 
-  late Offset _center = widget.initialCenter;
-  late double _scale = widget.initialScale;
+  late CanvasTransform _transform = widget.initialTransform;
   bool _editing = false;
 
   bool _gesturing = false;
   Offset _startFocalPoint = Offset.zero;
-  Offset _startCenter = Offset.zero;
-  double _startScale = 1.0;
+  CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
 
   @override
   void initState() {
@@ -54,11 +52,8 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   @override
   void didUpdateWidget(EditableCanvasTextItem oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_gesturing &&
-        (widget.initialCenter != oldWidget.initialCenter ||
-            widget.initialScale != oldWidget.initialScale)) {
-      _center = widget.initialCenter;
-      _scale = widget.initialScale;
+    if (!_gesturing && widget.initialTransform != oldWidget.initialTransform) {
+      _transform = widget.initialTransform;
     }
     if (!_editing && widget.text != oldWidget.text) {
       _controller.text = widget.text;
@@ -88,30 +83,34 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   void _onScaleStart(ScaleStartDetails details) {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
-    _startCenter = _center;
-    _startScale = _scale;
+    _startTransform = _transform;
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
     setState(() {
-      _scale = (_startScale * details.scale).clamp(
-        widget.minScale,
-        widget.maxScale,
+      _transform = _startTransform.copyWith(
+        center:
+            _startTransform.center + (details.focalPoint - _startFocalPoint),
+        scale: (_startTransform.scale * details.scale).clamp(
+          widget.minScale,
+          widget.maxScale,
+        ),
+        rotation: _startTransform.rotation + details.rotation,
       );
-      _center = _startCenter + (details.focalPoint - _startFocalPoint);
     });
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
-    widget.onTransformEnd(_center, _scale);
+    widget.onTransformEnd(_transform);
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final scale = _transform.scale;
     final textStyle = TextStyle(
-      fontSize: widget.baseFontSize * _scale,
+      fontSize: widget.baseFontSize * scale,
       color: colorScheme.onSurface,
     );
 
@@ -143,33 +142,36 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     }
 
     final box = ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: widget.maxWidth * _scale),
+      constraints: BoxConstraints(maxWidth: widget.maxWidth * scale),
       child: Container(
-        padding: EdgeInsets.all(8 * _scale),
+        padding: EdgeInsets.all(8 * scale),
         decoration: BoxDecoration(
           color: colorScheme.surface,
           border: Border.all(color: colorScheme.outline),
-          borderRadius: BorderRadius.circular(8 * _scale),
+          borderRadius: BorderRadius.circular(8 * scale),
         ),
         child: inner,
       ),
     );
 
     return Positioned(
-      left: _center.dx,
-      top: _center.dy,
+      left: _transform.center.dx,
+      top: _transform.center.dy,
       child: FractionalTranslation(
         translation: const Offset(-0.5, -0.5),
-        child: _editing
-            ? box
-            : GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _enterEdit,
-                onScaleStart: _onScaleStart,
-                onScaleUpdate: _onScaleUpdate,
-                onScaleEnd: _onScaleEnd,
-                child: box,
-              ),
+        child: Transform.rotate(
+          angle: _transform.rotation,
+          child: _editing
+              ? box
+              : GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _enterEdit,
+                  onScaleStart: _onScaleStart,
+                  onScaleUpdate: _onScaleUpdate,
+                  onScaleEnd: _onScaleEnd,
+                  child: box,
+                ),
+        ),
       ),
     );
   }

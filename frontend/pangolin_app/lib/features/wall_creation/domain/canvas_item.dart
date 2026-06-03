@@ -1,9 +1,8 @@
-import 'dart:ui' show Offset;
+import 'canvas_transform.dart';
 
 abstract class CanvasItem {
   final int id;
-  final Offset center;
-  final double scale;
+  final CanvasTransform transform;
 
-  const CanvasItem({required this.id, required this.center, this.scale = 1.0});
+  const CanvasItem({required this.id, required this.transform});
 }

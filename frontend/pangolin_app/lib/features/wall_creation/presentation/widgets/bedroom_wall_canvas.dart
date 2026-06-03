@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/canvas_image_item.dart';
 import '../../domain/canvas_text_item.dart';
+import '../../domain/canvas_transform.dart';
 import '../../domain/virtual_canvas.dart';
 import 'editable_canvas_text_item.dart';
 import 'interactive_canvas_item.dart';
@@ -14,8 +15,8 @@ class BedroomWallCanvas extends StatelessWidget {
   final VirtualCanvas canvas;
   final List<CanvasImageItem> imageItems;
   final List<CanvasTextItem> textItems;
-  final void Function(int id, Offset center, double scale) onImageTransform;
-  final void Function(int id, Offset center, double scale) onTextTransform;
+  final void Function(int id, CanvasTransform transform) onImageTransform;
+  final void Function(int id, CanvasTransform transform) onTextTransform;
   final void Function(int id, String text) onTextChanged;
 
   const BedroomWallCanvas({
@@ -27,6 +28,14 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.onTextTransform,
     required this.onTextChanged,
   });
+
+  CanvasTransform _toRendered(CanvasTransform transform, double renderScale) {
+    return transform.copyWith(center: transform.center * renderScale);
+  }
+
+  CanvasTransform _toLogical(CanvasTransform transform, double renderScale) {
+    return transform.copyWith(center: transform.center / renderScale);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,28 +58,30 @@ class BedroomWallCanvas extends StatelessWidget {
               for (final item in imageItems)
                 InteractiveCanvasItem(
                   key: ValueKey('image-${item.id}'),
-                  initialCenter: item.center * renderScale,
-                  initialScale: item.scale,
+                  initialTransform: _toRendered(item.transform, renderScale),
                   baseSize:
                       Size(
                         _imageBaseWidth,
                         _imageBaseWidth / item.aspectRatio,
                       ) *
                       renderScale,
-                  onTransformEnd: (center, scale) =>
-                      onImageTransform(item.id, center / renderScale, scale),
+                  onTransformEnd: (transform) => onImageTransform(
+                    item.id,
+                    _toLogical(transform, renderScale),
+                  ),
                   child: Image.memory(item.bytes, fit: BoxFit.cover),
                 ),
               for (final item in textItems)
                 EditableCanvasTextItem(
                   key: ValueKey('text-${item.id}'),
-                  initialCenter: item.center * renderScale,
-                  initialScale: item.scale,
+                  initialTransform: _toRendered(item.transform, renderScale),
                   baseFontSize: _textBaseFontSize * renderScale,
                   maxWidth: _textMaxWidth * renderScale,
                   text: item.text,
-                  onTransformEnd: (center, scale) =>
-                      onTextTransform(item.id, center / renderScale, scale),
+                  onTransformEnd: (transform) => onTextTransform(
+                    item.id,
+                    _toLogical(transform, renderScale),
+                  ),
                   onTextChanged: (text) => onTextChanged(item.id, text),
                 ),
             ],

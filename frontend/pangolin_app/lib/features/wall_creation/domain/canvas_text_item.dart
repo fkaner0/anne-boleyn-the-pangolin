@@ -1,6 +1,5 @@
-import 'dart:ui' show Offset;
-
 import 'canvas_item.dart';
+import 'canvas_transform.dart';
 
 class CanvasTextItem extends CanvasItem {
   final String text;
@@ -8,16 +7,14 @@ class CanvasTextItem extends CanvasItem {
   const CanvasTextItem({
     required super.id,
     required this.text,
-    required super.center,
-    super.scale,
+    required super.transform,
   });
 
-  CanvasTextItem copyWith({Offset? center, double? scale, String? text}) {
+  CanvasTextItem copyWith({CanvasTransform? transform, String? text}) {
     return CanvasTextItem(
       id: id,
       text: text ?? this.text,
-      center: center ?? this.center,
-      scale: scale ?? this.scale,
+      transform: transform ?? this.transform,
     );
   }
 }
