@@ -12,22 +12,21 @@ class MockRecommendationFetcher implements RecommendationFetcher {
         userId: 0,
         name: 'Tim Johnson',
         location: 'Harrow, London',
-        bio: 'Budding watercolour artist, been enjoying painting ponds.',
+        bio: 'Watercolouring a new pond every day',
         imageUrl: 'https://via.placeholder.com/150',
       ),
       Recommendation(
         userId: 1,
         name: 'Sally Parks',
         location: 'Hammersmith, London',
-        bio:
-            'I love apples. I love still life. I love drawing apples in still life.',
+        bio: 'still-4-lyferrrr',
         imageUrl: 'https://via.placeholder.com/150',
       ),
       Recommendation(
         userId: 2,
         name: 'Selena Davis',
         location: 'Richmond, London',
-        bio: 'Finger painting fanatic, check out my pangolin art.',
+        bio: 'willing to try anything new and messy',
         imageUrl: 'https://via.placeholder.com/150',
       ),
     ];

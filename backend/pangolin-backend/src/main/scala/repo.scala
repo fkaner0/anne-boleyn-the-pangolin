@@ -13,11 +13,12 @@ import com.augustnagro.magnum.{
   connect,
   sql,
 }
+import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
 
 object repo {
 
-  trait Positionned {
+  trait Positioned {
     val x: Int
     val y: Int
     val rotation: Int
@@ -33,7 +34,7 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
   case class ProfileImage(
@@ -45,13 +46,13 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   object ProfileImage {
     val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
   }
 
-  case class ProfileTextBoxCreator(
+  case class ProfileTextboxCreator(
       userId: Int,
       title: String,
       body: String,
@@ -60,10 +61,10 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileTextBox(
+  case class ProfileTextbox(
       @Id id: Int,
       userId: Int,
       title: String,
@@ -73,10 +74,36 @@ object repo {
       rotation: Int,
       aspectRatio: Double,
       scale: Double,
-  ) extends Positionned derives DbCodec
+  ) extends Positioned derives DbCodec
 
-  object ProfileTextBox {
-    val Table = TableInfo[ProfileTextBoxCreator, ProfileTextBox, Int]
+  object ProfileTextbox {
+    val Table = TableInfo[ProfileTextboxCreator, ProfileTextbox, Int]
+  }
+
+  case class ProfileStickerCreator(
+      userId: Int,
+      stickerName: String,
+      x: Int,
+      y: Int,
+      rotation: Int,
+      aspectRatio: Double,
+      scale: Double,
+  ) extends Positioned derives DbCodec
+
+  @Table(PostgresDbType)
+  case class ProfileSticker(
+      @Id id: Int,
+      userId: Int,
+      stickerName: String,
+      x: Int,
+      y: Int,
+      rotation: Int,
+      aspectRatio: Double,
+      scale: Double,
+  ) extends Positioned derives DbCodec
+
+  object ProfileSticker {
+    val Table = TableInfo[ProfileStickerCreator, ProfileSticker, Int]
   }
 
   case class ProfileCreator(
@@ -102,7 +129,7 @@ object repo {
     ds.setDatabaseName("pangolindb")
     ds.setUser("pangolindbuser")
     ds.setPassword(
-      sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt")),
+      sys.env.getOrElse("DB_PASSWORD", Dotenv.load().get("DB_PASSWORD")),
     )
     ds.setPortNumber(5432)
     ds.setUrl(
@@ -112,15 +139,20 @@ object repo {
   }
 
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextBoxRepo =
-    Repo[ProfileTextBoxCreator, ProfileTextBox, Int]
+  private val profileTextboxRepo =
+    Repo[ProfileTextboxCreator, ProfileTextbox, Int]
+  private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
+ 
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
 
-  private def profileTextBoxesSpec(userId: Int) = Spec[ProfileTextBox]
-    .where(sql"${ProfileTextBox.Table.userId} = $userId")
+  private def profileTextboxesSpec(userId: Int) = Spec[ProfileTextbox]
+    .where(sql"${ProfileTextbox.Table.userId} = $userId")
+
+  private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
+    .where(sql"${ProfileSticker.Table.userId} = $userId")
 
   val getRecommendations = IO.blocking {
     connect(dataSource) {
@@ -134,11 +166,25 @@ object repo {
         .findById(userId)
         .map { profile =>
           val images = profileImageRepo.findAll(profileImagesSpec(userId))
-          val textBoxes =
-            profileTextBoxRepo.findAll(profileTextBoxesSpec(userId))
-          (profile, images, textBoxes)
+          val textboxes =
+            profileTextboxRepo.findAll(profileTextboxesSpec(userId))
+          val stickers =
+            profileStickerRepo.findAll(profileStickersSpec(userId))
+          (profile, images, textboxes, stickers)
         }
         .toRight(())
     }
   }
+
+  def newProfile(): IO[Either[Nothing, Int]] = IO.blocking {
+    connect(dataSource) {
+      profileRepo.insertReturning(ProfileCreator(
+        "Placeholder Name",
+        "Placeholder Location",
+        "https://placehold.co/400x400.jpg"
+      )).id.asRight
+    }
+  }
 }
+
+

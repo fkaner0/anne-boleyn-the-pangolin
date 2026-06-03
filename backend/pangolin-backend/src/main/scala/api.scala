@@ -1,9 +1,13 @@
 package pangolin
 
 import cats.effect.IO
+import fs2.Stream
+import fs2.io.toInputStreamResource
+import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath}
+import sttp.model.Part
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
@@ -43,30 +47,71 @@ object api {
     given ReadWriter[ProfileImage] = macroRW
   }
 
-  case class ProfileTextBox(
+  case class ProfileTextbox(
       title: String,
       body: String,
       position: Position,
   )
-  object ProfileTextBox {
-    given ReadWriter[ProfileTextBox] = macroRW
+  object ProfileTextbox {
+    given ReadWriter[ProfileTextbox] = macroRW
   }
 
-  case class Profile(
+  case class ProfileSticker(
+      name: String, // plain name. no extension
+      position: Position,
+  )
+  object ProfileSticker {
+    given ReadWriter[ProfileSticker] = macroRW
+  }
+
+  case class FullProfile(
       userId: Int,
       name: String,
       location: String,
       profileImageUrl: String,
-      images: Vector[ProfileImage],
-      textBoxes: Vector[ProfileTextBox],
+      bio: String,
+      wallImages: Vector[ProfileImage],
+      wallTextboxes: Vector[ProfileTextbox],
+      wallStickers: Vector[ProfileSticker],
   )
-  object Profile {
-    given ReadWriter[Profile] = macroRW
+  object FullProfile {
+    given ReadWriter[FullProfile] = macroRW
   }
 
-  private val profileEndpoint = endpoint.get
-    .in("profile" / path[Int]("userId"))
-    .out(jsonBody[Profile])
+  case class UploadRequest(
+    image: Part[Array[Byte]]
+  )
+  case class UploadResponse(
+    url: String
+  )
+  object UploadResponse {
+    given ReadWriter[UploadResponse] = macroRW
+  }
+
+
+  case class NewUserResponse(
+    userId: Int
+  )
+  object NewUserResponse {
+    given ReadWriter[NewUserResponse] = macroRW
+  }
+
+  private val profileViewEndpoint = endpoint.get
+    .in("profile" / "view" / path[Int]("userId"))
+    .out(jsonBody[FullProfile])
+
+  private val profileEditEndpoint = endpoint.put
+    .in(jsonBody[FullProfile])
+    // .out() /// TODO: is nothing ok?
+
+  private val uploadWallImageEndpoint = endpoint.post
+    .in("wallImage")
+    .in(multipartBody[UploadRequest])
+    .errorOut(stringBody)
+    .out(jsonBody[UploadResponse])
+
+  private val newUserEndpoint = endpoint.post
+    .out(jsonBody[NewUserResponse])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -104,21 +149,50 @@ object api {
     )
   }
 
-  private val profileRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    profileEndpoint.serverLogic { userId =>
+  private val profileViewRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    profileViewEndpoint.serverLogic { userId =>
       repo
         .getProfile(userId)
-        .map(_.map { (user, images, textBoxes) =>
-          Profile(
+        .map(_.map { (user, images, textboxes, stickers) =>
+          FullProfile(
             userId = user.id,
             name = user.name,
             location = user.location,
+            bio = "placeholderbio", /// TODO: add to DB
             profileImageUrl = user.profileImageUrl,
-            images = images.map(_.toApi),
-            textBoxes = textBoxes.map(_.toApi),
+            wallImages = images.map(_.toApi),
+            wallTextboxes = textboxes.map(_.toApi),
+            wallStickers = stickers.map(_.toApi),
           )
         })
     },
+  )
+
+  private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    profileEditEndpoint.serverLogic { request =>
+      println("WOULD HAVE UPDATED STUFF BUT I DIDNT!!!")
+      ???
+    }
+  )
+
+  private val uploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    uploadWallImageEndpoint.serverLogic { request =>
+      IO.blocking {
+        val inputStream = new java.io.ByteArrayInputStream(request.image.body)
+        imageservice.uploadBedroomWallImage(inputStream)
+      }.attempt.map {
+        case Right(Some(imageUploaderAPI.ImageURL(url))) => Right(UploadResponse(url))
+        case Right(None) => Left("Error in image upload")
+        case Left(err)  => Left(err.getMessage)
+      }
+    }
+  )
+
+  private val newUserRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    newUserEndpoint.serverLogic { _ =>
+      val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
+      newUserId.map(_.map(NewUserResponse(_)))
+    }
   )
 
   extension (image: repo.ProfileImage) {
@@ -128,26 +202,35 @@ object api {
     )
   }
 
-  extension (textBox: repo.ProfileTextBox) {
-    private def toApi = ProfileTextBox(
-      title = textBox.title,
-      body = textBox.body,
-      position = textBox.position,
+  extension (textbox: repo.ProfileTextbox) {
+    private def toApi = ProfileTextbox(
+      title = textbox.title,
+      body = textbox.body,
+      position = textbox.position,
     )
   }
 
-  extension (positionned: repo.Positionned) {
+  extension (sticker: repo.ProfileSticker) {
+    private def toApi = ProfileSticker(
+      name = sticker.stickerName,
+      position = sticker.position,
+    )
+  }
+
+  extension (positioned: repo.Positioned) {
     private def position = Position(
-      positionned.x,
-      positionned.y,
-      positionned.rotation,
-      positionned.aspectRatio,
-      positionned.scale,
+      positioned.x,
+      positioned.y,
+      positioned.rotation,
+      positioned.aspectRatio,
+      positioned.scale,
     )
   }
 
   val router = Router(
     "/" -> api.recommendationsRoutes,
-    "/" -> api.profileRoutes,
+    "/" -> api.profileViewRoutes,
+    "/" -> api.profileEditRoutes,
+    "/" -> api.uploadRoutes
   ).orNotFound
 }

@@ -18,7 +18,7 @@ class ApiProfileFetcher implements ProfileFetcher {
     } else {
       baseUrl = '$host:$port';
     }
-    final uri = Uri.https(baseUrl, '/profile/$userId');
+    final uri = Uri.https(baseUrl, '/profile/view/$userId');
 
     final response = await http.get(uri);
 

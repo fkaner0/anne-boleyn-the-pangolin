@@ -22,6 +22,13 @@ lazy val root = project
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.11",
     libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.11.7",
 
+  // cloudinary java sdk
+    libraryDependencies += "com.cloudinary" % "cloudinary-http5" % "2.0.0",   // general
+    // libraryDependencies += "com.cloudinary" %% "cloudinary-taglib" % "2.0.0", // J2EE
+    // libraryDependencies += "io.github.cdimascio" %% "dotenv-java" % "2.2.4",  // Android
+    libraryDependencies += "io.github.cdimascio" % "java-dotenv" % "5.2.2",
+  // end cloudinary
+
     assembly / assemblyJarName := "app.jar",
 
     assembly / assemblyMergeStrategy := {
