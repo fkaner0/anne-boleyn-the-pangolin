@@ -39,14 +39,16 @@ class CanvasPromptItem extends StatelessWidget {
             behavior: HitTestBehavior.opaque,
             child: CustomPaint(
               painter: _DashedRectPainter(color: color),
-              child: SizedBox(
-                width: _width,
-                height: _height,
-                child: Padding(
-                  padding: EdgeInsets.all(_width * 0.08),
-                  child: action == CanvasPromptAction.addImage
-                      ? _ImageContent(label: label, color: color)
-                      : _TextContent(label: label, color: color),
+              child: ClipRect(
+                child: SizedBox(
+                  width: _width,
+                  height: _height,
+                  child: Padding(
+                    padding: EdgeInsets.all(_width * 0.08),
+                    child: action == CanvasPromptAction.addImage
+                        ? _ImageContent(label: label, color: color)
+                        : _TextContent(label: label, color: color),
+                  ),
                 ),
               ),
             ),

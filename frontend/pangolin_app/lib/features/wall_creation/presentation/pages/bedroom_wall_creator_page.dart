@@ -91,17 +91,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: SingleChildScrollView(
-                child: BedroomWallCanvas(
-                  canvas: _controller.canvas,
-                  stickerCatalog: _controller.stickerCatalog,
-                  items: _controller.items,
-                  prompts: _controller.prompts,
-                  onItemTransform: _controller.updateTransform,
-                  onTextChanged: _controller.updateText,
-                  onPromptAddImage: _addImageFromPrompt,
-                  onPromptAddTextBox: _addTextBoxFromPrompt,
-                ),
+              child: BedroomWallCanvas(
+                canvas: _controller.canvas,
+                stickerCatalog: _controller.stickerCatalog,
+                items: _controller.items,
+                prompts: _controller.prompts,
+                onItemTransform: _controller.updateTransform,
+                onTextChanged: _controller.updateText,
+                onPromptAddImage: _addImageFromPrompt,
+                onPromptAddTextBox: _addTextBoxFromPrompt,
               ),
             ),
             Positioned(

@@ -11,6 +11,12 @@ class ProfileText {
     required this.position,
   });
 
+  Map<String, dynamic> toJson() => {
+    'title': title,
+    'body': body,
+    'position': position.toJson(),
+  };
+
   factory ProfileText.fromJson(Map<String, dynamic> json) {
     return ProfileText(
       title: json['title'] as String,
