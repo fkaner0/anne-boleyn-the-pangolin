@@ -1,5 +1,6 @@
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 class ProfileBuilder {
@@ -8,6 +9,7 @@ class ProfileBuilder {
   String? _location;
   final List<ProfileImage> _images = [];
   final List<ProfileText> _textboxes = [];
+  final List<ProfileSticker> _stickers = [];
 
   ProfileBuilder();
 
@@ -18,6 +20,7 @@ class ProfileBuilder {
       _location = profile.location {
     _images.addAll(profile.images);
     _textboxes.addAll(profile.textboxes);
+    _stickers.addAll(profile.stickers);
   }
 
   ProfileBuilder setUserId(int userId) {
@@ -59,6 +62,18 @@ class ProfileBuilder {
     return this;
   }
 
+  /// Appends a single ProfileSticker
+  ProfileBuilder addSticker(ProfileSticker sticker) {
+    _stickers.add(sticker);
+    return this;
+  }
+
+  // Appends all `stickers` ProfileSticker to the profile.
+  ProfileBuilder addStickers(Iterable<ProfileSticker> stickers) {
+    _stickers.addAll(stickers);
+    return this;
+  }
+
   // Requires userId, name, and location to be set before building the Profile.
   Profile build() {
     final userId = _userId;
@@ -83,6 +98,7 @@ class ProfileBuilder {
       location: location!,
       images: List.unmodifiable(_images),
       textboxes: List.unmodifiable(_textboxes),
+      stickers: List.unmodifiable(_stickers),
     );
   }
 }

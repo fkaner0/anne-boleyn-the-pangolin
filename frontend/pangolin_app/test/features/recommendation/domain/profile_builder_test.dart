@@ -3,6 +3,7 @@ import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 void main() {
@@ -16,6 +17,7 @@ void main() {
     body: 'Hello',
     position: position,
   );
+  const sticker = ProfileSticker(name: 'pangolin', position: position);
 
   ProfileBuilder validBuilder() =>
       ProfileBuilder().setUserId(1).setName('Alice').setLocation('London');
@@ -39,6 +41,20 @@ void main() {
 
       expect(profile.images, isEmpty);
       expect(profile.textboxes, isEmpty);
+    });
+
+    test('adds stickers and includes them in the built profile', () {
+      final profile = validBuilder().addSticker(sticker).build();
+
+      expect(profile.stickers, [sticker]);
+    });
+
+    test('addStickers preserves order', () {
+      const sticker2 = ProfileSticker(name: 'sun', position: position);
+
+      final profile = validBuilder().addStickers([sticker, sticker2]).build();
+
+      expect(profile.stickers, [sticker, sticker2]);
     });
 
     test('addImages and addTextBoxes preserve order', () {

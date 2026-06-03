@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
-import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import '../../data/gallery_image_file_picker.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
@@ -13,8 +10,13 @@ import '../widgets/sticker_picker.dart';
 
 class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
+  final ProfileBuilder? profileBuilder;
 
-  const BedroomWallCreatorPage({super.key, this.controller});
+  const BedroomWallCreatorPage({
+    super.key,
+    this.controller,
+    this.profileBuilder,
+  });
 
   @override
   State<BedroomWallCreatorPage> createState() => _BedroomWallCreatorPageState();
@@ -27,6 +29,13 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         imagePicker: GalleryImageFilePicker(),
         stickerCatalog: getIt<StickerCatalog>(),
       );
+
+  late final ProfileBuilder _profileBuilder =
+      widget.profileBuilder ??
+      (ProfileBuilder()
+        ..setUserId(0)
+        ..setName('Unknown')
+        ..setLocation('Unknown'));
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -57,16 +66,26 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(() => _controller.addSticker(stickerName));
   }
 
-  void _openRecommendations() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RecommendationListPage(
-          recommendationFetcher: getIt<RecommendationFetcher>(),
-          profileRejectionDecider: getIt<ProfileRejectionDecider>(),
-          profileFetcher: getIt<ProfileFetcher>(),
-        ),
+  void _save() {
+    _controller.exportInto(_profileBuilder);
+    final profile = _profileBuilder.build();
+    debugPrint('Saved profile: ${profile.toJson()}');
+
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearMaterialBanners();
+    messenger.showMaterialBanner(
+      MaterialBanner(
+        content: const Text('Profile saved'),
+        leading: const Icon(Icons.check_circle_outline),
+        actions: [
+          TextButton(
+            onPressed: messenger.clearMaterialBanners,
+            child: const Text('Dismiss'),
+          ),
+        ],
       ),
     );
+    Future.delayed(const Duration(seconds: 2), messenger.clearMaterialBanners);
   }
 
   @override
@@ -81,9 +100,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           onPressed: () {},
         ),
         actions: [
-          TextButton(
-            onPressed: _openRecommendations,
-            child: const Text('Next'),
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: 'Save',
+            onPressed: _save,
           ),
         ],
       ),

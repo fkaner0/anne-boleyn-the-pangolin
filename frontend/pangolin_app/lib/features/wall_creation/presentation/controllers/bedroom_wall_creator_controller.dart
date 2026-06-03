@@ -1,5 +1,10 @@
 import 'dart:ui' show Offset;
 
+import 'package:pangolin_app/features/recommendation/domain/position.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import '../../data/image_file_picker.dart';
 import '../../domain/canvas_item.dart';
@@ -113,5 +118,44 @@ class BedroomWallCreatorController {
     if (item is CanvasTextItem) {
       _items[index] = item.withText(text);
     }
+  }
+
+  void exportInto(ProfileBuilder builder) {
+    for (final item in _items) {
+      switch (item) {
+        case CanvasImageItem():
+          builder.addImage(
+            ProfileImage(
+              url: '',
+              position: _positionFor(item.transform, item.aspectRatio),
+            ),
+          );
+        case CanvasTextItem():
+          builder.addTextBox(
+            ProfileText(
+              title: '',
+              body: item.text,
+              position: _positionFor(item.transform, 1.0),
+            ),
+          );
+        case CanvasStickerItem():
+          builder.addSticker(
+            ProfileSticker(
+              name: item.stickerName,
+              position: _positionFor(item.transform, 1.0),
+            ),
+          );
+      }
+    }
+  }
+
+  Position _positionFor(CanvasTransform transform, double aspectRatio) {
+    return Position(
+      x: transform.center.dx.round(),
+      y: transform.center.dy.round(),
+      rotation: transform.rotation.round(),
+      aspectRatio: aspectRatio,
+      scale: transform.scale,
+    );
   }
 }

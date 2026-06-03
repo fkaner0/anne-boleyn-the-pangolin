@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'theme/app_palette.dart';
 import 'theme/app_theme.dart';
@@ -33,7 +34,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pangolin App',
       theme: buildAppTheme(appPalette),
-      home: const BedroomWallCreatorPage(),
+      home: BedroomWallCreatorPage(
+        profileBuilder: ProfileBuilder()
+          ..setUserId(1)
+          ..setName('Anne Boleyn')
+          ..setLocation('London'),
+      ),
     );
   }
 }
