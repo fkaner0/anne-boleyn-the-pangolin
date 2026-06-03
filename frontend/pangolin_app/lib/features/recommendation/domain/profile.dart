@@ -6,6 +6,7 @@ class Profile {
   final int userId;
   final String name;
   final String location;
+  final String bio;
   final List<ProfileImage> images;
   final List<ProfileText> textboxes;
   final List<ProfileSticker> stickers;
@@ -14,6 +15,7 @@ class Profile {
     required this.userId,
     required this.name,
     required this.location,
+    this.bio = "no bio provided", // TODO: make required
     required this.images,
     required this.textboxes,
     this.stickers = const [],
@@ -33,14 +35,15 @@ class Profile {
       userId: json['userId'] as int,
       name: json['name'] as String,
       location: json['location'] as String,
-      images: (json['images'] as List<dynamic>)
+      bio: json['bio'] as String,
+      images: (json['wallImages'] as List<dynamic>)
           .map((item) => ProfileImage.fromJson(item as Map<String, dynamic>))
           .toList(),
-      textboxes: (json['textBoxes'] as List<dynamic>)
+      textboxes: (json['wallTextboxes'] as List<dynamic>)
           .map((item) => ProfileText.fromJson(item as Map<String, dynamic>))
           .toList(),
       stickers:
-          (json['stickers'] as List<dynamic>?)
+          (json['wallStickers'] as List<dynamic>?)
               ?.map(
                 (item) => ProfileSticker.fromJson(item as Map<String, dynamic>),
               )
