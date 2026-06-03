@@ -78,7 +78,12 @@ class BedroomWallCanvas extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final renderScale = constraints.maxWidth / canvas.width;
+        final renderScale = constraints.maxHeight.isFinite
+            ? (constraints.maxWidth / canvas.width).clamp(
+                0.0,
+                constraints.maxHeight / canvas.height,
+              )
+            : constraints.maxWidth / canvas.width;
 
         return SizedBox(
           width: constraints.maxWidth,
