@@ -11,7 +11,7 @@ CREATE TABLE profileImage (
   url text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
   scale double precision NOT NULL,
 );
@@ -23,7 +23,7 @@ CREATE TABLE profileTextbox (
   body text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
   scale double precision NOT NULL,
 );
@@ -34,7 +34,7 @@ CREATE TABLE profileSticker (
   stickerName text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
   scale double precision NOT NULL,
 );

@@ -19,7 +19,7 @@ object api {
   case class Position(
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   )

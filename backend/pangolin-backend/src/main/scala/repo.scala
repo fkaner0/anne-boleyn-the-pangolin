@@ -21,7 +21,7 @@ object repo {
   trait Positioned {
     val x: Int
     val y: Int
-    val rotation: Int
+    val rotation: Double
     val aspectRatio: Double
     val scale: Double
   }
@@ -31,7 +31,7 @@ object repo {
       url: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -43,7 +43,7 @@ object repo {
       url: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -58,7 +58,7 @@ object repo {
       body: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -71,7 +71,7 @@ object repo {
       body: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -85,7 +85,7 @@ object repo {
       stickerName: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -97,7 +97,7 @@ object repo {
       stickerName: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
