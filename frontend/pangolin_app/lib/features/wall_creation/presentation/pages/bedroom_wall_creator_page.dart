@@ -78,7 +78,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _selectSticker(String stickerName) async {
-    final assetPath = _controller.stickerCatalog.assetForName(stickerName);
+    final assetPath = (_loadedCatalog ?? _controller.stickerCatalog)
+        .assetForName(stickerName);
     if (assetPath != null) {
       setState(() {
         _isStickerLoading = true;
@@ -181,7 +182,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               child: SingleChildScrollView(
                 child: BedroomWallCanvas(
                   canvas: _controller.canvas,
-                  stickerCatalog: _controller.stickerCatalog,
+                  stickerCatalog: _loadedCatalog ?? _controller.stickerCatalog,
                   imageItems: _controller.imageItems,
                   stickerItems: _controller.stickerItems,
                   textItems: _controller.textItems,
