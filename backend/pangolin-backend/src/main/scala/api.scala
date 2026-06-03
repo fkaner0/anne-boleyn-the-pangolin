@@ -1,9 +1,13 @@
 package pangolin
 
 import cats.effect.IO
+import fs2.Stream
+import fs2.io.toInputStreamResource
+import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath}
+import sttp.model.Part
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
@@ -64,9 +68,27 @@ object api {
     given ReadWriter[Profile] = macroRW
   }
 
+  case class UploadRequest(
+    image: Part[Array[Byte]]
+  )
+
+  /// TODO: frontend may want something return
+  case class UploadResponse(
+    // imageUrl: String
+  )
+  object UploadResponse {
+    given ReadWriter[UploadResponse] = macroRW
+  }
+
   private val profileEndpoint = endpoint.get
     .in("profile" / path[Int]("userId"))
     .out(jsonBody[Profile])
+
+  private val uploadWallImageEndpoint = endpoint.post
+    .in("wallImage")
+    .in(multipartBody[UploadRequest])
+    .errorOut(stringBody)
+    .out(jsonBody[UploadResponse])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -121,6 +143,19 @@ object api {
     },
   )
 
+  private val uploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    uploadWallImageEndpoint.serverLogic { request =>
+      IO.blocking {
+        val inputStream = new java.io.ByteArrayInputStream(request.image.body)
+        imageservice.uploadBedroomWallImage(inputStream)
+      }.attempt.map {
+        case Right(Some(url)) => Right(UploadResponse())
+        case Right(None) => Left("Error in image upload")
+        case Left(err)  => Left(err.getMessage)
+      }
+    }
+  )
+
   extension (image: repo.ProfileImage) {
     private def toApi = ProfileImage(
       url = image.url,
@@ -149,5 +184,6 @@ object api {
   val router = Router(
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileRoutes,
+    "/" -> api.uploadRoutes
   ).orNotFound
 }

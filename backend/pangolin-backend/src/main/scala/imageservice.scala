@@ -1,13 +1,15 @@
+package pangolin
 
 import com.cloudinary.Cloudinary
 import com.cloudinary.utils.ObjectUtils
 import io.github.cdimascio.dotenv.Dotenv
-import java.awt.Image
 import scala.jdk.CollectionConverters.given
 import imageUploaderAPI.ImageURL
+import java.awt.Image
+import java.io.InputStream
 
 object imageservice {
-    import imageUploaderAPI.CloudinaryImageUploader
+    import imageUploaderAPI.{CloudinaryImageUploader, ImageUploadType}
 
     private val dotenv = Dotenv.load()
     private final val API_KEY = sys.env.getOrElse("CLOUDINARY_API_KEY", dotenv.get("CLOUDINARY_API_KEY"))
@@ -16,18 +18,18 @@ object imageservice {
 
     private final val BedroomWallUploader = CloudinaryImageUploader(API_KEY, API_SECRET, CLOUD_ID, "user_wall_default")
 
-    // def uploadBedroomWallImage(file: String) = {
-    //     BedroomWallUploader.upload(file)
-    // }
+    def uploadBedroomWallImage(inputFile: ImageUploadType) = {
+        BedroomWallUploader.upload(inputFile)
+    }
 
-    def deleteImage(url: String) = {
+    def deleteBedroomWallImage(url: String) = {
         BedroomWallUploader.delete(ImageURL(url))
     }
 
     @main
     def uploadBedroomWallImageTest() = {
-        // val inputFile = "https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/pangolin-corina-st-martin.jpg"
-        val inputFile = "https://th.bing.com/th/id/R.f353f9ab6e2f4d3dd0950a40ff2b6e67?rik=5az2iS4uLjkAIA&pid=ImgRaw&r=0"
+        // val inputFile = ImageURL("https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/pangolin-corina-st-martin.jpg")
+        val inputFile = ImageURL("https://th.bing.com/th/id/R.f353f9ab6e2f4d3dd0950a40ff2b6e67?rik=5az2iS4uLjkAIA&pid=ImgRaw&r=0")
         
         BedroomWallUploader.upload(inputFile)
     }
@@ -38,9 +40,11 @@ private object imageUploaderAPI {
     /// TODO: can newtype these xoxo
     case class ImageURL(value: String)
 
+    type ImageUploadType = InputStream | ImageURL
+
     trait ImageUploader {
         /// TODO: input type?
-        def upload(inputFile: String): Option[ImageURL]
+        def upload(imageFile: ImageUploadType): Option[ImageURL]
     }
 
     object CloudinaryMisc { 
@@ -105,13 +109,18 @@ private object imageUploaderAPI {
         private final val cloudinaryUploader
             = Cloudinary(getAccessUrl(api_key, api_secret, cloud_id)).uploader()
 
-        private def getUploadResult(inputFile: String): Map[String, String] =
+        private def getUploadResult(imageFile: ImageUploadType): Map[String, String] =
             /* NB: the returned values are:
                 asset_folder, signature, format, resource_type, secure_url,
                 created_at, asset_id, ............, width, height, etc.
             */
+            val imageInput: Object = imageFile match {
+                case ImageURL(url) => url
+                case otherImgFmt => otherImgFmt
+            }
+
             cloudinaryUploader.unsignedUpload(
-                inputFile, uploadPreset, null
+                imageInput, uploadPreset, null
             ).asInstanceOf[java.util.Map[String, String]]
                 .asScala.toMap
 
@@ -124,22 +133,12 @@ private object imageUploaderAPI {
 
         private val upload_public_id_field = "public_id"
 
-        def upload(inputFile: String): Option[ImageURL] =
-            ImageUploadResults.fromMap(cloud_id, getUploadResult(inputFile)).map(_.url)
+        def upload(imageFile: ImageUploadType): Option[ImageURL] =
+            ImageUploadResults.fromMap(cloud_id, getUploadResult(imageFile)).map(_.url)
 
-        // def delete(fileUrl: ImageURL): Boolean = publicIdFromImageURL(fileUrl) match {
-        //     case Some(ImagePublicID(pid)) => getDestroyResult(pid).getOrElse("result", "error") == "ok"
-        //     case None => false
-        // }
-
-        def delete(fileUrl: ImageURL): Unit = {
-            println(fileUrl)
-            val x = publicIdFromImageURL(fileUrl) match {
-                case Some(ImagePublicID(pid)) => pid
-                case None => "aaa"
-            }
-            println(x)
-            println(getDestroyResult(x))
+        def delete(fileUrl: ImageURL): Boolean = publicIdFromImageURL(fileUrl) match {
+            case Some(ImagePublicID(pid)) => getDestroyResult(pid).getOrElse("result", "error") == "ok"
+            case None => false
         }
     }
 }
