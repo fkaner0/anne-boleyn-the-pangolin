@@ -43,8 +43,7 @@ class BedroomWallView extends StatelessWidget {
               onTap: () => onTextTap(textbox),
             ),
           for (final sticker in profile.stickers)
-            if (stickerCatalog.assetForName(sticker.name) case final assetPath?)
-              BedroomWallStickerItem(sticker: sticker, assetPath: assetPath),
+            BedroomWallStickerItem(sticker: sticker, catalog: stickerCatalog),
         ],
       ),
     );

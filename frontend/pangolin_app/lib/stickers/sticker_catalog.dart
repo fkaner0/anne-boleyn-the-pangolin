@@ -39,12 +39,6 @@ class StickerCatalog {
     return _cached ??= _loadFrom(rootBundle);
   }
 
-  static Future<StickerCatalog> loadFresh({AssetBundle? bundle}) {
-    _cached = null;
-    final b = bundle ?? rootBundle;
-    return _loadFrom(b);
-  }
-
   static Future<StickerCatalog> _loadFrom(AssetBundle bundle) async {
     final manifest = await AssetManifest.loadFromAssetBundle(bundle);
     return StickerCatalog.fromAssetKeys(manifest.listAssets());

@@ -6,21 +6,23 @@ import 'theme/app_palette.dart';
 import 'theme/app_theme.dart';
 import 'features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 
-void main() {
-  // Configure dependencies from compile-time env flags
-  configureDependencies(Env.backend);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-  // Load sticker catalog asynchronously and replace the default
-  StickerCatalog.load()
-      .then((catalog) {
-        getIt.unregister<StickerCatalog>();
-        getIt.registerSingleton<StickerCatalog>(catalog);
-      })
-      .catchError((_) {
-        // If loading fails, keep the default empty catalog
-      });
+  configureDependencies(Env.backend);
+  await _registerStickerCatalog();
 
   runApp(const MyApp());
+}
+
+Future<void> _registerStickerCatalog() async {
+  try {
+    final catalog = await StickerCatalog.load();
+    if (getIt.isRegistered<StickerCatalog>()) {
+      getIt.unregister<StickerCatalog>();
+    }
+    getIt.registerSingleton<StickerCatalog>(catalog);
+  } catch (_) {}
 }
 
 class MyApp extends StatelessWidget {

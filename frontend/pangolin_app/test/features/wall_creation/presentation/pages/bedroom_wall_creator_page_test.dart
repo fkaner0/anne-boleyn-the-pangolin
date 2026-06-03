@@ -45,17 +45,29 @@ void main() {
     );
   }
 
-  test('updateTextTransform persists rotation', () {
+  test('updateTransform persists rotation', () {
     final controller = controllerWith(null);
     controller.addTextBox();
     final item = controller.textItems.single;
 
-    controller.updateTextTransform(
-      item.id,
-      item.transform.copyWith(rotation: 0.5),
-    );
+    controller.updateTransform(item.id, item.transform.copyWith(rotation: 0.5));
 
     expect(controller.textItems.single.transform.rotation, 0.5);
+  });
+
+  test('addSticker adds known stickers and ignores unknown names', () {
+    final controller = BedroomWallCreatorController(
+      imagePicker: const _FakeImageFilePicker(null),
+      stickerCatalog: StickerCatalog.fromAssetKeys(const [
+        'assets/stickers/pangolin.png',
+      ]),
+    );
+
+    controller.addSticker('pangolin');
+    controller.addSticker('does-not-exist');
+
+    expect(controller.stickerItems, hasLength(1));
+    expect(controller.stickerItems.single.stickerName, 'pangolin');
   });
 
   testWidgets('shows the top bar with Back and Next', (tester) async {
