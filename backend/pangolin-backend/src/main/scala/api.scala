@@ -74,7 +74,7 @@ object api {
 
   /// TODO: frontend may want something return
   case class UploadResponse(
-    // imageUrl: String
+    url: String
   )
   object UploadResponse {
     given ReadWriter[UploadResponse] = macroRW
@@ -149,7 +149,7 @@ object api {
         val inputStream = new java.io.ByteArrayInputStream(request.image.body)
         imageservice.uploadBedroomWallImage(inputStream)
       }.attempt.map {
-        case Right(Some(url)) => Right(UploadResponse())
+        case Right(Some(imageUploaderAPI.ImageURL(url))) => Right(UploadResponse(url))
         case Right(None) => Left("Error in image upload")
         case Left(err)  => Left(err.getMessage)
       }
