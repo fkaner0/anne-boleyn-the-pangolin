@@ -80,6 +80,32 @@ object repo {
     val Table = TableInfo[ProfileTextboxCreator, ProfileTextbox, Int]
   }
 
+  case class ProfileStickerCreator(
+      userId: Int,
+      stickerName: String,
+      x: Int,
+      y: Int,
+      rotation: Int,
+      aspectRatio: Double,
+      scale: Double,
+  ) extends Positioned derives DbCodec
+
+  @Table(PostgresDbType)
+  case class ProfileSticker(
+      @Id id: Int,
+      userId: Int,
+      stickerName: String,
+      x: Int,
+      y: Int,
+      rotation: Int,
+      aspectRatio: Double,
+      scale: Double,
+  ) extends Positioned derives DbCodec
+
+  object ProfileSticker {
+    val Table = TableInfo[ProfileStickerCreator, ProfileSticker, Int]
+  }
+
   case class ProfileCreator(
       name: String,
       location: String,
@@ -115,7 +141,7 @@ object repo {
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
   private val profileTextboxRepo =
     Repo[ProfileTextboxCreator, ProfileTextbox, Int]
-  // private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
+  private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 
@@ -124,6 +150,9 @@ object repo {
 
   private def profileTextboxesSpec(userId: Int) = Spec[ProfileTextbox]
     .where(sql"${ProfileTextbox.Table.userId} = $userId")
+
+  private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
+    .where(sql"${ProfileSticker.Table.userId} = $userId")
 
   val getRecommendations = IO.blocking {
     connect(dataSource) {
@@ -139,8 +168,8 @@ object repo {
           val images = profileImageRepo.findAll(profileImagesSpec(userId))
           val textboxes =
             profileTextboxRepo.findAll(profileTextboxesSpec(userId))
-          val stickers = Vector.empty ///TODO
-            // profileStickerRepo.findAll(profileStickersSpec(userId))
+          val stickers = // Vector.empty ///TODO
+            profileStickerRepo.findAll(profileStickersSpec(userId))
           (profile, images, textboxes, stickers)
         }
         .toRight(())

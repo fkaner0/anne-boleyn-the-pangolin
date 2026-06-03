@@ -162,7 +162,7 @@ object api {
             profileImageUrl = user.profileImageUrl,
             wallImages = images.map(_.toApi),
             wallTextboxes = textboxes.map(_.toApi),
-            wallStickers = Vector.empty //stickers.map(_.toApi), /// TODO: add to DB
+            wallStickers = stickers.map(_.toApi),
           )
         })
     },
@@ -207,6 +207,13 @@ object api {
       title = textbox.title,
       body = textbox.body,
       position = textbox.position,
+    )
+  }
+
+  extension (sticker: repo.ProfileSticker) {
+    private def toApi = ProfileSticker(
+      name = sticker.stickerName,
+      position = sticker.position,
     )
   }
 

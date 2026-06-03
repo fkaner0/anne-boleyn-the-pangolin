@@ -27,3 +27,35 @@ CREATE TABLE profileTextbox (
   aspectRatio double precision NOT NULL,
   scale double precision NOT NULL,
 );
+
+CREATE TABLE profileSticker (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  stickerName text NOT NULL,
+  x integer NOT NULL,
+  y integer NOT NULL,
+  rotation integer NOT NULL,
+  aspectRatio double precision NOT NULL,
+  scale double precision NOT NULL,
+);
+
+COPY profileImage
+FROM 'profileImage.csv'
+WITH (
+    FORMAT csv,
+    HEADER true
+);
+
+COPY profileTextbox
+FROM 'profileTextbox.csv'
+WITH (
+    FORMAT csv,
+    HEADER true
+);
+
+COPY profileSticker
+FROM 'profileSticker.csv'
+WITH (
+    FORMAT csv,
+    HEADER true
+);
