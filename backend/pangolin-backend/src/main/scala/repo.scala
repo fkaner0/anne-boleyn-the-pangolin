@@ -195,21 +195,20 @@ object repo {
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
 
   def updateFullProfile(
-        userId: Int,
         profile: Profile,
         textboxCreators: Iterable[ProfileTextboxCreator],
         imageCreators: Iterable[ProfileImageCreator],
         stickerCreators: Iterable[ProfileStickerCreator],
   ) = repo.inDatabase {
-    profileRepo.findById(userId) match {
+    profileRepo.findById(profile.id) match {
       //// TODO: this is wrong I think. why check that a profile exists already? maybe check the userIds match tho?
       case Some(existingProfile) => {
         repo.profileRepo.update(profile)
-        repo.removeTextboxes(userId)
+        repo.removeTextboxes(profile.id)
         repo.addTextboxes(textboxCreators)
-        repo.removeImages(userId)
+        repo.removeImages(profile.id)
         repo.addImages(imageCreators)
-        repo.removeStickers(userId)
+        repo.removeStickers(profile.id)
         repo.addStickers(stickerCreators)
         Right(())
       }

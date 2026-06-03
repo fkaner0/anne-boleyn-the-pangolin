@@ -167,7 +167,6 @@ object api {
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
-        userId,
         request.fromApi(userId),
         request.wallTextboxes.map(_.fromApi(userId)),
         request.wallImages.map(_.fromApi(userId)),
