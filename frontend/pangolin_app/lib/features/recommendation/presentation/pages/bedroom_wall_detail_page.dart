@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
 import '../../domain/profile_text.dart';
@@ -43,6 +44,7 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
   @override
   Widget build(BuildContext context) {
     final prompt = 'Talk to ${widget.profile.name} about this...';
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: SafeArea(
@@ -67,14 +69,14 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
                         curve: Curves.easeOut,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.grey.shade300),
-                          boxShadow: const [
+                          border: Border.all(color: colorScheme.outline),
+                          boxShadow: [
                             BoxShadow(
-                              color: Colors.black12,
+                              color: context.paletteColors.shadow,
                               blurRadius: 10,
-                              offset: Offset(0, 4),
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),

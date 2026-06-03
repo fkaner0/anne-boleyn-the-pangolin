@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'default_palette.dart';
 import 'palette.dart';
 
 class PaletteColors extends ThemeExtension<PaletteColors> {
@@ -61,4 +62,10 @@ class PaletteColors extends ThemeExtension<PaletteColors> {
       surfaceMuted: Color.lerp(surfaceMuted, other.surfaceMuted, t)!,
     );
   }
+}
+
+extension PaletteColorsContext on BuildContext {
+  PaletteColors get paletteColors =>
+      Theme.of(this).extension<PaletteColors>() ??
+      PaletteColors.fromPalette(const DefaultPalette());
 }

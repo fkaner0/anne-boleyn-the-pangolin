@@ -28,7 +28,7 @@ class BedroomWallDetailContent extends StatelessWidget {
             errorBuilder: (context, error, stackTrace) {
               return Container(
                 height: 300,
-                color: Colors.grey.shade300,
+                color: Theme.of(context).colorScheme.outline,
                 alignment: Alignment.center,
                 child: const Icon(Icons.broken_image, size: 48),
               );

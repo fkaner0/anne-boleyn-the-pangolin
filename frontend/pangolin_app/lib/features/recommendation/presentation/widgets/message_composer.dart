@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 
 class MessageComposer extends StatefulWidget {
   final String hintText;
@@ -52,7 +53,7 @@ class _MessageComposerState extends State<MessageComposer> {
             hintText: widget.hintText,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             filled: true,
-            fillColor: Colors.grey.shade100,
+            fillColor: context.paletteColors.surfaceMuted,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 14,

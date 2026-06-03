@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 
 abstract class BedroomWallInteractiveBase extends StatelessWidget {
   final VoidCallback onTap;
   final double width;
   final double? height;
   final BorderRadius borderRadius;
-  final Color backgroundColor;
+  final Color? backgroundColor;
   final BoxBorder? border;
   final List<BoxShadow>? boxShadow;
 
@@ -15,7 +16,7 @@ abstract class BedroomWallInteractiveBase extends StatelessWidget {
     required this.width,
     this.height,
     this.borderRadius = const BorderRadius.all(Radius.circular(12)),
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
     this.border,
     this.boxShadow,
   });
@@ -24,6 +25,9 @@ abstract class BedroomWallInteractiveBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final paletteColors = context.paletteColors;
+
     return GestureDetector(
       behavior: HitTestBehavior.translucent,
       onTap: onTap,
@@ -31,16 +35,16 @@ abstract class BedroomWallInteractiveBase extends StatelessWidget {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: backgroundColor ?? colorScheme.surface,
           borderRadius: borderRadius,
           border: border,
           boxShadow:
               boxShadow ??
-              const [
+              [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: paletteColors.shadow,
                   blurRadius: 6,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
         ),
@@ -52,12 +56,12 @@ abstract class BedroomWallInteractiveBase extends StatelessWidget {
               right: 8,
               bottom: 8,
               child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
+                decoration: BoxDecoration(
+                  color: paletteColors.overlay,
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(8),
-                child: const Icon(Icons.send, size: 16, color: Colors.white),
+                child: Icon(Icons.send, size: 16, color: colorScheme.surface),
               ),
             ),
           ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/canvas_image_item.dart';
 import '../../domain/virtual_canvas.dart';
 import 'interactive_canvas_item.dart';
@@ -29,7 +30,9 @@ class BedroomWallCanvas extends StatelessWidget {
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              Positioned.fill(child: ColoredBox(color: Colors.grey.shade100)),
+              Positioned.fill(
+                child: ColoredBox(color: context.paletteColors.surfaceMuted),
+              ),
               for (final item in imageItems)
                 InteractiveCanvasItem(
                   key: ValueKey(item.id),

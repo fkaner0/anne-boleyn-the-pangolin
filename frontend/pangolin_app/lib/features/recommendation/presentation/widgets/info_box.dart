@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/recommendation.dart';
 
 class InfoBox extends StatelessWidget {
@@ -23,7 +24,7 @@ class InfoBox extends StatelessWidget {
                 return Container(
                   width: 90,
                   height: 90,
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).colorScheme.outline,
                   alignment: Alignment.center,
                   child: const Icon(Icons.person),
                 );
@@ -35,7 +36,7 @@ class InfoBox extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: context.paletteColors.surfaceMuted,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
