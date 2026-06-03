@@ -43,12 +43,11 @@ class StickerPicker extends StatelessWidget {
               Flexible(
                 child: GridView.builder(
                   shrinkWrap: true,
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                  ),
                   itemCount: names.length,
                   itemBuilder: (context, index) {
                     final name = names[index];

@@ -72,7 +72,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           onPressed: () {},
         ),
         actions: [
-          TextButton(onPressed: _openRecommendations, child: const Text('Next')),
+          TextButton(
+            onPressed: _openRecommendations,
+            child: const Text('Next'),
+          ),
         ],
       ),
       body: SafeArea(
