@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
 import '../../domain/profile_text.dart';
 import 'bedroom_wall_image_item.dart';
+import 'bedroom_wall_sticker_item.dart';
 import 'bedroom_wall_textbox_item.dart';
 
 class BedroomWallView extends StatelessWidget {
   final Profile profile;
+  final StickerCatalog stickerCatalog;
   final void Function(ProfileImage) onImageTap;
   final void Function(ProfileText) onTextTap;
 
   const BedroomWallView({
     super.key,
     required this.profile,
+    required this.stickerCatalog,
     required this.onImageTap,
     required this.onTextTap,
   });
@@ -23,9 +28,9 @@ class BedroomWallView extends StatelessWidget {
       width: double.infinity,
       height: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: context.paletteColors.surfaceMuted,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: Theme.of(context).colorScheme.outline),
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -37,6 +42,9 @@ class BedroomWallView extends StatelessWidget {
               textbox: textbox,
               onTap: () => onTextTap(textbox),
             ),
+          for (final sticker in profile.stickers)
+            if (stickerCatalog.assetForName(sticker.name) case final assetPath?)
+              BedroomWallStickerItem(sticker: sticker, assetPath: assetPath),
         ],
       ),
     );

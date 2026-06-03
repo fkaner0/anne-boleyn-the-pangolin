@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/recommendation.dart';
 import 'info_box.dart';
 
@@ -18,12 +19,14 @@ class RecommendationListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
+        color: colorScheme.surface,
+        border: Border.all(color: colorScheme.outline),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -42,12 +45,15 @@ class RecommendationListItem extends StatelessWidget {
             children: [
               IconButton(
                 onPressed: onAccept,
-                icon: const Icon(Icons.check_circle, color: Colors.green),
+                icon: Icon(
+                  Icons.check_circle,
+                  color: context.paletteColors.success,
+                ),
               ),
               const SizedBox(height: 8),
               IconButton(
                 onPressed: onReject,
-                icon: const Icon(Icons.cancel, color: Colors.red),
+                icon: Icon(Icons.cancel, color: colorScheme.error),
               ),
             ],
           ),

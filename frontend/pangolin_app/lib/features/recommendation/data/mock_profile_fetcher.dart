@@ -2,6 +2,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 class MockProfileFetcher implements ProfileFetcher {
@@ -35,6 +36,10 @@ class MockProfileFetcher implements ProfileFetcher {
             -4,
           ),
         ],
+        stickers: [
+          _sticker('pangolin', 200, 420, 8),
+          _sticker('heart', 320, 180, -6),
+        ],
       ),
 
       1 => Profile(
@@ -63,6 +68,7 @@ class MockProfileFetcher implements ProfileFetcher {
             4,
           ),
         ],
+        stickers: [_sticker('star', 150, 200, 4)],
       ),
 
       2 => Profile(
@@ -90,6 +96,10 @@ class MockProfileFetcher implements ProfileFetcher {
             3,
           ),
         ],
+        stickers: [
+          _sticker('pangolin', 470, 300, -10),
+          _sticker('sun', 60, 150, 6),
+        ],
       ),
 
       _ => throw Exception('No mock profile found for userId: $userId'),
@@ -113,6 +123,19 @@ class MockProfileFetcher implements ProfileFetcher {
     return ProfileText(
       title: title,
       body: body,
+      position: Position(
+        x: x,
+        y: y,
+        rotation: rotation,
+        aspectRatio: 1.0,
+        scale: 1.0,
+      ),
+    );
+  }
+
+  ProfileSticker _sticker(String name, int x, int y, int rotation) {
+    return ProfileSticker(
+      name: name,
       position: Position(
         x: x,
         y: y,

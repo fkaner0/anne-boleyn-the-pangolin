@@ -34,7 +34,7 @@ class BedroomWallImageItem extends BedroomWallInteractiveBase {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
+            color: Theme.of(context).colorScheme.outline,
             alignment: Alignment.center,
             child: const Icon(Icons.broken_image, size: 40),
           );
