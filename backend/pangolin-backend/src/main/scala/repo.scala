@@ -13,6 +13,7 @@ import com.augustnagro.magnum.{
   connect,
   sql,
 }
+import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
 
 object repo {
@@ -102,7 +103,7 @@ object repo {
     ds.setDatabaseName("pangolindb")
     ds.setUser("pangolindbuser")
     ds.setPassword(
-      sys.env.getOrElse("DB_PASSWORD", os.read(os.pwd / "db-password.txt")),
+      sys.env.getOrElse("DB_PASSWORD", Dotenv.load().get("DB_PASSWORD")),
     )
     ds.setPortNumber(5432)
     ds.setUrl(
@@ -114,7 +115,7 @@ object repo {
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
   private val profileTextboxRepo =
     Repo[ProfileTextboxCreator, ProfileTextbox, Int]
-  private val profileStickerRepo = ???
+  // private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 

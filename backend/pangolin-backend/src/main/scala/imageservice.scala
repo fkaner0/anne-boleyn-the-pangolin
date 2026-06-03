@@ -11,7 +11,7 @@ import java.io.InputStream
 object imageservice {
     import imageUploaderAPI.{CloudinaryImageUploader, ImageUploadType}
 
-    private val dotenv = Dotenv.load()
+    private final lazy val dotenv = Dotenv.load()
     private final val API_KEY = sys.env.getOrElse("CLOUDINARY_API_KEY", dotenv.get("CLOUDINARY_API_KEY"))
     private final val API_SECRET = sys.env.getOrElse("CLOUDINARY_API_SECRET", dotenv.get("CLOUDINARY_API_SECRET"))
     private final val CLOUD_ID = "dvacw0gsi"
@@ -25,15 +25,6 @@ object imageservice {
     def deleteBedroomWallImage(url: String) = {
         BedroomWallUploader.delete(ImageURL(url))
     }
-
-    @main
-    def uploadBedroomWallImageTest() = {
-        // val inputFile = ImageURL("https://images.fineartamerica.com/images/artworkimages/mediumlarge/2/pangolin-corina-st-martin.jpg")
-        val inputFile = ImageURL("https://th.bing.com/th/id/R.f353f9ab6e2f4d3dd0950a40ff2b6e67?rik=5az2iS4uLjkAIA&pid=ImgRaw&r=0")
-        
-        BedroomWallUploader.upload(inputFile)
-    }
-
 }
 
 private object imageUploaderAPI {
