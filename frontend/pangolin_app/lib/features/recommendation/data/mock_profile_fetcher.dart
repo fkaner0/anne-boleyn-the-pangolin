@@ -15,6 +15,7 @@ class MockProfileFetcher implements ProfileFetcher {
         userId: 0,
         name: 'Tim Johnson',
         location: 'Harrow, London',
+        bio: 'Watercolouring a new pond every day',
         images: [
           _image('Tim+1', 40, 40, -8),
           _image('Tim+2', 250, 90, 6),
@@ -46,6 +47,7 @@ class MockProfileFetcher implements ProfileFetcher {
         userId: 1,
         name: 'Sally Parks',
         location: 'Hammersmith, London',
+        bio: 'still-4-lyferrrr',
         images: [
           _image('Sally+1', 60, 70, -5),
           _image('Sally+2', 290, 50, 8),
@@ -75,6 +77,7 @@ class MockProfileFetcher implements ProfileFetcher {
         userId: 2,
         name: 'Selena Davis',
         location: 'Richmond, London',
+        bio: 'willing to try anything new and messy',
         images: [
           _image('Selena+1', 50, 40, 7),
           _image('Selena+2', 240, 130, -6),
