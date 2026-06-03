@@ -172,9 +172,6 @@ object api {
         request.wallImages.map(_.fromApi(userId)),
         request.wallStickers.map(_.fromApi(userId)),
       )
-      /// TODO: obviously this is the jankiest most disgusting code ever
-      /// but apparently it makes the frontend easier so we will leave as-is for now
-      /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)
     }
   )
 

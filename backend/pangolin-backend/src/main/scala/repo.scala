@@ -201,8 +201,8 @@ object repo {
         stickerCreators: Iterable[ProfileStickerCreator],
   ) = repo.inDatabase {
     profileRepo.findById(profile.id) match {
-      //// TODO: this is wrong I think. why check that a profile exists already? maybe check the userIds match tho?
-      case Some(existingProfile) => {
+      // Only update profile if the row already exists.
+      case Some(_) => {
         repo.profileRepo.update(profile)
         repo.removeTextboxes(profile.id)
         repo.addTextboxes(textboxCreators)
@@ -211,6 +211,9 @@ object repo {
         repo.removeStickers(profile.id)
         repo.addStickers(stickerCreators)
         Right(())
+        /// TODO: obviously this is the jankiest most disgusting code ever
+        /// but apparently it makes the frontend easier so we will leave as-is for now
+        /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
       }
       case None => Left(())
     }
