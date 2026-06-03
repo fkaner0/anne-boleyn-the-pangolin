@@ -37,6 +37,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(_controller.addTextBox);
   }
 
+  Future<void> _addImageFromPrompt(int promptId) async {
+    await _controller.addImageFromPrompt(promptId);
+    if (mounted) setState(() {});
+  }
+
+  void _addTextBoxFromPrompt(int promptId) {
+    setState(() => _controller.addTextBoxFromPrompt(promptId));
+  }
+
   Future<void> _addSticker() async {
     final stickerName = await showModalBottomSheet<String>(
       context: context,
@@ -87,8 +96,11 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   canvas: _controller.canvas,
                   stickerCatalog: _controller.stickerCatalog,
                   items: _controller.items,
+                  prompts: _controller.prompts,
                   onItemTransform: _controller.updateTransform,
                   onTextChanged: _controller.updateText,
+                  onPromptAddImage: _addImageFromPrompt,
+                  onPromptAddTextBox: _addTextBoxFromPrompt,
                 ),
               ),
             ),

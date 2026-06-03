@@ -3,8 +3,10 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_image.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/canvas_item.dart';
+import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
 import '../../domain/virtual_canvas.dart';
+import 'canvas_prompt_item.dart';
 import 'editable_canvas_text_item.dart';
 import 'interactive_canvas_item.dart';
 
@@ -14,20 +16,28 @@ class BedroomWallCanvas extends StatelessWidget {
   static const double _textBaseFontSize = 16;
   static const double _textMinWidth = 96;
   static const double _textMaxWidth = 240;
+  static const double _promptImageBaseSize = 130;
+  static const double _promptTextBaseWidth = 220;
 
   final VirtualCanvas canvas;
   final StickerCatalog stickerCatalog;
   final List<CanvasItem> items;
+  final List<CanvasPrompt> prompts;
   final void Function(int id, CanvasTransform transform) onItemTransform;
   final void Function(int id, String text) onTextChanged;
+  final Future<void> Function(int promptId) onPromptAddImage;
+  final void Function(int promptId) onPromptAddTextBox;
 
   const BedroomWallCanvas({
     super.key,
     required this.canvas,
     required this.stickerCatalog,
     required this.items,
+    required this.prompts,
     required this.onItemTransform,
     required this.onTextChanged,
+    required this.onPromptAddImage,
+    required this.onPromptAddTextBox,
   });
 
   CanvasTransform _toRendered(CanvasTransform transform, double renderScale) {
@@ -74,11 +84,36 @@ class BedroomWallCanvas extends StatelessWidget {
     };
   }
 
+  Widget _buildPrompt(CanvasPrompt prompt, double renderScale) {
+    final transform = _toRendered(prompt.transform, renderScale);
+    final baseWidth = switch (prompt.action) {
+      CanvasPromptAction.addImage => _promptImageBaseSize * renderScale,
+      CanvasPromptAction.addTextBox => _promptTextBaseWidth * renderScale,
+    };
+
+    return CanvasPromptItem(
+      key: ValueKey('prompt_${prompt.id}'),
+      transform: transform,
+      label: prompt.label,
+      action: prompt.action,
+      baseWidth: baseWidth,
+      onTap: switch (prompt.action) {
+        CanvasPromptAction.addImage => () => onPromptAddImage(prompt.id),
+        CanvasPromptAction.addTextBox => () => onPromptAddTextBox(prompt.id),
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final renderScale = constraints.maxWidth / canvas.width;
+        final renderScale = constraints.maxHeight.isFinite
+            ? (constraints.maxWidth / canvas.width).clamp(
+                0.0,
+                constraints.maxHeight / canvas.height,
+              )
+            : constraints.maxWidth / canvas.width;
 
         return SizedBox(
           width: constraints.maxWidth,
@@ -92,6 +127,7 @@ class BedroomWallCanvas extends StatelessWidget {
                   child: ColoredBox(color: context.paletteColors.surfaceMuted),
                 ),
               ),
+              for (final prompt in prompts) _buildPrompt(prompt, renderScale),
               for (final item in items) _buildItem(item, renderScale),
             ],
           ),
