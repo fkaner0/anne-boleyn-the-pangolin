@@ -117,7 +117,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.title));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Your text'));
+    await tester.tap(find.byType(TextField));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Hello wall');

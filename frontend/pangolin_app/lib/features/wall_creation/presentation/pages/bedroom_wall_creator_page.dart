@@ -47,6 +47,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('Create your wall'),
         leading: IconButton(

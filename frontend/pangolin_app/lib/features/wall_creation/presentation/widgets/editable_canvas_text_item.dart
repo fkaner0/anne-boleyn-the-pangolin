@@ -5,6 +5,7 @@ import '../../domain/canvas_transform.dart';
 class EditableCanvasTextItem extends StatefulWidget {
   final CanvasTransform initialTransform;
   final double baseFontSize;
+  final double minWidth;
   final double maxWidth;
   final String text;
   final String placeholder;
@@ -17,6 +18,7 @@ class EditableCanvasTextItem extends StatefulWidget {
     super.key,
     required this.initialTransform,
     required this.baseFontSize,
+    required this.minWidth,
     required this.maxWidth,
     required this.text,
     required this.onTransformEnd,
@@ -37,8 +39,6 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   final FocusNode _focusNode = FocusNode();
 
   late CanvasTransform _transform = widget.initialTransform;
-  bool _editing = false;
-
   bool _gesturing = false;
   Offset _startFocalPoint = Offset.zero;
   CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
@@ -55,7 +55,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     if (!_gesturing && widget.initialTransform != oldWidget.initialTransform) {
       _transform = widget.initialTransform;
     }
-    if (!_editing && widget.text != oldWidget.text) {
+    if (!_focusNode.hasFocus && widget.text != oldWidget.text) {
       _controller.text = widget.text;
     }
   }
@@ -69,15 +69,10 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   }
 
   void _onFocusChange() {
-    if (!_focusNode.hasFocus && _editing) {
-      setState(() => _editing = false);
+    if (!_focusNode.hasFocus) {
       widget.onTextChanged(_controller.text);
     }
-  }
-
-  void _enterEdit() {
-    setState(() => _editing = true);
-    _focusNode.requestFocus();
+    setState(() {});
   }
 
   void _onScaleStart(ScaleStartDetails details) {
@@ -114,43 +109,40 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
       color: colorScheme.onSurface,
     );
 
-    final Widget inner;
-    if (_editing) {
-      inner = TextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        onChanged: widget.onTextChanged,
-        maxLines: null,
-        textAlign: TextAlign.center,
-        style: textStyle,
-        decoration: InputDecoration(
-          isCollapsed: true,
-          border: InputBorder.none,
-          hintText: widget.placeholder,
-          hintStyle: textStyle.copyWith(color: colorScheme.onSurfaceVariant),
-        ),
-      );
-    } else {
-      final text = _controller.text;
-      inner = Text(
-        text.isEmpty ? widget.placeholder : text,
-        textAlign: TextAlign.center,
-        style: text.isEmpty
-            ? textStyle.copyWith(color: colorScheme.onSurfaceVariant)
-            : textStyle,
-      );
-    }
-
     final box = ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: widget.maxWidth * scale),
-      child: Container(
-        padding: EdgeInsets.all(8 * scale),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          border: Border.all(color: colorScheme.outline),
-          borderRadius: BorderRadius.circular(8 * scale),
+      constraints: BoxConstraints(
+        minWidth: widget.minWidth * scale,
+        maxWidth: widget.maxWidth * scale,
+      ),
+      child: IntrinsicWidth(
+        child: Container(
+          padding: EdgeInsets.all(8 * scale),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            border: Border.all(
+              color: _focusNode.hasFocus
+                  ? colorScheme.primary
+                  : colorScheme.outline,
+            ),
+            borderRadius: BorderRadius.circular(8 * scale),
+          ),
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            onChanged: widget.onTextChanged,
+            maxLines: null,
+            textAlign: TextAlign.center,
+            style: textStyle,
+            decoration: InputDecoration(
+              isCollapsed: true,
+              border: InputBorder.none,
+              hintText: widget.placeholder,
+              hintStyle: textStyle.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
         ),
-        child: inner,
       ),
     );
 
@@ -161,16 +153,14 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: _transform.rotation,
-          child: _editing
-              ? box
-              : GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _enterEdit,
-                  onScaleStart: _onScaleStart,
-                  onScaleUpdate: _onScaleUpdate,
-                  onScaleEnd: _onScaleEnd,
-                  child: box,
-                ),
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _focusNode.requestFocus,
+            onScaleStart: _onScaleStart,
+            onScaleUpdate: _onScaleUpdate,
+            onScaleEnd: _onScaleEnd,
+            child: box,
+          ),
         ),
       ),
     );

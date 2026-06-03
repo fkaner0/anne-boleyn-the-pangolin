@@ -10,6 +10,7 @@ import 'interactive_canvas_item.dart';
 class BedroomWallCanvas extends StatelessWidget {
   static const double _imageBaseWidth = 160;
   static const double _textBaseFontSize = 16;
+  static const double _textMinWidth = 96;
   static const double _textMaxWidth = 240;
 
   final VirtualCanvas canvas;
@@ -76,6 +77,7 @@ class BedroomWallCanvas extends StatelessWidget {
                   key: ValueKey('text-${item.id}'),
                   initialTransform: _toRendered(item.transform, renderScale),
                   baseFontSize: _textBaseFontSize * renderScale,
+                  minWidth: _textMinWidth * renderScale,
                   maxWidth: _textMaxWidth * renderScale,
                   text: item.text,
                   onTransformEnd: (transform) => onTextTransform(
