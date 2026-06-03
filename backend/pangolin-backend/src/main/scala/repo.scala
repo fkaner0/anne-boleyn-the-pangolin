@@ -15,6 +15,7 @@ import com.augustnagro.magnum.{
 }
 import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
+import com.augustnagro.magnum.DbCon
 
 object repo {
 
@@ -183,6 +184,48 @@ object repo {
         "Placeholder Location",
         "https://placehold.co/400x400.jpg"
       )).id.asRight
+    }
+  }
+
+  private def removeBySpec[EC, E, I](table: Repo[EC, E, I], spec: Spec[E], getId: E => I)(using DbCon)
+    = table.deleteAllById(table.findAll(spec).map(getId))
+    
+  private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
+  = table.insertAll(elems)
+
+  private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
+  private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
+  private def removeStickers(userId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(userId), _.id)
+  private def addTextboxes(using DbCon) = addAll(profileTextboxRepo)
+  private def addImages(using DbCon) = addAll(profileImageRepo)
+  private def addStickers(using DbCon) = addAll(profileStickerRepo)
+
+  def updateFullProfile(
+        userId: Int,
+        profile: Profile,
+        textboxCreators: Iterable[ProfileTextboxCreator],
+        imageCreators: Iterable[ProfileImageCreator],
+        stickerCreators: Iterable[ProfileStickerCreator],
+  ) = repo.inDatabase {
+    profileRepo.findById(userId) match {
+      //// TODO: this is wrong I think. why check that a profile exists already? maybe check the userIds match tho?
+      case Some(existingProfile) => {
+        repo.profileRepo.update(profile)
+        repo.removeTextboxes(userId)
+        repo.addTextboxes(textboxCreators)
+        repo.removeImages(userId)
+        repo.addImages(imageCreators)
+        repo.removeStickers(userId)
+        repo.addStickers(stickerCreators)
+        Right(())
+      }
+      case None => Left(())
+    }
+  }
+
+  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
+    connect(dataSource) {
+      f
     }
   }
 }

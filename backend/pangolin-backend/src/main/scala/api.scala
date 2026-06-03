@@ -14,6 +14,7 @@ import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.{ReadWriter, macroRW}
+import pangolin.repo.ProfileTextboxCreator
 
 object api {
   case class Position(
@@ -65,7 +66,6 @@ object api {
   }
 
   case class FullProfile(
-      userId: Int,
       name: String,
       location: String,
       profileImageUrl: String,
@@ -101,6 +101,7 @@ object api {
     .out(jsonBody[FullProfile])
 
   private val profileEditEndpoint = endpoint.put
+    .in("profile" / "edit" / path[Int]("userId"))
     .in(jsonBody[FullProfile])
     // .out() /// TODO: is nothing ok?
 
@@ -116,10 +117,6 @@ object api {
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
     .out(jsonBody[Vector[Recommendation]])
-
-  private val rejectProfileEndpoint = endpoint.put
-    .in("profile" / path[Int]("userId"))
-    .in(jsonBody[Boolean])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -155,7 +152,6 @@ object api {
         .getProfile(userId)
         .map(_.map { (user, images, textboxes, stickers) =>
           FullProfile(
-            userId = user.id,
             name = user.name,
             location = user.location,
             bio = "placeholderbio", /// TODO: add to DB
@@ -169,9 +165,17 @@ object api {
   )
 
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    profileEditEndpoint.serverLogic { request =>
-      println("WOULD HAVE UPDATED STUFF BUT I DIDNT!!!")
-      ???
+    profileEditEndpoint.serverLogic { (userId, request) =>
+      repo.updateFullProfile(
+        userId,
+        request.fromApi(userId),
+        request.wallTextboxes.map(_.fromApi(userId)),
+        request.wallImages.map(_.fromApi(userId)),
+        request.wallStickers.map(_.fromApi(userId)),
+      )
+      /// TODO: obviously this is the jankiest most disgusting code ever
+      /// but apparently it makes the frontend easier so we will leave as-is for now
+      /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)
     }
   )
 
@@ -207,6 +211,53 @@ object api {
       title = textbox.title,
       body = textbox.body,
       position = textbox.position,
+    )
+  }
+
+
+  extension (sticker: ProfileSticker) {
+    private def fromApi(userId: Int) = repo.ProfileStickerCreator(
+      userId = userId,
+      stickerName = sticker.name,
+      x = sticker.position.x,
+      y = sticker.position.y,
+      rotation = sticker.position.rotation,
+      aspectRatio = sticker.position.aspectRatio,
+      scale = sticker.position.scale,
+    )
+  }
+
+  extension (image: ProfileImage) {
+    private def fromApi(userId: Int) = repo.ProfileImageCreator(
+      userId = userId,
+      url = image.url,
+      x = image.position.x,
+      y = image.position.y,
+      rotation = image.position.rotation,
+      aspectRatio = image.position.aspectRatio,
+      scale = image.position.scale,
+    )
+  }
+  
+  extension (textbox: ProfileTextbox) {
+    private def fromApi(userId: Int) = repo.ProfileTextboxCreator(
+      userId = userId,
+      title = textbox.title,
+      body = textbox.body,
+      x = textbox.position.x,
+      y = textbox.position.y,
+      rotation = textbox.position.rotation,
+      aspectRatio = textbox.position.aspectRatio,
+      scale = textbox.position.scale,
+    )
+  }
+
+  extension (profile: FullProfile) {
+    private def fromApi(userId: Int) = repo.Profile(
+      id = userId,
+      name = profile.name,
+      location = profile.location,
+      profileImageUrl = profile.profileImageUrl,
     )
   }
 
