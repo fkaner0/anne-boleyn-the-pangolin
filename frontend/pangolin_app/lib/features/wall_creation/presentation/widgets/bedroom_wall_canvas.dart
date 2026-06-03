@@ -52,7 +52,10 @@ class BedroomWallCanvas extends StatelessWidget {
                   initialCenter: item.center * renderScale,
                   initialScale: item.scale,
                   baseSize:
-                      Size(_imageBaseWidth, _imageBaseWidth / item.aspectRatio) *
+                      Size(
+                        _imageBaseWidth,
+                        _imageBaseWidth / item.aspectRatio,
+                      ) *
                       renderScale,
                   onTransformEnd: (center, scale) =>
                       onImageTransform(item.id, center / renderScale, scale),
