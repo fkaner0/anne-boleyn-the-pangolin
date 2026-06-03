@@ -117,13 +117,13 @@ void main() {
     await tester.tap(find.byIcon(Icons.title));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(TextField));
+    await tester.tap(find.text('Your text'));
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextField), 'Hello wall');
     await tester.pumpAndSettle();
 
-    await tester.tapAt(const Offset(20, 200));
+    await tester.tap(find.byIcon(Icons.check));
     await tester.pumpAndSettle();
 
     expect(controller.textItems.single.text, 'Hello wall');

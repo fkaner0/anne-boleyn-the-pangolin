@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 
 import '../../domain/canvas_transform.dart';
 
@@ -39,6 +40,9 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   final FocusNode _focusNode = FocusNode();
 
   late CanvasTransform _transform = widget.initialTransform;
+  bool _editing = false;
+  OverlayEntry? _overlayEntry;
+
   bool _gesturing = false;
   Offset _startFocalPoint = Offset.zero;
   CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
@@ -55,7 +59,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     if (!_gesturing && widget.initialTransform != oldWidget.initialTransform) {
       _transform = widget.initialTransform;
     }
-    if (!_focusNode.hasFocus && widget.text != oldWidget.text) {
+    if (!_editing && widget.text != oldWidget.text) {
       _controller.text = widget.text;
     }
   }
@@ -63,16 +67,35 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   @override
   void dispose() {
     _focusNode.removeListener(_onFocusChange);
+    _overlayEntry?.remove();
+    _overlayEntry = null;
     _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   void _onFocusChange() {
-    if (!_focusNode.hasFocus) {
-      widget.onTextChanged(_controller.text);
+    if (!_focusNode.hasFocus && _editing) {
+      _stopEditing();
     }
-    setState(() {});
+  }
+
+  void _startEditing() {
+    if (_editing) return;
+    setState(() => _editing = true);
+    _overlayEntry = _buildOverlayEntry();
+    Overlay.of(context).insert(_overlayEntry!);
+    _focusNode.requestFocus();
+  }
+
+  void _stopEditing() {
+    if (!_editing) return;
+    _editing = false;
+    widget.onTextChanged(_controller.text);
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _focusNode.unfocus();
+    if (mounted) setState(() {});
   }
 
   void _onScaleStart(ScaleStartDetails details) {
@@ -100,6 +123,67 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     widget.onTransformEnd(_transform);
   }
 
+  OverlayEntry _buildOverlayEntry() {
+    return OverlayEntry(
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _stopEditing,
+                child: ColoredBox(color: context.paletteColors.overlay),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: keyboardInset,
+              child: Material(
+                color: colorScheme.surface,
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controller,
+                          focusNode: _focusNode,
+                          onChanged: widget.onTextChanged,
+                          onSubmitted: (_) => _stopEditing(),
+                          maxLines: null,
+                          textInputAction: TextInputAction.done,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: colorScheme.onSurface,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: widget.placeholder,
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _stopEditing,
+                        icon: const Icon(Icons.check),
+                        tooltip: 'Done',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -108,6 +192,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
       fontSize: widget.baseFontSize * scale,
       color: colorScheme.onSurface,
     );
+    final text = _controller.text;
 
     final box = ConstrainedBox(
       constraints: BoxConstraints(
@@ -119,28 +204,15 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
           padding: EdgeInsets.all(8 * scale),
           decoration: BoxDecoration(
             color: colorScheme.surface,
-            border: Border.all(
-              color: _focusNode.hasFocus
-                  ? colorScheme.primary
-                  : colorScheme.outline,
-            ),
+            border: Border.all(color: colorScheme.outline),
             borderRadius: BorderRadius.circular(8 * scale),
           ),
-          child: TextField(
-            controller: _controller,
-            focusNode: _focusNode,
-            onChanged: widget.onTextChanged,
-            maxLines: null,
+          child: Text(
+            text.isEmpty ? widget.placeholder : text,
             textAlign: TextAlign.center,
-            style: textStyle,
-            decoration: InputDecoration(
-              isCollapsed: true,
-              border: InputBorder.none,
-              hintText: widget.placeholder,
-              hintStyle: textStyle.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
+            style: text.isEmpty
+                ? textStyle.copyWith(color: colorScheme.onSurfaceVariant)
+                : textStyle,
           ),
         ),
       ),
@@ -153,13 +225,16 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: _transform.rotation,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _focusNode.requestFocus,
-            onScaleStart: _onScaleStart,
-            onScaleUpdate: _onScaleUpdate,
-            onScaleEnd: _onScaleEnd,
-            child: box,
+          child: Opacity(
+            opacity: _editing ? 0.0 : 1.0,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _startEditing,
+              onScaleStart: _onScaleStart,
+              onScaleUpdate: _onScaleUpdate,
+              onScaleEnd: _onScaleEnd,
+              child: box,
+            ),
           ),
         ),
       ),
