@@ -13,6 +13,14 @@ class Position {
     this.scale = 1.0,
   });
 
+  Map<String, dynamic> toJson() => {
+    'x': x,
+    'y': y,
+    'rotation': rotation,
+    'aspectRatio': aspectRatio,
+    'scale': scale,
+  };
+
   factory Position.fromJson(Map<String, dynamic> json) {
     double parseDouble(dynamic v, double defaultValue) {
       if (v == null) return defaultValue;

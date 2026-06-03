@@ -21,6 +21,15 @@ class Profile {
     this.stickers = const [],
   });
 
+  Map<String, dynamic> toJson() => {
+    'userId': userId,
+    'name': name,
+    'location': location,
+    'images': images.map((i) => i.toJson()).toList(),
+    'textBoxes': textboxes.map((t) => t.toJson()).toList(),
+    'stickers': stickers.map((s) => s.toJson()).toList(),
+  };
+
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
       userId: json['userId'] as int,

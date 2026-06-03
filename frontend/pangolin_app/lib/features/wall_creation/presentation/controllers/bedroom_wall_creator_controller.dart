@@ -3,6 +3,7 @@ import 'dart:ui' show Offset;
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import '../../data/image_file_picker.dart';
 import '../../domain/canvas_item.dart';
+import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
 import '../../domain/virtual_canvas.dart';
 
@@ -11,15 +12,19 @@ class BedroomWallCreatorController {
   final ImageFilePicker imagePicker;
   final StickerCatalog stickerCatalog;
   final List<CanvasItem> _items = [];
+  final List<CanvasPrompt> _prompts;
   int _nextId = 0;
 
   BedroomWallCreatorController({
     required this.imagePicker,
     required this.stickerCatalog,
     VirtualCanvas? canvas,
-  }) : canvas = canvas ?? const VirtualCanvas();
+  }) : canvas = canvas ?? const VirtualCanvas(),
+       _prompts = CanvasPrompt.defaults();
 
   List<CanvasItem> get items => List.unmodifiable(_items);
+
+  List<CanvasPrompt> get prompts => List.unmodifiable(_prompts);
 
   Iterable<CanvasImageItem> get imageItems => _items.whereType();
 
@@ -61,6 +66,36 @@ class BedroomWallCreatorController {
         stickerName: stickerName,
       ),
     );
+  }
+
+  Future<void> addImageFromPrompt(int promptId) async {
+    final index = _prompts.indexWhere((p) => p.id == promptId);
+    if (index == -1) return;
+    final prompt = _prompts[index];
+
+    final picked = await imagePicker.pickImage();
+    if (picked == null) return;
+
+    _items.add(
+      CanvasImageItem(
+        id: _nextId++,
+        transform: prompt.transform,
+        bytes: picked.bytes,
+        aspectRatio: picked.aspectRatio,
+      ),
+    );
+    _prompts.removeAt(index);
+  }
+
+  void addTextBoxFromPrompt(int promptId) {
+    final index = _prompts.indexWhere((p) => p.id == promptId);
+    if (index == -1) return;
+    final prompt = _prompts[index];
+
+    _items.add(
+      CanvasTextItem(id: _nextId++, transform: prompt.transform, text: ''),
+    );
+    _prompts.removeAt(index);
   }
 
   void updateTransform(int id, CanvasTransform transform) {
