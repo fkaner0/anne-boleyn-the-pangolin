@@ -95,10 +95,12 @@ class _TextContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '$label ',
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
-            fontSize: 24,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
