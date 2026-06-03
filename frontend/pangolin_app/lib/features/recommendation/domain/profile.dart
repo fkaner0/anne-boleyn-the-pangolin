@@ -1,4 +1,5 @@
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 class Profile {
@@ -7,6 +8,7 @@ class Profile {
   final String location;
   final List<ProfileImage> images;
   final List<ProfileText> textboxes;
+  final List<ProfileSticker> stickers;
 
   const Profile({
     required this.userId,
@@ -14,6 +16,7 @@ class Profile {
     required this.location,
     required this.images,
     required this.textboxes,
+    this.stickers = const [],
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -27,6 +30,13 @@ class Profile {
       textboxes: (json['textBoxes'] as List<dynamic>)
           .map((item) => ProfileText.fromJson(item as Map<String, dynamic>))
           .toList(),
+      stickers:
+          (json['stickers'] as List<dynamic>?)
+              ?.map(
+                (item) => ProfileSticker.fromJson(item as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
   }
 }

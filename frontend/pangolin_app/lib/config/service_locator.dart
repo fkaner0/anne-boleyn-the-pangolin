@@ -3,6 +3,7 @@ import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
@@ -18,6 +19,13 @@ void configureDependencies(BackendMode backend) {
   // Clear previous registrations when reconfiguring in tests
   if (getIt.isRegistered<RecommendationFetcher>()) {
     getIt.reset();
+  }
+
+  // Register StickerCatalog with a default empty instance
+  if (!getIt.isRegistered<StickerCatalog>()) {
+    getIt.registerLazySingleton<StickerCatalog>(
+      () => StickerCatalog.fromAssetKeys(const <String>[]),
+    );
   }
 
   switch (backend) {

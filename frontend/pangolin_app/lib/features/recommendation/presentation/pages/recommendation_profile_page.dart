@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import '../../data/profile_fetcher.dart';
 import '../../domain/profile.dart';
 import '../pages/bedroom_wall_detail_page.dart';
@@ -15,10 +16,18 @@ class RecommendationProfilePage extends StatelessWidget {
     required this.userId,
   });
 
+  Future<(Profile, StickerCatalog)> _load() async {
+    final profileFuture = profileFetcher.fetchProfile(userId);
+    final catalogFuture = StickerCatalog.load().catchError(
+      (_) => StickerCatalog.fromAssetKeys(const <String>[]),
+    );
+    return (await profileFuture, await catalogFuture);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Profile>(
-      future: profileFetcher.fetchProfile(userId),
+    return FutureBuilder<(Profile, StickerCatalog)>(
+      future: _load(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -47,7 +56,7 @@ class RecommendationProfilePage extends StatelessWidget {
           );
         }
 
-        final profile = snapshot.data!;
+        final (profile, stickerCatalog) = snapshot.data!;
 
         return Scaffold(
           body: SafeArea(
@@ -65,6 +74,7 @@ class RecommendationProfilePage extends StatelessWidget {
                     padding: const EdgeInsets.all(16),
                     child: BedroomWallView(
                       profile: profile,
+                      stickerCatalog: stickerCatalog,
                       onImageTap: (image) {
                         Navigator.of(context).push(
                           MaterialPageRoute(

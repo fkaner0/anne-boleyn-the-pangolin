@@ -4,13 +4,15 @@ import '../../domain/profile_image.dart';
 import 'bedroom_wall_interactive_item.dart';
 
 class BedroomWallImageItem extends BedroomWallInteractiveBase {
+  static const double _baseSize = 160;
+
   final ProfileImage image;
 
-  const BedroomWallImageItem({
-    super.key,
-    required this.image,
-    required super.onTap,
-  }) : super(width: 160, height: 160);
+  BedroomWallImageItem({super.key, required this.image, required super.onTap})
+    : super(
+        width: _baseSize * image.position.scale * image.position.aspectRatio,
+        height: _baseSize * image.position.scale,
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class BedroomWallImageItem extends BedroomWallInteractiveBase {
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
           return Container(
-            color: Colors.grey.shade300,
+            color: Theme.of(context).colorScheme.outline,
             alignment: Alignment.center,
             child: const Icon(Icons.broken_image, size: 40),
           );
