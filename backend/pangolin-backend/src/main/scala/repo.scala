@@ -145,4 +145,16 @@ object repo {
         .toRight(())
     }
   }
+
+  def newProfile(): IO[Either[Nothing, Int]] = IO.blocking {
+    connect(dataSource) {
+      profileRepo.insertReturning(ProfileCreator(
+        "Placeholder Name",
+        "Placeholder Location",
+        "https://placehold.co/400x400.jpg"
+      )).id.asRight
+    }
+  }
 }
+
+

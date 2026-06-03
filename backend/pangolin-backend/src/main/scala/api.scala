@@ -88,6 +88,14 @@ object api {
     given ReadWriter[UploadResponse] = macroRW
   }
 
+
+  case class NewUserResponse(
+    userId: Int
+  )
+  object NewUserResponse {
+    given ReadWriter[NewUserResponse] = macroRW
+  }
+
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
     .out(jsonBody[FullProfile])
@@ -101,6 +109,9 @@ object api {
     .in(multipartBody[UploadRequest])
     .errorOut(stringBody)
     .out(jsonBody[UploadResponse])
+
+  private val newUserEndpoint = endpoint.post
+    .out(jsonBody[NewUserResponse])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -158,7 +169,7 @@ object api {
   )
 
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    profileEditEndpoint.serverLogic { userId =>
+    profileEditEndpoint.serverLogic { request =>
       println("WOULD HAVE UPDATED STUFF BUT I DIDNT!!!")
       ???
     }
@@ -174,6 +185,13 @@ object api {
         case Right(None) => Left("Error in image upload")
         case Left(err)  => Left(err.getMessage)
       }
+    }
+  )
+
+  private val newUserRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    newUserEndpoint.serverLogic { _ =>
+      val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
+      newUserId.map(_.map(NewUserResponse(_)))
     }
   )
 
