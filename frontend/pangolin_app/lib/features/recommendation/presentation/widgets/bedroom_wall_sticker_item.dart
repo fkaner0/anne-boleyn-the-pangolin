@@ -1,17 +1,19 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/stickers/sticker_image.dart';
 import '../../domain/profile_sticker.dart';
 
 class BedroomWallStickerItem extends StatelessWidget {
   static const double _baseSize = 120;
 
   final ProfileSticker sticker;
-  final String assetPath;
+  final StickerCatalog catalog;
 
   const BedroomWallStickerItem({
     super.key,
     required this.sticker,
-    required this.assetPath,
+    required this.catalog,
   });
 
   @override
@@ -26,12 +28,7 @@ class BedroomWallStickerItem extends StatelessWidget {
         child: SizedBox(
           width: _baseSize * position.scale * position.aspectRatio,
           height: _baseSize * position.scale,
-          child: Image.asset(
-            assetPath,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox.shrink(),
-          ),
+          child: StickerImage(catalog: catalog, name: sticker.name),
         ),
       ),
     );

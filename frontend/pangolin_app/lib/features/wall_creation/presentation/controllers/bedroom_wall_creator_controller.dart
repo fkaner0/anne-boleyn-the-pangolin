@@ -2,9 +2,7 @@ import 'dart:ui' show Offset;
 
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import '../../data/image_file_picker.dart';
-import '../../domain/canvas_image_item.dart';
-import '../../domain/canvas_text_item.dart';
-import '../../domain/canvas_sticker_item.dart';
+import '../../domain/canvas_item.dart';
 import '../../domain/canvas_transform.dart';
 import '../../domain/virtual_canvas.dart';
 
@@ -12,9 +10,7 @@ class BedroomWallCreatorController {
   final VirtualCanvas canvas;
   final ImageFilePicker imagePicker;
   final StickerCatalog stickerCatalog;
-  final List<CanvasImageItem> _imageItems = [];
-  final List<CanvasTextItem> _textItems = [];
-  final List<CanvasStickerItem> _stickerItems = [];
+  final List<CanvasItem> _items = [];
   int _nextId = 0;
 
   BedroomWallCreatorController({
@@ -23,11 +19,13 @@ class BedroomWallCreatorController {
     VirtualCanvas? canvas,
   }) : canvas = canvas ?? const VirtualCanvas();
 
-  List<CanvasImageItem> get imageItems => List.unmodifiable(_imageItems);
+  List<CanvasItem> get items => List.unmodifiable(_items);
 
-  List<CanvasTextItem> get textItems => List.unmodifiable(_textItems);
+  Iterable<CanvasImageItem> get imageItems => _items.whereType();
 
-  List<CanvasStickerItem> get stickerItems => List.unmodifiable(_stickerItems);
+  Iterable<CanvasTextItem> get textItems => _items.whereType();
+
+  Iterable<CanvasStickerItem> get stickerItems => _items.whereType();
 
   CanvasTransform _centeredTransform() {
     return CanvasTransform(center: Offset(canvas.width / 2, canvas.height / 2));
@@ -37,57 +35,48 @@ class BedroomWallCreatorController {
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
 
-    _imageItems.add(
+    _items.add(
       CanvasImageItem(
         id: _nextId++,
+        transform: _centeredTransform(),
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
-        transform: _centeredTransform(),
       ),
     );
-  }
-
-  void updateImageTransform(int id, CanvasTransform transform) {
-    final index = _imageItems.indexWhere((item) => item.id == id);
-    if (index == -1) return;
-
-    _imageItems[index] = _imageItems[index].copyWith(transform: transform);
   }
 
   void addTextBox() {
-    _textItems.add(
-      CanvasTextItem(id: _nextId++, text: '', transform: _centeredTransform()),
+    _items.add(
+      CanvasTextItem(id: _nextId++, transform: _centeredTransform(), text: ''),
     );
   }
 
-  void updateTextTransform(int id, CanvasTransform transform) {
-    final index = _textItems.indexWhere((item) => item.id == id);
-    if (index == -1) return;
-
-    _textItems[index] = _textItems[index].copyWith(transform: transform);
-  }
-
-  void updateText(int id, String text) {
-    final index = _textItems.indexWhere((item) => item.id == id);
-    if (index == -1) return;
-
-    _textItems[index] = _textItems[index].copyWith(text: text);
-  }
-
   void addSticker(String stickerName) {
-    _stickerItems.add(
+    if (stickerCatalog.assetForName(stickerName) == null) return;
+
+    _items.add(
       CanvasStickerItem(
         id: _nextId++,
-        stickerName: stickerName,
         transform: _centeredTransform(),
+        stickerName: stickerName,
       ),
     );
   }
 
-  void updateStickerTransform(int id, CanvasTransform transform) {
-    final index = _stickerItems.indexWhere((item) => item.id == id);
+  void updateTransform(int id, CanvasTransform transform) {
+    final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
-    _stickerItems[index] = _stickerItems[index].copyWith(transform: transform);
+    _items[index] = _items[index].withTransform(transform);
+  }
+
+  void updateText(int id, String text) {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index == -1) return;
+
+    final item = _items[index];
+    if (item is CanvasTextItem) {
+      _items[index] = item.withText(text);
+    }
   }
 }
