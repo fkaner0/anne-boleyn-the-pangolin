@@ -21,7 +21,7 @@ flutter run --dart-define=BACKEND=render
 -- Run on localhost entirely
 
 ```bash
-flutter run --dart-define=BACKEND=local
+flutter run --dart-define=BACKEND=local --dart-define=API_PORT=8080
 ```
 
 The `local` backend talks to a backend running on your machine over plain
