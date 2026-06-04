@@ -122,7 +122,13 @@ class BedroomWallCreatorController {
     final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
-    final updated = _items.removeAt(index).withTransform(transform);
+    final clamped = transform.copyWith(
+      center: Offset(
+        transform.center.dx.clamp(0.0, canvas.width),
+        transform.center.dy.clamp(0.0, canvas.height),
+      ),
+    );
+    final updated = _items.removeAt(index).withTransform(clamped);
     _items.add(updated);
   }
 
