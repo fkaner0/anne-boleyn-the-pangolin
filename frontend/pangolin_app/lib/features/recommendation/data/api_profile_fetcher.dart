@@ -37,6 +37,6 @@ class ApiProfileFetcher implements ProfileFetcher {
 
     final decoded = jsonDecode(response.body);
 
-    return Profile.fromJson(decoded as Map<String, dynamic>);
+    return Profile.fromJson(decoded as Map<String, dynamic>, userId: userId);
   }
 }
