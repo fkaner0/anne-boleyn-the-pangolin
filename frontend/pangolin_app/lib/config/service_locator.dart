@@ -53,8 +53,8 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
       break;
     case BackendMode.local:
-      final hostLocal = Env.apiHost;
-      final portLocal = Env.apiPort;
+      final hostLocal = Env.localHost;
+      final portLocal = Env.localPort;
       getIt.registerLazySingleton<RecommendationFetcher>(
         () => RenderRecommendationFetcher(
           host: hostLocal,
@@ -99,7 +99,7 @@ void configureDependencies(BackendMode backend) {
       );
       break;
     case BackendMode.render:
-      final host = Env.apiHost;
+      final host = Env.renderHost;
       getIt.registerLazySingleton<RecommendationFetcher>(
         () => RenderRecommendationFetcher(host: host),
       );

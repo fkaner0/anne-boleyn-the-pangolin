@@ -1,20 +1,28 @@
 enum BackendMode { render, mock, local }
 
 const String defaultRenderHost = 'anne-boleyn-the-pangolin-huqk.onrender.com';
+const String defaultLocalHost = 'localhost';
+const int defaultLocalPort = 8080;
 
 class Env {
   static final BackendMode backend = _parseBackend(
     const String.fromEnvironment('BACKEND', defaultValue: 'render'),
   );
 
-  static final String apiHost = const String.fromEnvironment(
-    'API_HOST',
-    defaultValue: defaultRenderHost,
-  );
-
-  static final int? apiPort = _parsePort(
+  static const String _hostOverride = String.fromEnvironment('API_HOST');
+  static final int? _portOverride = _parsePort(
     const String.fromEnvironment('API_PORT'),
   );
+
+  static String get renderHost =>
+      _hostOverride.isEmpty ? defaultRenderHost : _hostOverride;
+
+  static int? get renderPort => _portOverride;
+
+  static String get localHost =>
+      _hostOverride.isEmpty ? defaultLocalHost : _hostOverride;
+
+  static int? get localPort => _portOverride ?? defaultLocalPort;
 
   static int? _parsePort(String value) =>
       value.isEmpty ? null : int.tryParse(value);

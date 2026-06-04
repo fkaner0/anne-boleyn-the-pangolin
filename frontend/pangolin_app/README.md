@@ -18,20 +18,19 @@ flutter run --dart-define=BACKEND=mock
 flutter run --dart-define=BACKEND=render
 ```
 
--- Run on localhost entirely
+- Run against a backend on your machine (plain HTTP):
 
 ```bash
-flutter run --dart-define=BACKEND=local --dart-define=API_PORT=8080
+flutter run --dart-define=BACKEND=local
 ```
 
-The `local` backend talks to a backend running on your machine over plain
-HTTP (it does not use HTTPS). Point it at the local server with `API_HOST`
-and `API_PORT`:
+The `local` backend defaults to `localhost:8080` over HTTP, so no other flags
+are needed for a standard local server. Override the host and/or port if your
+server runs elsewhere:
 
 ```bash
-flutter run --dart-define=BACKEND=local --dart-define=API_HOST=localhost --dart-define=API_PORT=8080
+flutter run --dart-define=BACKEND=local --dart-define=API_HOST=192.168.0.5 --dart-define=API_PORT=9000
 ```
-
 
 - Override the API host used by the Render implementation:
 
@@ -39,17 +38,12 @@ flutter run --dart-define=BACKEND=local --dart-define=API_HOST=localhost --dart-
 flutter run --dart-define=BACKEND=render --dart-define=API_HOST=your-host.example.com
 ```
 
-- Override the API port (mainly useful with `BACKEND=local`):
-
-```bash
-flutter run --dart-define=BACKEND=local --dart-define=API_PORT=8080
-```
-
 
 Notes:
 - The app reads `BACKEND`, `API_HOST`, and `API_PORT` via
   `const String.fromEnvironment`.
-- `API_PORT` is optional; when unset the port is omitted from the request URL.
-- The `render` backend uses HTTPS, while the `local` backend uses HTTP.
+- Host/port defaults are mode-specific: `render` defaults to the deployed
+  Render host over HTTPS; `local` defaults to `localhost:8080` over HTTP.
+  `API_HOST` / `API_PORT` override the default for whichever mode is active.
 - Dependency wiring is performed in `lib/config/service_locator.dart`.
 

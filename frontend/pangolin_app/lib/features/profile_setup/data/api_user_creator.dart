@@ -18,7 +18,9 @@ class ApiUserCreator implements UserCreator {
   @override
   Future<int> createUser() async {
     final authority = port == null ? host : '$host:$port';
-    final uri = useHttps ? Uri.https(authority, '/') : Uri.http(authority, '/');
+    final uri = useHttps
+        ? Uri.https(authority, '/user')
+        : Uri.http(authority, '/user');
 
     final response = await http.post(uri);
 
