@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class PromptGenerator extends StatefulWidget {
-  const PromptGenerator({super.key});
+  final Function(String) onCreate;
+
+  const PromptGenerator({super.key, required this.onCreate});
 
   @override
   State<StatefulWidget> createState() => _PromptGeneratorState();
@@ -25,6 +27,11 @@ class _PromptGeneratorState extends State<PromptGenerator> {
     setState(() => prompt = prompts[_random.nextInt(prompts.length)]);
   }
 
+  void _submit(String text) {
+    widget.onCreate(text);
+    _refreshPrompt();
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -33,6 +40,7 @@ class _PromptGeneratorState extends State<PromptGenerator> {
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       child: TextField(
         readOnly: true,
+        onSubmitted: _submit,
         decoration: InputDecoration(
           hintText: prompt,
           fillColor: colorScheme.secondaryContainer,

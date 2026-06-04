@@ -57,6 +57,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     if (mounted) setState(() {});
   }
 
+  void _addTextBoxWithText(String text) {
+    setState(() => _controller.addTextBoxWithText(text));
+  }
+
   void _addTextBox() {
     setState(_controller.addTextBox);
   }
@@ -169,7 +173,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               bottom: 16,
               child: Column(
                 children: [
-                  PromptGenerator(),
+                  PromptGenerator(onCreate: _addTextBoxWithText),
                   CreatorToolBar(
                     onAddTextBox: _addTextBox,
                     onAddImage: _addImage,
