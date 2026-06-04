@@ -25,6 +25,8 @@ class InteractiveCanvasItem extends StatefulWidget {
 }
 
 class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
+  static const double _hitSlop = 6.0;
+
   late CanvasTransform _transform = widget.initialTransform;
 
   bool _gesturing = false;
@@ -68,12 +70,14 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
   Widget build(BuildContext context) {
     final width = widget.baseSize.width * _transform.scale;
     final height = widget.baseSize.height * _transform.scale;
+    final boxWidth = width + _hitSlop * 2;
+    final boxHeight = height + _hitSlop * 2;
 
     return Positioned(
-      left: _transform.center.dx - width / 2,
-      top: _transform.center.dy - height / 2,
-      width: width,
-      height: height,
+      left: _transform.center.dx - boxWidth / 2,
+      top: _transform.center.dy - boxHeight / 2,
+      width: boxWidth,
+      height: boxHeight,
       child: Transform.rotate(
         angle: _transform.rotation,
         child: GestureDetector(
@@ -81,7 +85,9 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
           onScaleStart: _onScaleStart,
           onScaleUpdate: _onScaleUpdate,
           onScaleEnd: _onScaleEnd,
-          child: widget.child,
+          child: Center(
+            child: SizedBox(width: width, height: height, child: widget.child),
+          ),
         ),
       ),
     );
