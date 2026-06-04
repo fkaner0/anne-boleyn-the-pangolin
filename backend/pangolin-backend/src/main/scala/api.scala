@@ -215,7 +215,7 @@ object api {
   extension (sticker: ProfileSticker) {
     private def fromApi(userId: Int) = repo.ProfileStickerCreator(
       userId = userId,
-      stickerName = sticker.name,
+      name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
       rotation = sticker.position.rotation,
