@@ -61,10 +61,18 @@ class BedroomWallCreatorController {
     );
   }
 
-  void addTextBox() {
+  void addTextBoxWithText(String text) {
     _items.add(
-      CanvasTextItem(id: _nextId++, transform: _centeredTransform(), text: ''),
+      CanvasTextItem(
+        id: _nextId++,
+        transform: _centeredTransform(),
+        text: text,
+      ),
     );
+  }
+
+  void addTextBox() {
+    addTextBoxWithText('');
   }
 
   void addSticker(String stickerName) {
