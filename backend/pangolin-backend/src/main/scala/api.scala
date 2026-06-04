@@ -213,7 +213,7 @@ object api {
 
   extension (sticker: repo.ProfileSticker) {
     private def toApi = ProfileSticker(
-      name = sticker.stickerName,
+      name = sticker.name,
       position = sticker.position,
     )
   }
