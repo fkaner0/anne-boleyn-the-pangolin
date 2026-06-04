@@ -82,6 +82,37 @@ void main() {
     expect(controller.textItems.single.transform.rotation, 0.5);
   });
 
+  test('updateTransform clamps the center within the canvas bounds', () {
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    final item = controller.textItems.single;
+
+    controller.updateTransform(
+      item.id,
+      item.transform.copyWith(center: const Offset(9999, -500)),
+    );
+
+    final center = controller.textItems.single.transform.center;
+    expect(center.dx, controller.canvas.width);
+    expect(center.dy, 0.0);
+  });
+
+  test('updateTransform leaves an in-bounds center unchanged', () {
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    final item = controller.textItems.single;
+
+    controller.updateTransform(
+      item.id,
+      item.transform.copyWith(center: const Offset(120, 240)),
+    );
+
+    expect(
+      controller.textItems.single.transform.center,
+      const Offset(120, 240),
+    );
+  });
+
   test('exportInto maps canvas items onto the profile builder', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
