@@ -51,6 +51,9 @@ object api {
   case class ProfileTextbox(
       title: String,
       body: String,
+      font: Option[String],
+      fontHexARGB: Long,
+      backgroundHexARGB: Long,
       position: Position,
   )
   object ProfileTextbox {
@@ -207,6 +210,9 @@ object api {
     private def toApi = ProfileTextbox(
       title = textbox.title,
       body = textbox.body,
+      font = textbox.font,
+      fontHexARGB = textbox.fontARGB,
+      backgroundHexARGB = textbox.backgroundARGB,
       position = textbox.position,
     )
   }
@@ -241,6 +247,9 @@ object api {
       userId = userId,
       title = textbox.title,
       body = textbox.body,
+      font = textbox.font,
+      fontARGB = textbox.fontHexARGB,
+      backgroundARGB = textbox.backgroundHexARGB,
       x = textbox.position.x,
       y = textbox.position.y,
       rotation = textbox.position.rotation,
