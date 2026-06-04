@@ -107,7 +107,10 @@ void main() {
       item.transform.copyWith(center: const Offset(120, 240)),
     );
 
-    expect(controller.textItems.single.transform.center, const Offset(120, 240));
+    expect(
+      controller.textItems.single.transform.center,
+      const Offset(120, 240),
+    );
   });
 
   test('exportInto maps canvas items onto the profile builder', () {
