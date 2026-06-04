@@ -57,6 +57,9 @@ object repo {
       userId: Int,
       title: String,
       body: String,
+      font: Option[String],
+      fontARGB: Long,
+      backgroundARGB: Long,
       x: Int,
       y: Int,
       rotation: Double,
@@ -70,6 +73,9 @@ object repo {
       userId: Int,
       title: String,
       body: String,
+      font: Option[String],
+      fontARGB: Long,
+      backgroundARGB: Long,
       x: Int,
       y: Int,
       rotation: Double,
@@ -110,6 +116,8 @@ object repo {
   case class ProfileCreator(
       name: String,
       location: String,
+      bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -118,6 +126,8 @@ object repo {
       @Id id: Int,
       name: String,
       location: String,
+      bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -174,9 +184,11 @@ object repo {
 
   def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
     profileRepo.insertReturning(ProfileCreator(
-      "Placeholder Name",
-      "Placeholder Location",
-      "https://placehold.co/400x400.jpg"
+      name = "no name provided",
+      location = "no location provided",
+      bio = "no bio provided",
+      wallBackgroundHexARGB = 0,
+      profileImageUrl = "https://placehold.co/400x400.jpg",
     )).id.asRight
   }
 
@@ -184,7 +196,7 @@ object repo {
     = table.deleteAllById(table.findAll(spec).map(getId))
     
   private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
-  = table.insertAll(elems)
+    = table.insertAll(elems)
 
   private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
   private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)

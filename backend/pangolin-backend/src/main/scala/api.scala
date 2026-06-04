@@ -7,7 +7,7 @@ import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.Part
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody}
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
@@ -51,6 +51,9 @@ object api {
   case class ProfileTextbox(
       title: String,
       body: String,
+      font: Option[String],
+      fontHexARGB: Long,
+      backgroundHexARGB: Long,
       position: Position,
   )
   object ProfileTextbox {
@@ -70,6 +73,7 @@ object api {
       location: String,
       profileImageUrl: String,
       bio: String,
+      wallBackgroundHexARGB: Long,
       wallImages: Vector[ProfileImage],
       wallTextboxes: Vector[ProfileTextbox],
       wallStickers: Vector[ProfileSticker],
@@ -104,7 +108,7 @@ object api {
     .in("profile" / "edit" / path[Int]("userId"))
     .in(jsonBody[FullProfile])
     .errorOut(stringBody)
-    // .out() /// TODO: is nothing ok?
+    .out(emptyOutput) /// TODO: or do we want something?
 
   private val uploadWallImageEndpoint = endpoint.post
     .in("wallImage")
@@ -142,7 +146,7 @@ object api {
       userId = user.id,
       name = user.name,
       location = user.location,
-      bio = "",
+      bio = user.bio,
       profileImageUrl = user.profileImageUrl,
       rejected = false,
     )
@@ -156,8 +160,9 @@ object api {
           FullProfile(
             name = user.name,
             location = user.location,
-            bio = "placeholderbio", /// TODO: add to DB
+            bio = user.bio,
             profileImageUrl = user.profileImageUrl,
+            wallBackgroundHexARGB = user.wallBackgroundHexARGB,
             wallImages = images.map(_.toApi),
             wallTextboxes = textboxes.map(_.toApi),
             wallStickers = stickers.map(_.toApi),
@@ -207,6 +212,9 @@ object api {
     private def toApi = ProfileTextbox(
       title = textbox.title,
       body = textbox.body,
+      font = textbox.font,
+      fontHexARGB = textbox.fontARGB,
+      backgroundHexARGB = textbox.backgroundARGB,
       position = textbox.position,
     )
   }
@@ -241,6 +249,9 @@ object api {
       userId = userId,
       title = textbox.title,
       body = textbox.body,
+      font = textbox.font,
+      fontARGB = textbox.fontHexARGB,
+      backgroundARGB = textbox.backgroundHexARGB,
       x = textbox.position.x,
       y = textbox.position.y,
       rotation = textbox.position.rotation,
@@ -254,7 +265,9 @@ object api {
       id = userId,
       name = profile.name,
       location = profile.location,
+      bio = profile.bio,
       profileImageUrl = profile.profileImageUrl,
+      wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
     )
   }
 
