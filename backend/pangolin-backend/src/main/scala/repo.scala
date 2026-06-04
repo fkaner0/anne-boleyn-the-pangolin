@@ -139,8 +139,7 @@ object repo {
   }
 
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextboxRepo =
-    Repo[ProfileTextboxCreator, ProfileTextbox, Int]
+  private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
