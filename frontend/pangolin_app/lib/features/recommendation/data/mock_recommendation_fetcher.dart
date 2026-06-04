@@ -11,6 +11,7 @@ class MockRecommendationFetcher implements RecommendationFetcher {
       Recommendation(
         userId: 0,
         name: 'Tim Johnson',
+        age: 27,
         location: 'Harrow, London',
         bio: 'Watercolouring a new pond every day',
         imageUrl: 'https://via.placeholder.com/150',
@@ -18,6 +19,7 @@ class MockRecommendationFetcher implements RecommendationFetcher {
       Recommendation(
         userId: 1,
         name: 'Sally Parks',
+        age: 34,
         location: 'Hammersmith, London',
         bio: 'still-4-lyferrrr',
         imageUrl: 'https://via.placeholder.com/150',
@@ -25,6 +27,7 @@ class MockRecommendationFetcher implements RecommendationFetcher {
       Recommendation(
         userId: 2,
         name: 'Selena Davis',
+        age: 22,
         location: 'Richmond, London',
         bio: 'willing to try anything new and messy',
         imageUrl: 'https://via.placeholder.com/150',
