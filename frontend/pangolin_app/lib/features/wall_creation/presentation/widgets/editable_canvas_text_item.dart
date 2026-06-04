@@ -156,14 +156,17 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     widget.onTransformEnd(_transform);
   }
 
-  Future<void> _pickColor() async {
+  Future<void> _pickColor(
+    String dialogText,
+    void Function(Color) onColorChange,
+  ) async {
     _focusNode.unfocus();
     Color pickerColor = _textColor ?? Theme.of(context).colorScheme.onSurface;
 
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Text colour'),
+        title: Text(dialogText),
         content: ColorPicker(
           pickerColor: pickerColor,
           onColorChanged: (color) => pickerColor = color,
@@ -178,8 +181,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     );
 
     if (!mounted) return;
-    setState(() => _textColor = pickerColor);
-    widget.onTextColorChanged(pickerColor);
+    onColorChange(pickerColor);
     _refreshOverlay();
     _focusNode.requestFocus();
   }
@@ -192,7 +194,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
 
         // The effective text colour to show on the swatch button.
         final effectiveTextColor = _textColor ?? colorScheme.onSurface;
-        final effectivebackgroundColor =
+        final effectiveBackgroundColor =
             _backgroundColor ?? colorScheme.surface;
 
         const double buttonsBufferSize = 8;
@@ -223,17 +225,27 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                       children: [
                         _TextColorSwatchButton(
                           color: effectiveTextColor,
-                          onTap: _pickColor,
+                          onTap: () => _pickColor('Text Colour', (color) {
+                            setState(() => _textColor = color);
+                            widget.onTextColorChanged;
+                          }),
                         ),
-                        // _TextBackgroundColorSwatchButton(
-                        //   color: effectivebackgroundColor,
-                        //   onTap: _pickColor,
-                        // ),
+                        _TextBackgroundColorSwatchButton(
+                          color: effectiveBackgroundColor,
+                          onTap: () =>
+                              _pickColor('Text Background Colour', (color) {
+                                setState(() => _backgroundColor = color);
+                                widget.onTextBackgroundColorChanged;
+                              }),
+                        ),
                       ],
                     ),
                   ),
                   Material(
-                    color: colorScheme.surface,
+                    color: Color.alphaBlend(
+                      effectiveBackgroundColor,
+                      colorScheme.surface,
+                    ),
                     elevation: 8,
                     child: Padding(
                       padding: const EdgeInsets.all(edgeBufferSize),
@@ -282,11 +294,12 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     final scale = _transform.scale;
 
     // Resolve the display colour: prefer explicit colour, fall back to theme.
-    final resolvedColor = _textColor ?? colorScheme.onSurface;
+    final resolvedTextColor = _textColor ?? colorScheme.onSurface;
+    final resolvedBackgroundColor = _backgroundColor ?? colorScheme.surface;
 
     final textStyle = TextStyle(
       fontSize: widget.baseFontSize * scale,
-      color: resolvedColor,
+      color: resolvedTextColor,
     );
     final text = _controller.text;
 
@@ -298,11 +311,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
       child: IntrinsicWidth(
         child: Container(
           padding: EdgeInsets.all(8 * scale),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            border: Border.all(color: colorScheme.outline),
-            borderRadius: BorderRadius.circular(8 * scale),
-          ),
+          decoration: BoxDecoration(color: resolvedBackgroundColor),
           child: Text(
             text.isEmpty ? widget.placeholder : text,
             textAlign: TextAlign.center,
@@ -359,23 +368,23 @@ class _TextColorSwatchButton extends StatelessWidget {
   }
 }
 
-// class _TextBackgroundColorSwatchButton extends StatelessWidget {
-//   final Color color;
-//   final VoidCallback onTap;
+class _TextBackgroundColorSwatchButton extends StatelessWidget {
+  final Color color;
+  final VoidCallback onTap;
 
-//   const _TextBackgroundColorSwatchButton({
-//     required this.color,
-//     required this.onTap,
-//   });
+  const _TextBackgroundColorSwatchButton({
+    required this.color,
+    required this.onTap,
+  });
 
-//   @override
-//   Widget build(BuildContext context) {
-//     // Use a contrasting background so the colour change is visible on any background.
-//     final Color fgCol = _getContrastColorWithAlpha(color);
+  @override
+  Widget build(BuildContext context) {
+    // Use a contrasting background so the colour change is visible on any background.
+    final Color fgCol = _getContrastColorWithAlpha(color);
 
-//     return _buttonFromIcon(Icons.text_fields, color, fgCol, onTap);
-//   }
-// }
+    return _buttonFromIcon(Icons.text_fields, color, fgCol, onTap);
+  }
+}
 
 /// HELPERS /////
 
