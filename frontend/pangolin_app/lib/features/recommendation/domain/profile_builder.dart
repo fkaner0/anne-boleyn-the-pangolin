@@ -6,6 +6,7 @@ import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 class ProfileBuilder {
   int? _userId;
   String? _name;
+  int? _age;
   String? _location;
   String? _bio;
   String? _profileImageUrl;
@@ -20,6 +21,7 @@ class ProfileBuilder {
   ProfileBuilder.from(Profile profile)
     : _userId = profile.userId,
       _name = profile.name,
+      _age = profile.age,
       _location = profile.location,
       _bio = profile.bio,
       _profileImageUrl = profile.profileImageUrl,
@@ -34,6 +36,7 @@ class ProfileBuilder {
     final clone = ProfileBuilder()
       .._userId = _userId
       .._name = _name
+      .._age = _age
       .._location = _location
       .._bio = _bio
       .._profileImageUrl = _profileImageUrl
@@ -51,6 +54,11 @@ class ProfileBuilder {
 
   ProfileBuilder setName(String name) {
     _name = name;
+    return this;
+  }
+
+  ProfileBuilder setAge(int age) {
+    _age = age;
     return this;
   }
 
@@ -132,6 +140,7 @@ class ProfileBuilder {
       userId: userId!,
       name: name!,
       location: location!,
+      age: _age ?? Profile.defaultAge,
       bio: _bio ?? Profile.defaultBio,
       profileImageUrl: _profileImageUrl ?? Profile.defaultProfileImageUrl,
       wallBackgroundHexARGB:

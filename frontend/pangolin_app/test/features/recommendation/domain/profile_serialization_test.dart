@@ -12,6 +12,7 @@ void main() {
     final profile = Profile(
       userId: 7,
       name: 'Anne',
+      age: 30,
       location: 'London',
       profileImageUrl: 'https://example.com/me.jpg',
       bio: 'painter',
@@ -35,6 +36,7 @@ void main() {
     test('includes the new top-level fields', () {
       final json = profile.toJson();
 
+      expect(json['age'], 30);
       expect(json['profileImageUrl'], 'https://example.com/me.jpg');
       expect(json['bio'], 'painter');
       expect(json['wallBackgroundHexARGB'], 0xFF112233);

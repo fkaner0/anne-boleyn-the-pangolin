@@ -6,9 +6,11 @@ class Profile {
   static const String defaultProfileImageUrl = '';
   static const String defaultBio = 'no bio provided';
   static const int defaultWallBackgroundHexARGB = 0xFFFFFFFF;
+  static const int defaultAge = 0;
 
   final int userId;
   final String name;
+  final int age;
   final String profileImageUrl;
   final String location;
   final String bio;
@@ -21,6 +23,7 @@ class Profile {
     required this.userId,
     required this.name,
     required this.location,
+    this.age = defaultAge,
     this.profileImageUrl = defaultProfileImageUrl,
     this.bio = defaultBio, // TODO: make required
     this.wallBackgroundHexARGB = defaultWallBackgroundHexARGB,
@@ -31,6 +34,7 @@ class Profile {
 
   Map<String, dynamic> toJson() => {
     'name': name,
+    'age': age,
     'profileImageUrl': profileImageUrl,
     'bio': bio,
     'location': location,
@@ -44,6 +48,7 @@ class Profile {
     return Profile(
       userId: json['userId'] as int,
       name: json['name'] as String,
+      age: (json['age'] as int?) ?? defaultAge,
       profileImageUrl:
           (json['profileImageUrl'] as String?) ?? defaultProfileImageUrl,
       location: json['location'] as String,
