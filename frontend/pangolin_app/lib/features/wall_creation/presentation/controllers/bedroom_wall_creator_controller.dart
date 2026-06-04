@@ -122,7 +122,8 @@ class BedroomWallCreatorController {
     final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
-    _items[index] = _items[index].withTransform(transform);
+    final updated = _items.removeAt(index).withTransform(transform);
+    _items.add(updated);
   }
 
   void updateText(int id, String text) {
