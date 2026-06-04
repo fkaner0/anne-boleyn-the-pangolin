@@ -112,6 +112,7 @@ object api {
     .out(jsonBody[UploadResponse])
 
   private val newUserEndpoint = endpoint.post
+    .in("user")
     .out(jsonBody[NewUserResponse])
 
   private val reccomendationsEndpoint = endpoint.get
@@ -214,7 +215,7 @@ object api {
   extension (sticker: ProfileSticker) {
     private def fromApi(userId: Int) = repo.ProfileStickerCreator(
       userId = userId,
-      stickerName = sticker.name,
+      name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
       rotation = sticker.position.rotation,
@@ -259,7 +260,7 @@ object api {
 
   extension (sticker: repo.ProfileSticker) {
     private def toApi = ProfileSticker(
-      name = sticker.stickerName,
+      name = sticker.name,
       position = sticker.position,
     )
   }
@@ -275,6 +276,7 @@ object api {
   }
 
   val router = Router(
+    "/" -> api.newUserRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,

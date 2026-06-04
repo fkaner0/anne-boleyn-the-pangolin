@@ -83,7 +83,7 @@ object repo {
 
   case class ProfileStickerCreator(
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
       rotation: Double,
@@ -95,7 +95,7 @@ object repo {
   case class ProfileSticker(
       @Id id: Int,
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
       rotation: Double,
@@ -140,8 +140,7 @@ object repo {
   }
 
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextboxRepo =
-    Repo[ProfileTextboxCreator, ProfileTextbox, Int]
+  private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
