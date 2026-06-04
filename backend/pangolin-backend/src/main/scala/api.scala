@@ -141,7 +141,7 @@ object api {
       userId = user.id,
       name = user.name,
       location = user.location,
-      bio = "",
+      bio = user.bio,
       profileImageUrl = user.profileImageUrl,
       rejected = false,
     )
@@ -155,7 +155,7 @@ object api {
           FullProfile(
             name = user.name,
             location = user.location,
-            bio = "placeholderbio", /// TODO: add to DB
+            bio = user.bio,
             profileImageUrl = user.profileImageUrl,
             wallImages = images.map(_.toApi),
             wallTextboxes = textboxes.map(_.toApi),
@@ -254,6 +254,7 @@ object api {
       id = userId,
       name = profile.name,
       location = profile.location,
+      bio = profile.bio,
       profileImageUrl = profile.profileImageUrl,
     )
   }

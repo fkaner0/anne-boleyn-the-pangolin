@@ -118,6 +118,7 @@ object repo {
       @Id id: Int,
       name: String,
       location: String,
+      bio: String,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -184,7 +185,7 @@ object repo {
     = table.deleteAllById(table.findAll(spec).map(getId))
     
   private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
-  = table.insertAll(elems)
+    = table.insertAll(elems)
 
   private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
   private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
