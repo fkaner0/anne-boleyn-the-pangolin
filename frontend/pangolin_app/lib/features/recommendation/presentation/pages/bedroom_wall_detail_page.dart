@@ -52,7 +52,6 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
           children: [
             ProfileHeaderBar(
               name: widget.profile.name,
-              age: widget.profile.age,
               location: widget.profile.location,
               onBackPressed: () => Navigator.of(context).pop(),
             ),
