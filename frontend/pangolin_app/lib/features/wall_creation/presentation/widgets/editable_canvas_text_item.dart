@@ -38,7 +38,7 @@ class EditableCanvasTextItem extends StatefulWidget {
 }
 
 class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
-  static const double _hitSlop = 10.0;
+  static const double _hitSlop = 24.0;
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.text,

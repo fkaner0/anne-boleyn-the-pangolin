@@ -29,7 +29,7 @@ class InteractiveCanvasItem extends StatefulWidget {
 }
 
 class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
-  static const double _hitSlop = 10.0;
+  static const double _hitSlop = 24.0;
 
   late CanvasTransform _transform = widget.initialTransform;
 
