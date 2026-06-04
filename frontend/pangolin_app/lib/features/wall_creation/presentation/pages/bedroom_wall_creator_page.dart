@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -166,10 +167,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               left: 0,
               right: 0,
               bottom: 16,
-              child: CreatorToolBar(
-                onAddTextBox: _addTextBox,
-                onAddImage: _addImage,
-                onAddSticker: _addSticker,
+              child: Column(
+                children: [
+                  PromptGenerator(),
+                  CreatorToolBar(
+                    onAddTextBox: _addTextBox,
+                    onAddImage: _addImage,
+                    onAddSticker: _addSticker,
+                  ),
+                ],
               ),
             ),
           ],
