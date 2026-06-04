@@ -1,42 +1,79 @@
 import 'package:flutter/material.dart';
 import '../../domain/profile_text.dart';
-import 'bedroom_wall_interactive_item.dart';
+import 'message_send_badge.dart';
 
-class BedroomWallTextBoxItem extends BedroomWallInteractiveBase {
+class BedroomWallTextBoxItem extends StatelessWidget {
+  static const double _baseFontSize = 16;
+  static const double _minWidth = 96;
+  static const double _maxWidth = 240;
+
   final ProfileText textbox;
+  final double renderScale;
+  final VoidCallback onTap;
 
   const BedroomWallTextBoxItem({
     super.key,
     required this.textbox,
-    required super.onTap,
-  }) : super(width: 220);
+    required this.renderScale,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
-      left: textbox.position.x.toDouble(),
-      top: textbox.position.y.toDouble(),
-      child: Transform.rotate(
-        angle: textbox.position.rotation,
-        child: super.build(context),
-      ),
-    );
-  }
+    final colorScheme = Theme.of(context).colorScheme;
+    final position = textbox.position;
+    final scale = position.scale;
 
-  @override
-  Widget buildInner(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            textbox.title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    final text = [
+      textbox.title,
+      textbox.body,
+    ].where((part) => part.isNotEmpty).join('\n');
+
+    return Positioned(
+      left: position.x * renderScale,
+      top: position.y * renderScale,
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, -0.5),
+        child: Transform.rotate(
+          angle: position.rotation,
+          child: GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Stack(
+              children: [
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: _minWidth * renderScale * scale,
+                    maxWidth: _maxWidth * renderScale * scale,
+                  ),
+                  child: IntrinsicWidth(
+                    child: Container(
+                      padding: EdgeInsets.all(8 * scale),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surface,
+                        border: Border.all(color: colorScheme.outline),
+                        borderRadius: BorderRadius.circular(8 * scale),
+                      ),
+                      child: Text(
+                        text,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: _baseFontSize * renderScale * scale,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const Positioned(
+                  right: 8,
+                  bottom: 8,
+                  child: MessageSendBadge(),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(textbox.body, style: const TextStyle(fontSize: 14)),
-        ],
+        ),
       ),
     );
   }
