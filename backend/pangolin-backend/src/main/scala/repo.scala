@@ -82,7 +82,7 @@ object repo {
 
   case class ProfileStickerCreator(
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
       rotation: Double,
@@ -94,7 +94,7 @@ object repo {
   case class ProfileSticker(
       @Id id: Int,
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
       rotation: Double,
