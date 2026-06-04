@@ -3,15 +3,18 @@ import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
+import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_rejection_decider.dart';
+import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 
 import 'package:pangolin_app/features/recommendation/data/render_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_rejection_decider.dart';
+import 'package:pangolin_app/features/wall_creation/data/render_wall_image_uploader.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -37,6 +40,9 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ProfileRejectionDecider>(
         () => MockProfileRejectionDecider(),
       );
+      getIt.registerLazySingleton<WallImageUploader>(
+        () => MockWallImageUploader(),
+      );
       break;
     case BackendMode.local:
       // Default to render for now; local implementations can be added later
@@ -50,6 +56,9 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ProfileRejectionDecider>(
         () => RenderProfileRejectionDecider(host: hostLocal),
       );
+      getIt.registerLazySingleton<WallImageUploader>(
+        () => RenderWallImageUploader(host: hostLocal),
+      );
       break;
     case BackendMode.render:
       final host = Env.apiHost;
@@ -61,6 +70,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileRejectionDecider>(
         () => RenderProfileRejectionDecider(host: host),
+      );
+      getIt.registerLazySingleton<WallImageUploader>(
+        () => RenderWallImageUploader(host: host),
       );
       break;
   }

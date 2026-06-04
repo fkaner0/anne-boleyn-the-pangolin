@@ -3,6 +3,7 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import '../../data/gallery_image_file_picker.dart';
+import '../../data/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
@@ -27,6 +28,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       widget.controller ??
       BedroomWallCreatorController(
         imagePicker: GalleryImageFilePicker(),
+        wallImageUploader: getIt<WallImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
       );
 

@@ -6,7 +6,10 @@ import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'dart:typed_data';
+
 import '../../data/image_file_picker.dart';
+import '../../data/wall_image_uploader.dart';
 import '../../domain/canvas_item.dart';
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
@@ -15,6 +18,7 @@ import '../../domain/virtual_canvas.dart';
 class BedroomWallCreatorController {
   final VirtualCanvas canvas;
   final ImageFilePicker imagePicker;
+  final WallImageUploader wallImageUploader;
   final StickerCatalog stickerCatalog;
   final List<CanvasItem> _items = [];
   final List<CanvasPrompt> _prompts;
@@ -22,6 +26,7 @@ class BedroomWallCreatorController {
 
   BedroomWallCreatorController({
     required this.imagePicker,
+    required this.wallImageUploader,
     required this.stickerCatalog,
     VirtualCanvas? canvas,
   }) : canvas = canvas ?? const VirtualCanvas(),
@@ -51,6 +56,7 @@ class BedroomWallCreatorController {
         transform: _centeredTransform(),
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
+        url: await _uploadImage(picked.bytes),
       ),
     );
   }
@@ -87,9 +93,18 @@ class BedroomWallCreatorController {
         transform: prompt.transform,
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
+        url: await _uploadImage(picked.bytes),
       ),
     );
     _prompts.removeAt(index);
+  }
+
+  Future<String?> _uploadImage(Uint8List bytes) async {
+    try {
+      return await wallImageUploader.uploadImage(bytes);
+    } catch (_) {
+      return null;
+    }
   }
 
   void addTextBoxFromPrompt(int promptId) {
@@ -126,7 +141,7 @@ class BedroomWallCreatorController {
         case CanvasImageItem():
           builder.addImage(
             ProfileImage(
-              url: '',
+              url: item.url ?? '',
               position: _positionFor(item.transform, item.aspectRatio),
             ),
           );

@@ -7,6 +7,7 @@ import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
@@ -42,6 +43,7 @@ void main() {
   BedroomWallCreatorController controllerWith(PickedImage? picked) {
     return BedroomWallCreatorController(
       imagePicker: _FakeImageFilePicker(picked),
+      wallImageUploader: MockWallImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
     );
   }
@@ -59,6 +61,7 @@ void main() {
   test('exportInto maps canvas items onto the profile builder', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
+      wallImageUploader: MockWallImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -83,6 +86,7 @@ void main() {
   test('addSticker adds known stickers and ignores unknown names', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
+      wallImageUploader: MockWallImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -93,6 +97,29 @@ void main() {
 
     expect(controller.stickerItems, hasLength(1));
     expect(controller.stickerItems.single.stickerName, 'pangolin');
+  });
+
+  test('addImage uploads the image and stores the returned url', () async {
+    final controller = BedroomWallCreatorController(
+      imagePicker: _FakeImageFilePicker(
+        PickedImage(bytes: _onePixelPng, aspectRatio: 1),
+      ),
+      wallImageUploader: MockWallImageUploader(),
+      stickerCatalog: getIt<StickerCatalog>(),
+    );
+
+    await controller.addImage();
+
+    final url = controller.imageItems.single.url;
+    expect(url, isNotNull);
+
+    final builder = ProfileBuilder()
+      ..setUserId(1)
+      ..setName('Alice')
+      ..setLocation('London');
+    controller.exportInto(builder);
+
+    expect(builder.build().images.single.url, url);
   });
 
   testWidgets('shows the top bar with Back and Save', (tester) async {
