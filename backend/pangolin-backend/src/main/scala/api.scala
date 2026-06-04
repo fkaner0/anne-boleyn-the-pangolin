@@ -179,8 +179,7 @@ object api {
   private val uploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     uploadWallImageEndpoint.serverLogic { request =>
       IO.blocking {
-        val inputStream = new java.io.ByteArrayInputStream(request.image.body)
-        imageservice.uploadBedroomWallImage(inputStream)
+        imageservice.uploadBedroomWallImage(request.image.body)
       }.attempt.map {
         case Right(Some(imageUploaderAPI.ImageURL(url))) => Right(UploadResponse(url))
         case Right(None) => Left("Error in image upload")
