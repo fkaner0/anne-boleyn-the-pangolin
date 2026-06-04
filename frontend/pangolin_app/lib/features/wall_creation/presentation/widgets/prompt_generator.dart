@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 
@@ -19,9 +20,17 @@ class _PromptGeneratorState extends State<PromptGenerator> {
     "I spend the rest of my time doing ...",
   ];
 
+  static const Duration _autoCollapse = Duration(seconds: 7);
+  static const Duration _slideDuration = Duration(milliseconds: 420);
+  static const Offset _hiddenOffset = Offset(1.3, 0);
+
   final TextEditingController _textEditingController = TextEditingController();
   final Random _random = Random();
   String _prompt = _prompts[0];
+
+  bool _hasUsedHint = false;
+  bool _expanded = true;
+  Timer? _autoCollapseTimer;
 
   void _refreshPrompt() {
     setState(() {
@@ -34,10 +43,40 @@ class _PromptGeneratorState extends State<PromptGenerator> {
     });
   }
 
+  void _restartAutoCollapse() {
+    _autoCollapseTimer?.cancel();
+    if (!_hasUsedHint || !_expanded) return;
+    _autoCollapseTimer = Timer(_autoCollapse, _collapse);
+  }
+
+  void _collapse() {
+    _autoCollapseTimer?.cancel();
+    if (!_expanded) return;
+    setState(() => _expanded = false);
+  }
+
+  void _expand() {
+    if (_expanded) return;
+    setState(() => _expanded = true);
+    _refreshPrompt();
+    _restartAutoCollapse();
+  }
+
+  void _onLightbulbPressed() {
+    if (_expanded) {
+      _refreshPrompt();
+      _restartAutoCollapse();
+    } else {
+      _expand();
+    }
+  }
+
   void _submit(String text) {
     if (text.trim().isEmpty) return;
     widget.onCreate(text);
     _refreshPrompt();
+    _hasUsedHint = true;
+    _collapse();
   }
 
   @override
@@ -46,24 +85,41 @@ class _PromptGeneratorState extends State<PromptGenerator> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-      child: TextField(
-        controller: _textEditingController,
-        onSubmitted: _submit,
-        decoration: InputDecoration(
-          hintText: _prompt,
-          fillColor: colorScheme.secondaryContainer,
-          filled: true,
-          suffixIcon: IconButton(
-            onPressed: _refreshPrompt,
-            icon: const Icon(Icons.refresh),
+      child: Row(
+        children: [
+          Expanded(
+            child: ClipRect(
+              child: AnimatedSlide(
+                offset: _expanded ? Offset.zero : _hiddenOffset,
+                duration: _slideDuration,
+                curve: Curves.easeOutBack,
+                child: TextField(
+                  controller: _textEditingController,
+                  onSubmitted: _submit,
+                  onChanged: (_) => _restartAutoCollapse(),
+                  decoration: InputDecoration(
+                    hintText: _prompt,
+                    fillColor: colorScheme.secondaryContainer,
+                    filled: true,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
+            onPressed: _onLightbulbPressed,
+            tooltip: _expanded ? 'New prompt' : 'Show hint',
+            icon: Icon(_expanded ? Icons.refresh : Icons.lightbulb_outline),
+          ),
+        ],
       ),
     );
   }
 
   @override
   void dispose() {
+    _autoCollapseTimer?.cancel();
     _textEditingController.dispose();
     super.dispose();
   }
