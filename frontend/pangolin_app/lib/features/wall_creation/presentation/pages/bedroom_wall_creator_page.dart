@@ -156,7 +156,9 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                 stickerCatalog: _controller.stickerCatalog,
                 items: _controller.items,
                 prompts: _controller.prompts,
-                onItemTransform: _controller.updateTransform,
+                onItemTransform: (id, transform) {
+                  setState(() => _controller.updateTransform(id, transform));
+                },
                 onTextChanged: _controller.updateText,
                 onPromptAddImage: _addImageFromPrompt,
                 onPromptAddTextBox: _addTextBoxFromPrompt,
