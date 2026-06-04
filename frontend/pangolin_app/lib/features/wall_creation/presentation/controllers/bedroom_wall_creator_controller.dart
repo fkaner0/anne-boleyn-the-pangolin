@@ -168,7 +168,7 @@ class BedroomWallCreatorController {
     return Position(
       x: transform.center.dx.round(),
       y: transform.center.dy.round(),
-      rotation: transform.rotation.round(),
+      rotation: transform.rotation,
       aspectRatio: aspectRatio,
       scale: transform.scale,
     );

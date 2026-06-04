@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_image.dart';
@@ -24,7 +23,7 @@ class BedroomWallStickerItem extends StatelessWidget {
       left: position.x.toDouble(),
       top: position.y.toDouble(),
       child: Transform.rotate(
-        angle: position.rotation * math.pi / 180,
+        angle: position.rotation,
         child: SizedBox(
           width: _baseSize * position.scale * position.aspectRatio,
           height: _baseSize * position.scale,
