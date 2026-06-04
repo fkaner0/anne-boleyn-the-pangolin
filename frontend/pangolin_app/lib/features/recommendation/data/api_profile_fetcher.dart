@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
+import '/utils/connection_utils.dart';
 
 class ApiProfileFetcher implements ProfileFetcher {
   final String host;
@@ -18,7 +19,7 @@ class ApiProfileFetcher implements ProfileFetcher {
     } else {
       baseUrl = '$host:$port';
     }
-    final uri = Uri.https(baseUrl, '/profile/view/$userId');
+    final uri = newUri(baseUrl, '/profile/view/$userId');
 
     final response = await http.get(uri);
 

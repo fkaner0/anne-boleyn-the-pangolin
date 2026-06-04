@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../domain/recommendation.dart';
 import 'recommendation_fetcher.dart';
+import '/utils/connection_utils.dart';
 
 class ApiRecommendationFetcher implements RecommendationFetcher {
   final String host;
@@ -19,7 +20,7 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
     } else {
       baseUrl = '$host:$port';
     }
-    final uri = Uri.https(baseUrl, '/recommendations');
+    final uri = newUri(baseUrl, '/recommendations');
 
     final response = await http.get(uri);
 

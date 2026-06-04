@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import '../domain/profile.dart';
 import 'profile_updater.dart';
+import '/utils/connection_utils.dart';
 
 class ApiProfileUpdater implements ProfileUpdater {
   final String host;
@@ -19,9 +20,7 @@ class ApiProfileUpdater implements ProfileUpdater {
   @override
   Future<void> updateProfile(Profile profile) async {
     final authority = port == null ? host : '$host:$port';
-    final uri = useHttps
-        ? Uri.https(authority, '/profile/edit/${profile.userId}')
-        : Uri.http(authority, '/profile/edit/${profile.userId}');
+    final uri = newUri(authority, '/profile/edit/${profile.userId}', useHttps);
 
     final response = await http.put(
       uri,

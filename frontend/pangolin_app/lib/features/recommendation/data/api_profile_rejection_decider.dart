@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
+import '/utils/connection_utils.dart';
 
 class ApiProfileRejectionDecider implements ProfileRejectionDecider {
   final String host;
@@ -26,9 +27,7 @@ class ApiProfileRejectionDecider implements ProfileRejectionDecider {
 
     final body = rejected.toString();
 
-    final uri = useHttps
-        ? Uri.https(authority, '/profile/$userId')
-        : Uri.http(authority, '/profile/$userId');
+    final uri = newUri(authority, '/profile/$userId', useHttps);
 
     final response = await http.put(uri, body: body);
 
