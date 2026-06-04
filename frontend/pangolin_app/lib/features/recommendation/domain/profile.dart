@@ -44,9 +44,9 @@ class Profile {
     'wallStickers': stickers.map((s) => s.toJson()).toList(),
   };
 
-  factory Profile.fromJson(Map<String, dynamic> json) {
+  factory Profile.fromJson(Map<String, dynamic> json, {int? userId}) {
     return Profile(
-      userId: json['userId'] as int,
+      userId: userId ?? (json['userId'] as int?) ?? 0,
       name: json['name'] as String,
       age: (json['age'] as int?) ?? defaultAge,
       profileImageUrl:

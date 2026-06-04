@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class ProfileHeaderBar extends StatelessWidget {
   final String name;
+  final int? age;
   final String location;
   final VoidCallback onBackPressed;
 
   const ProfileHeaderBar({
     super.key,
     required this.name,
+    this.age,
     required this.location,
     required this.onBackPressed,
   });
@@ -20,7 +22,7 @@ class ProfileHeaderBar extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              name,
+              age == null ? name : '$name, $age',
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               textAlign: TextAlign.left,
             ),

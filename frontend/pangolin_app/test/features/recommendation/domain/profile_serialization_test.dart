@@ -97,6 +97,19 @@ void main() {
       expect(profile.wallBackgroundHexARGB, 0xFFFFFFFF);
     });
 
+    test('parses a view response that omits userId and injects it', () {
+      final profile = Profile.fromJson({
+        'name': 'Anne',
+        'location': 'London',
+        'wallImages': [],
+        'wallTextboxes': [],
+        'wallStickers': [],
+      }, userId: 42);
+
+      expect(profile.userId, 42);
+      expect(profile.name, 'Anne');
+    });
+
     test('ProfileText defaults the styling fields when absent', () {
       final text = ProfileText.fromJson({
         'title': 't',

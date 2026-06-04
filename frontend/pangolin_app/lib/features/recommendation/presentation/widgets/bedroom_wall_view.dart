@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/wall_creation/domain/virtual_canvas.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
@@ -24,28 +25,49 @@ class BedroomWallView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: context.paletteColors.surfaceMuted,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).colorScheme.outline),
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          for (final image in profile.images)
-            BedroomWallImageItem(image: image, onTap: () => onImageTap(image)),
-          for (final textbox in profile.textboxes)
-            BedroomWallTextBoxItem(
-              textbox: textbox,
-              onTap: () => onTextTap(textbox),
-            ),
-          for (final sticker in profile.stickers)
-            BedroomWallStickerItem(sticker: sticker, catalog: stickerCatalog),
-        ],
-      ),
+    const canvasWidth = VirtualCanvas.defaultWidth;
+    const canvasHeight = VirtualCanvas.defaultHeight;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final renderScale = constraints.maxHeight.isFinite
+            ? (constraints.maxWidth / canvasWidth).clamp(
+                0.0,
+                constraints.maxHeight / canvasHeight,
+              )
+            : constraints.maxWidth / canvasWidth;
+
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: canvasHeight * renderScale,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: ColoredBox(color: context.paletteColors.surfaceMuted),
+              ),
+              for (final image in profile.images)
+                BedroomWallImageItem(
+                  image: image,
+                  renderScale: renderScale,
+                  onTap: () => onImageTap(image),
+                ),
+              for (final textbox in profile.textboxes)
+                BedroomWallTextBoxItem(
+                  textbox: textbox,
+                  renderScale: renderScale,
+                  onTap: () => onTextTap(textbox),
+                ),
+              for (final sticker in profile.stickers)
+                BedroomWallStickerItem(
+                  sticker: sticker,
+                  catalog: stickerCatalog,
+                  renderScale: renderScale,
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
