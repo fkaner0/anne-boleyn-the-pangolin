@@ -2,7 +2,6 @@ import 'package:get_it/get_it.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/compressing_wall_image_uploader.dart';
@@ -12,14 +11,12 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/data/mock_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/mock_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 
 import 'package:pangolin_app/features/recommendation/data/render_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/data/render_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/render_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/render_wall_image_uploader.dart';
@@ -45,9 +42,6 @@ void configureDependencies(BackendMode backend) {
         () => MockRecommendationFetcher(),
       );
       getIt.registerLazySingleton<ProfileFetcher>(() => MockProfileFetcher());
-      getIt.registerLazySingleton<ProfileRejectionDecider>(
-        () => MockProfileRejectionDecider(),
-      );
       getIt.registerLazySingleton<WallImageUploader>(
         () => MockWallImageUploader(),
       );
@@ -66,13 +60,6 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileFetcher>(
         () => RenderProfileFetcher(
-          host: hostLocal,
-          port: portLocal,
-          useHttps: false,
-        ),
-      );
-      getIt.registerLazySingleton<ProfileRejectionDecider>(
-        () => RenderProfileRejectionDecider(
           host: hostLocal,
           port: portLocal,
           useHttps: false,
@@ -110,9 +97,6 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileFetcher>(
         () => RenderProfileFetcher(host: host),
-      );
-      getIt.registerLazySingleton<ProfileRejectionDecider>(
-        () => RenderProfileRejectionDecider(host: host),
       );
       getIt.registerLazySingleton<WallImageUploader>(
         () => CompressingWallImageUploader(

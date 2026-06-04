@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
@@ -115,7 +114,6 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       MaterialPageRoute(
         builder: (context) => RecommendationListPage(
           recommendationFetcher: getIt<RecommendationFetcher>(),
-          profileRejectionDecider: getIt<ProfileRejectionDecider>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),
       ),

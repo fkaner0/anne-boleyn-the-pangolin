@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
@@ -9,13 +8,11 @@ import '../widgets/recommendation_list_item.dart';
 
 class RecommendationListPage extends StatefulWidget {
   final RecommendationFetcher recommendationFetcher;
-  final ProfileRejectionDecider profileRejectionDecider;
   final ProfileFetcher? profileFetcher;
 
   const RecommendationListPage({
     super.key,
     required this.recommendationFetcher,
-    required this.profileRejectionDecider,
     this.profileFetcher,
   });
 
@@ -52,30 +49,6 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
     }
   }
 
-  Future<void> _handleDecision({
-    required Recommendation recommendation,
-    required bool rejected,
-  }) async {
-    try {
-      await widget.profileRejectionDecider.putProfileRejection(
-        userId: recommendation.userId,
-        rejected: rejected,
-      );
-
-      setState(() {
-        _recommendations.removeWhere(
-          (item) => item.userId == recommendation.userId,
-        );
-      });
-    } catch (e) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile decision: $e')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,18 +82,6 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
 
               return RecommendationListItem(
                 recommendation: recommendation,
-                onAccept: () {
-                  _handleDecision(
-                    recommendation: recommendation,
-                    rejected: true,
-                  );
-                },
-                onReject: () {
-                  _handleDecision(
-                    recommendation: recommendation,
-                    rejected: true,
-                  );
-                },
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
