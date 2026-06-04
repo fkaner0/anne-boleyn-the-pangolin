@@ -2,21 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
 import 'package:pangolin_app/features/wall_creation/data/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 class AboutMePage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
   final ImageFilePicker? imagePicker;
   final WallImageUploader? wallImageUploader;
+  final BedroomWallCreatorController? wallController;
 
   const AboutMePage({
     super.key,
     required this.profileBuilder,
     this.imagePicker,
     this.wallImageUploader,
+    this.wallController,
   });
 
   @override
@@ -28,6 +33,14 @@ class _AboutMePageState extends State<AboutMePage> {
       widget.imagePicker ?? GalleryImageFilePicker();
   late final WallImageUploader _wallImageUploader =
       widget.wallImageUploader ?? getIt<WallImageUploader>();
+
+  late final BedroomWallCreatorController _wallController =
+      widget.wallController ??
+      BedroomWallCreatorController(
+        imagePicker: _imagePicker,
+        wallImageUploader: _wallImageUploader,
+        stickerCatalog: getIt<StickerCatalog>(),
+      );
 
   ProfileBuilder get _builder => widget.profileBuilder;
 
@@ -76,7 +89,10 @@ class _AboutMePageState extends State<AboutMePage> {
   void _next() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => BedroomWallCreatorPage(profileBuilder: _builder),
+        builder: (context) => BedroomWallCreatorPage(
+          profileBuilder: _builder,
+          controller: _wallController,
+        ),
       ),
     );
   }
@@ -105,6 +121,27 @@ class _AboutMePageState extends State<AboutMePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _FieldLabel('Preview'),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: InfoBox(
+                  name: _name,
+                  age: _age,
+                  location: _location,
+                  bio: _bio,
+                  image: _mainImageBytes != null
+                      ? MemoryImage(_mainImageBytes!)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 24),
               _FieldLabel('Name'),
               _TextField(
                 hintText: 'Your name',
@@ -136,6 +173,15 @@ class _AboutMePageState extends State<AboutMePage> {
               ),
               const SizedBox(height: 24),
               _FieldLabel('Main image'),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(
+                  'Put something related to your art!',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
               _MainImagePicker(
                 bytes: _mainImageBytes,
                 uploading: _uploadingImage,
@@ -144,9 +190,10 @@ class _AboutMePageState extends State<AboutMePage> {
               const SizedBox(height: 24),
               _FieldLabel('Short Bio'),
               _TextField(
-                hintText: 'A little about you',
+                hintText: 'Summarise your vibe!',
                 minLines: 3,
                 maxLines: 5,
+                maxLength: 100,
                 onChanged: (value) {
                   _builder.setBio(value);
                   setState(() => _bio = value);
@@ -188,6 +235,7 @@ class _TextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final int minLines;
   final int maxLines;
+  final int? maxLength;
 
   const _TextField({
     required this.hintText,
@@ -196,6 +244,7 @@ class _TextField extends StatelessWidget {
     this.inputFormatters,
     this.minLines = 1,
     this.maxLines = 1,
+    this.maxLength,
   });
 
   @override
@@ -206,6 +255,7 @@ class _TextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       minLines: minLines,
       maxLines: maxLines,
+      maxLength: maxLength,
       decoration: InputDecoration(
         hintText: hintText,
         border: const OutlineInputBorder(),

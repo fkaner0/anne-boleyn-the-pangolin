@@ -175,7 +175,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
         actions: [
           IconButton(
