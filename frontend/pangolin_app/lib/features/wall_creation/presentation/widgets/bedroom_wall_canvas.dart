@@ -25,6 +25,9 @@ class BedroomWallCanvas extends StatelessWidget {
   final List<CanvasPrompt> prompts;
   final void Function(int id, CanvasTransform transform) onItemTransform;
   final void Function(int id, String text) onTextChanged;
+  final void Function(int id, String? font) onFontChanged;
+  final void Function(int id, Color? color) onTextColorChanged;
+  final void Function(int id, Color? color) onTextBackgroundColorChanged;
   final Future<void> Function(int promptId) onPromptAddImage;
   final void Function(int promptId) onPromptAddTextBox;
 
@@ -36,6 +39,9 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.prompts,
     required this.onItemTransform,
     required this.onTextChanged,
+    required this.onFontChanged,
+    required this.onTextColorChanged,
+    required this.onTextBackgroundColorChanged,
     required this.onPromptAddImage,
     required this.onPromptAddTextBox,
   });
@@ -80,6 +86,10 @@ class BedroomWallCanvas extends StatelessWidget {
         text: item.text,
         onTransformEnd: onEnd,
         onTextChanged: (text) => onTextChanged(item.id, text),
+        onFontChanged: (font) => onFontChanged(item.id, font),
+        onTextColorChanged: (color) => onTextColorChanged(item.id, color),
+        onTextBackgroundColorChanged: (color) =>
+            onTextBackgroundColorChanged(item.id, color),
       ),
     };
   }

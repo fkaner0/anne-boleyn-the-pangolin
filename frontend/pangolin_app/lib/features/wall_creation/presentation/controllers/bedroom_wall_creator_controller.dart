@@ -1,5 +1,6 @@
 import 'dart:ui' show Offset;
 
+import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
@@ -126,14 +127,31 @@ class BedroomWallCreatorController {
     _items.add(updated);
   }
 
-  void updateText(int id, String text) {
+  void _updateTextFromId(int id, CanvasTextItem Function(CanvasTextItem) f) {
     final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
     final item = _items[index];
     if (item is CanvasTextItem) {
-      _items[index] = item.withText(text);
+      _items[index] = f(item);
     }
+  }
+
+  void updateText(int id, String text) {
+    _updateTextFromId(id, (item) => item.withText(text));
+  }
+
+  // TODO: FONT TYPE?
+  void updateTextFont(int id, String? font) {
+    _updateTextFromId(id, (item) => item.withFont(font));
+  }
+
+  void updateTextboxTextColour(int id, Color? color) {
+    _updateTextFromId(id, (item) => item.withTextColor(color));
+  }
+
+  void updateTextboxBackgroundColour(int id, Color? color) {
+    _updateTextFromId(id, (item) => item.withBackgroundColor(color));
   }
 
   void exportInto(ProfileBuilder builder) {

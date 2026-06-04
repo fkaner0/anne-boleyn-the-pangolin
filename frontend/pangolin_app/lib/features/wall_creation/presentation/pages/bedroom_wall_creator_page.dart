@@ -158,6 +158,12 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   setState(() => _controller.updateTransform(id, transform));
                 },
                 onTextChanged: _controller.updateText,
+                onFontChanged: _controller.updateTextFont,
+                onTextColorChanged: _controller.updateTextboxTextColour,
+                onTextBackgroundColorChanged:
+                    _controller.updateTextboxBackgroundColour,
+
+                /// TODO?
                 onPromptAddImage: _addImageFromPrompt,
                 onPromptAddTextBox: _addTextBoxFromPrompt,
               ),
