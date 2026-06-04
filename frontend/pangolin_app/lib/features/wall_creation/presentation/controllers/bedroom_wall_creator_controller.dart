@@ -126,6 +126,10 @@ class BedroomWallCreatorController {
     _prompts.removeAt(index);
   }
 
+  void removeItem(int id) {
+    _items.removeWhere((item) => item.id == id);
+  }
+
   void updateTransform(int id, CanvasTransform transform) {
     final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;

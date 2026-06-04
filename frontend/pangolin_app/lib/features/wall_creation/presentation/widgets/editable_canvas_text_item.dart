@@ -12,6 +12,8 @@ class EditableCanvasTextItem extends StatefulWidget {
   final String placeholder;
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
+  final void Function(bool active)? onInteractionChanged;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
   final double maxScale;
 
@@ -24,6 +26,8 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.text,
     required this.onTransformEnd,
     required this.onTextChanged,
+    this.onInteractionChanged,
+    this.onDragUpdate,
     this.placeholder = 'Your text',
     this.minScale = 0.3,
     this.maxScale = 5.0,
@@ -34,7 +38,7 @@ class EditableCanvasTextItem extends StatefulWidget {
 }
 
 class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
-  static const double _hitSlop = 6.0;
+  static const double _hitSlop = 24.0;
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.text,
@@ -104,9 +108,11 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
     _startTransform = _transform;
+    widget.onInteractionChanged?.call(true);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    widget.onDragUpdate?.call(details.focalPoint);
     setState(() {
       _transform = _startTransform.copyWith(
         center:
@@ -123,6 +129,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
     widget.onTransformEnd(_transform);
+    widget.onInteractionChanged?.call(false);
   }
 
   OverlayEntry _buildOverlayEntry() {
