@@ -23,6 +23,18 @@ class ProfileBuilder {
     _stickers.addAll(profile.stickers);
   }
 
+  // Creates an independent copy of this builder.
+  ProfileBuilder copy() {
+    final clone = ProfileBuilder()
+      .._userId = _userId
+      .._name = _name
+      .._location = _location;
+    clone._images.addAll(_images);
+    clone._textboxes.addAll(_textboxes);
+    clone._stickers.addAll(_stickers);
+    return clone;
+  }
+
   ProfileBuilder setUserId(int userId) {
     _userId = userId;
     return this;
