@@ -5,8 +5,10 @@ import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 class Profile {
   final int userId;
   final String name;
+  final String profileImageUrl;
   final String location;
   final String bio;
+  final int wallBackgroundHexARGB;
   final List<ProfileImage> images;
   final List<ProfileText> textboxes;
   final List<ProfileSticker> stickers;
@@ -15,27 +17,34 @@ class Profile {
     required this.userId,
     required this.name,
     required this.location,
+    this.profileImageUrl = '',
     this.bio = "no bio provided", // TODO: make required
+    this.wallBackgroundHexARGB = 0xFFFFFFFF,
     required this.images,
     required this.textboxes,
     this.stickers = const [],
   });
 
   Map<String, dynamic> toJson() => {
-    'userId': userId,
     'name': name,
+    'profileImageUrl': profileImageUrl,
+    'bio': bio,
     'location': location,
-    'images': images.map((i) => i.toJson()).toList(),
-    'textBoxes': textboxes.map((t) => t.toJson()).toList(),
-    'stickers': stickers.map((s) => s.toJson()).toList(),
+    'wallBackgroundHexARGB': wallBackgroundHexARGB,
+    'wallImages': images.map((i) => i.toJson()).toList(),
+    'wallTextboxes': textboxes.map((t) => t.toJson()).toList(),
+    'wallStickers': stickers.map((s) => s.toJson()).toList(),
   };
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     return Profile(
       userId: json['userId'] as int,
       name: json['name'] as String,
+      profileImageUrl: (json['profileImageUrl'] as String?) ?? '',
       location: json['location'] as String,
-      bio: json['bio'] as String,
+      bio: (json['bio'] as String?) ?? 'no bio provided',
+      wallBackgroundHexARGB:
+          (json['wallBackgroundHexARGB'] as int?) ?? 0xFFFFFFFF,
       images: (json['wallImages'] as List<dynamic>)
           .map((item) => ProfileImage.fromJson(item as Map<String, dynamic>))
           .toList(),
