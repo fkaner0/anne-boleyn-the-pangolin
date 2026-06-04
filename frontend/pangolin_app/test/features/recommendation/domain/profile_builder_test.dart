@@ -43,6 +43,29 @@ void main() {
       expect(profile.textboxes, isEmpty);
     });
 
+    test('defaults bio, profile image, and wall background when unset', () {
+      final profile = validBuilder().build();
+
+      expect(profile.bio, Profile.defaultBio);
+      expect(profile.profileImageUrl, Profile.defaultProfileImageUrl);
+      expect(
+        profile.wallBackgroundHexARGB,
+        Profile.defaultWallBackgroundHexARGB,
+      );
+    });
+
+    test('sets bio, profile image, and wall background', () {
+      final profile = validBuilder()
+          .setBio('painter')
+          .setProfileImageUrl('https://example.com/me.jpg')
+          .setWallBackgroundHexARGB(0xFF112233)
+          .build();
+
+      expect(profile.bio, 'painter');
+      expect(profile.profileImageUrl, 'https://example.com/me.jpg');
+      expect(profile.wallBackgroundHexARGB, 0xFF112233);
+    });
+
     test('adds stickers and includes them in the built profile', () {
       final profile = validBuilder().addSticker(sticker).build();
 
@@ -101,6 +124,9 @@ void main() {
         userId: 7,
         name: 'Bob',
         location: 'Paris',
+        bio: 'sculptor',
+        profileImageUrl: 'https://example.com/bob.jpg',
+        wallBackgroundHexARGB: 0xFF445566,
         images: const [image],
         textboxes: const [textbox],
       );
@@ -110,6 +136,9 @@ void main() {
       expect(rebuilt.userId, 7);
       expect(rebuilt.name, 'Bobby');
       expect(rebuilt.location, 'Paris');
+      expect(rebuilt.bio, 'sculptor');
+      expect(rebuilt.profileImageUrl, 'https://example.com/bob.jpg');
+      expect(rebuilt.wallBackgroundHexARGB, 0xFF445566);
       expect(rebuilt.images, [image]);
       expect(rebuilt.textboxes, [textbox]);
     });

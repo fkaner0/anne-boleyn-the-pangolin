@@ -15,6 +15,7 @@ import com.augustnagro.magnum.{
 }
 import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
+import com.augustnagro.magnum.DbCon
 
 object repo {
 
@@ -153,35 +154,73 @@ object repo {
   private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
     .where(sql"${ProfileSticker.Table.userId} = $userId")
 
-  val getRecommendations = IO.blocking {
-    connect(dataSource) {
-      profileRepo.findAll.asRight
+  val getRecommendations = inDatabase {
+    profileRepo.findAll.asRight
+  }
+
+  def getProfile(userId: Int) = inDatabase {
+    profileRepo
+      .findById(userId)
+      .map { profile =>
+        val images = profileImageRepo.findAll(profileImagesSpec(userId))
+        val textboxes =
+          profileTextboxRepo.findAll(profileTextboxesSpec(userId))
+        val stickers =
+          profileStickerRepo.findAll(profileStickersSpec(userId))
+        (profile, images, textboxes, stickers)
+      }
+      .toRight(())
+  }
+
+  def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
+    profileRepo.insertReturning(ProfileCreator(
+      "Placeholder Name",
+      "Placeholder Location",
+      "https://placehold.co/400x400.jpg"
+    )).id.asRight
+  }
+
+  private def removeBySpec[EC, E, I](table: Repo[EC, E, I], spec: Spec[E], getId: E => I)(using DbCon)
+    = table.deleteAllById(table.findAll(spec).map(getId))
+    
+  private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
+  = table.insertAll(elems)
+
+  private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
+  private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
+  private def removeStickers(userId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(userId), _.id)
+  private def addTextboxes(using DbCon) = addAll(profileTextboxRepo)
+  private def addImages(using DbCon) = addAll(profileImageRepo)
+  private def addStickers(using DbCon) = addAll(profileStickerRepo)
+
+  def updateFullProfile(
+        profile: Profile,
+        textboxCreators: Iterable[ProfileTextboxCreator],
+        imageCreators: Iterable[ProfileImageCreator],
+        stickerCreators: Iterable[ProfileStickerCreator],
+  ) = repo.inDatabase {
+    profileRepo.findById(profile.id) match {
+      // Only update profile if the row already exists.
+      case Some(_) => {
+        repo.profileRepo.update(profile)
+        repo.removeTextboxes(profile.id)
+        repo.addTextboxes(textboxCreators)
+        repo.removeImages(profile.id)
+        repo.addImages(imageCreators)
+        repo.removeStickers(profile.id)
+        repo.addStickers(stickerCreators)
+        Right(())
+        /// TODO: obviously this is the jankiest most disgusting code ever
+        /// but apparently it makes the frontend easier so we will leave as-is for now
+        /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
+      }
+      case None => Left(())
     }
   }
 
-  def getProfile(userId: Int) = IO.blocking {
+  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
     connect(dataSource) {
-      profileRepo
-        .findById(userId)
-        .map { profile =>
-          val images = profileImageRepo.findAll(profileImagesSpec(userId))
-          val textboxes =
-            profileTextboxRepo.findAll(profileTextboxesSpec(userId))
-          val stickers =
-            profileStickerRepo.findAll(profileStickersSpec(userId))
-          (profile, images, textboxes, stickers)
-        }
-        .toRight(())
-    }
-  }
-
-  def newProfile(): IO[Either[Nothing, Int]] = IO.blocking {
-    connect(dataSource) {
-      profileRepo.insertReturning(ProfileCreator(
-        "Placeholder Name",
-        "Placeholder Location",
-        "https://placehold.co/400x400.jpg"
-      )).id.asRight
+      f
     }
   }
 }

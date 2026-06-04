@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
+import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import '../../data/gallery_image_file_picker.dart';
 import '../../data/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
@@ -12,11 +17,13 @@ import '../widgets/sticker_picker.dart';
 class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
   final ProfileBuilder? profileBuilder;
+  final ProfileUpdater? profileUpdater;
 
   const BedroomWallCreatorPage({
     super.key,
     this.controller,
     this.profileBuilder,
+    this.profileUpdater,
   });
 
   @override
@@ -38,6 +45,11 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         ..setUserId(0)
         ..setName('Unknown')
         ..setLocation('Unknown'));
+
+  late final ProfileUpdater _profileUpdater =
+      widget.profileUpdater ?? getIt<ProfileUpdater>();
+
+  bool _saving = false;
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -68,26 +80,46 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(() => _controller.addSticker(stickerName));
   }
 
-  void _save() {
-    _controller.exportInto(_profileBuilder);
-    final profile = _profileBuilder.build();
-    debugPrint('Saved profile: ${profile.toJson()}');
+  Future<void> _save() async {
+    if (_saving) return;
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearMaterialBanners();
-    messenger.showMaterialBanner(
-      MaterialBanner(
-        content: const Text('Profile saved'),
-        leading: const Icon(Icons.check_circle_outline),
-        actions: [
-          TextButton(
-            onPressed: messenger.clearMaterialBanners,
-            child: const Text('Dismiss'),
-          ),
-        ],
+    final builder = _profileBuilder.copy();
+    _controller.exportInto(builder);
+    final profile = builder.build();
+
+    setState(() => _saving = true);
+
+    try {
+      await _profileUpdater.updateProfile(profile);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      _showMessage('Could not save your profile. Please try again.');
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _saving = false);
+    _showMessage('Profile saved');
+    _openRecommendations();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _openRecommendations() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RecommendationListPage(
+          recommendationFetcher: getIt<RecommendationFetcher>(),
+          profileRejectionDecider: getIt<ProfileRejectionDecider>(),
+          profileFetcher: getIt<ProfileFetcher>(),
+        ),
       ),
     );
-    Future.delayed(const Duration(seconds: 2), messenger.clearMaterialBanners);
   }
 
   @override
@@ -105,9 +137,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save',
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
           ),
         ],
+        bottom: _saving
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(minHeight: 4),
+              )
+            : null,
       ),
       body: SafeArea(
         child: Stack(

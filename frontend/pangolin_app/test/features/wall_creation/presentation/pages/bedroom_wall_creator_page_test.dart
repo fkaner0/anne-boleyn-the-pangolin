@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -5,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
@@ -25,6 +28,21 @@ class _FakeImageFilePicker implements ImageFilePicker {
   Future<PickedImage?> pickImage() async => result;
 }
 
+class _FakeProfileUpdater implements ProfileUpdater {
+  final bool fail;
+  final Completer<void>? gate;
+  Profile? received;
+
+  _FakeProfileUpdater({this.fail = false, this.gate});
+
+  @override
+  Future<void> updateProfile(Profile profile) async {
+    received = profile;
+    if (gate != null) await gate!.future;
+    if (fail) throw Exception('save failed');
+  }
+}
+
 void main() {
   setUp(() async {
     await getIt.reset();
@@ -34,9 +52,15 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     BedroomWallCreatorController? controller,
+    ProfileUpdater? profileUpdater,
   }) {
     return tester.pumpWidget(
-      MaterialApp(home: BedroomWallCreatorPage(controller: controller)),
+      MaterialApp(
+        home: BedroomWallCreatorPage(
+          controller: controller,
+          profileUpdater: profileUpdater,
+        ),
+      ),
     );
   }
 
@@ -196,17 +220,59 @@ void main() {
     expect(find.text('Hello wall', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('Save builds the profile and shows a confirmation banner', (
+  testWidgets('Save sends the profile and moves to the next page', (
     tester,
   ) async {
-    await pumpPage(tester, controller: controllerWith(null));
+    final updater = _FakeProfileUpdater();
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: updater,
+    );
+
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pumpAndSettle();
+
+    expect(updater.received, isNotNull);
+    expect(find.text('Profile saved'), findsOneWidget);
+    expect(find.text('Your recommendations'), findsOneWidget);
+  });
+
+  testWidgets('Save shows a loading bar while the request is in flight', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: _FakeProfileUpdater(gate: gate),
+    );
 
     await tester.tap(find.byTooltip('Save'));
     await tester.pump();
 
-    expect(find.text('Profile saved'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
 
-    await tester.pump(const Duration(seconds: 2));
+    gate.complete();
     await tester.pumpAndSettle();
+
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('Save shows an error and stays on the page when it fails', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: _FakeProfileUpdater(fail: true),
+    );
+
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Could not save'), findsOneWidget);
+    expect(find.text('Create your wall'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 }
