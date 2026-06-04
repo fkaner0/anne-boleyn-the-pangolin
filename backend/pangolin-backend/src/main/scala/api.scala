@@ -107,6 +107,7 @@ object api {
   private val profileEditEndpoint = endpoint.put
     .in("profile" / "edit" / path[Int]("userId"))
     .in(jsonBody[FullProfile])
+    .errorOut(stringBody)
     .out(emptyOutput) /// TODO: or do we want something?
 
   private val uploadWallImageEndpoint = endpoint.post
