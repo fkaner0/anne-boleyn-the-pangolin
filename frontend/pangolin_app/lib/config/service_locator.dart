@@ -5,6 +5,8 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
+import 'package:pangolin_app/features/wall_creation/data/compressing_wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/data/default_image_compressor.dart';
 import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
@@ -77,10 +79,13 @@ void configureDependencies(BackendMode backend) {
         ),
       );
       getIt.registerLazySingleton<WallImageUploader>(
-        () => RenderWallImageUploader(
-          host: hostLocal,
-          port: portLocal,
-          useHttps: false,
+        () => CompressingWallImageUploader(
+          RenderWallImageUploader(
+            host: hostLocal,
+            port: portLocal,
+            useHttps: false,
+          ),
+          const DefaultImageCompressor(),
         ),
       );
       getIt.registerLazySingleton<ProfileUpdater>(
@@ -110,7 +115,10 @@ void configureDependencies(BackendMode backend) {
         () => RenderProfileRejectionDecider(host: host),
       );
       getIt.registerLazySingleton<WallImageUploader>(
-        () => RenderWallImageUploader(host: host),
+        () => CompressingWallImageUploader(
+          RenderWallImageUploader(host: host),
+          const DefaultImageCompressor(),
+        ),
       );
       getIt.registerLazySingleton<ProfileUpdater>(
         () => RenderProfileUpdater(host: host),
