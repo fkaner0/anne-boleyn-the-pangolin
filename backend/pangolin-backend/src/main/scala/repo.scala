@@ -214,7 +214,7 @@ object repo {
         /// but apparently it makes the frontend easier so we will leave as-is for now
         /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
       }
-      case None => Left(())
+      case None => Left("Provided userId does not exist. No profile to update.")
     }
   }
 
