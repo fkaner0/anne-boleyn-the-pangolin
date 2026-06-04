@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 
 import '../../domain/canvas_transform.dart';
@@ -157,11 +158,13 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   }
 
   Future<void> _pickColor(
+    Color? defaultVal,
     String dialogText,
     void Function(Color) onColorChange,
   ) async {
     _focusNode.unfocus();
-    Color pickerColor = _textColor ?? Theme.of(context).colorScheme.onSurface;
+
+    Color pickerColor = defaultVal ?? Theme.of(context).colorScheme.onSurface;
 
     await showDialog(
       context: context,
@@ -183,7 +186,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     if (!mounted) return;
     onColorChange(pickerColor);
     _refreshOverlay();
-    _focusNode.requestFocus();
+    _startEditing();
   }
 
   OverlayEntry _buildOverlayEntry() {
@@ -225,18 +228,29 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                       children: [
                         _TextColorSwatchButton(
                           color: effectiveTextColor,
-                          onTap: () => _pickColor('Text Colour', (color) {
-                            setState(() => _textColor = color);
-                            widget.onTextColorChanged;
-                          }),
+                          onTap: () =>
+                              _pickColor(_textColor, 'Text Colour', (color) {
+                                setState(() => _textColor = color);
+                                widget.onTextColorChanged(color);
+                              }),
                         ),
                         _TextBackgroundColorSwatchButton(
                           color: effectiveBackgroundColor,
-                          onTap: () =>
-                              _pickColor('Text Background Colour', (color) {
-                                setState(() => _backgroundColor = color);
-                                widget.onTextBackgroundColorChanged;
-                              }),
+                          onTap: () => _pickColor(
+                            _backgroundColor,
+                            'Text Background Colour',
+                            (color) {
+                              setState(() => _backgroundColor = color);
+                              widget.onTextBackgroundColorChanged(color);
+                            },
+                          ),
+                        ),
+                        _TextFontCycleButton(
+                          colorScheme: colorScheme,
+
+                          /// TODO
+                          onTap: () => (),
+                          // onTap: _cycleFont,
                         ),
                       ],
                     ),
@@ -383,6 +397,23 @@ class _TextBackgroundColorSwatchButton extends StatelessWidget {
     final Color fgCol = _getContrastColorWithAlpha(color);
 
     return _buttonFromIcon(Icons.text_fields, color, fgCol, onTap);
+  }
+}
+
+class _TextFontCycleButton extends StatelessWidget {
+  final ColorScheme colorScheme;
+  final VoidCallback onTap;
+
+  const _TextFontCycleButton({required this.colorScheme, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return _buttonFromIcon(
+      Symbols.brand_family_rounded,
+      colorScheme.surface.withAlpha(20),
+      colorScheme.onSurface,
+      onTap,
+    );
   }
 }
 
