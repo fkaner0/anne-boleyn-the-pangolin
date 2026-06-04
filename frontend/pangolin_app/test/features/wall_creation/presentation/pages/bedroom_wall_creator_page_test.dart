@@ -12,6 +12,7 @@ import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/widgets/creator_tool_bar.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 

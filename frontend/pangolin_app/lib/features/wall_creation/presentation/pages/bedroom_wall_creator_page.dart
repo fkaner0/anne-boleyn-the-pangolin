@@ -50,6 +50,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       widget.profileUpdater ?? getIt<ProfileUpdater>();
 
   bool _saving = false;
+  bool _interacting = false;
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -166,6 +167,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   onTextChanged: _controller.updateText,
                   onPromptAddImage: _addImageFromPrompt,
                   onPromptAddTextBox: _addTextBoxFromPrompt,
+                  onItemInteractionChanged: (active) {
+                    if (active == _interacting) return;
+                    setState(() => _interacting = active);
+                  },
                 ),
               ),
             ),
@@ -176,10 +181,17 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               child: Column(
                 children: [
                   PromptGenerator(onCreate: _addTextBoxWithText),
-                  CreatorToolBar(
-                    onAddTextBox: _addTextBox,
-                    onAddImage: _addImage,
-                    onAddSticker: _addSticker,
+                  IgnorePointer(
+                    ignoring: _interacting,
+                    child: AnimatedOpacity(
+                      opacity: _interacting ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: CreatorToolBar(
+                        onAddTextBox: _addTextBox,
+                        onAddImage: _addImage,
+                        onAddSticker: _addSticker,
+                      ),
+                    ),
                   ),
                 ],
               ),

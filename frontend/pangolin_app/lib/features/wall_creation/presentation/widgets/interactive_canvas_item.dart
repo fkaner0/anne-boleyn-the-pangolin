@@ -7,6 +7,7 @@ class InteractiveCanvasItem extends StatefulWidget {
   final Size baseSize;
   final Widget child;
   final void Function(CanvasTransform transform) onTransformEnd;
+  final void Function(bool active)? onInteractionChanged;
   final double minScale;
   final double maxScale;
 
@@ -16,6 +17,7 @@ class InteractiveCanvasItem extends StatefulWidget {
     required this.baseSize,
     required this.child,
     required this.onTransformEnd,
+    this.onInteractionChanged,
     this.minScale = 0.3,
     this.maxScale = 5.0,
   });
@@ -45,6 +47,7 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
     _startTransform = _transform;
+    widget.onInteractionChanged?.call(true);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
@@ -64,6 +67,7 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
     widget.onTransformEnd(_transform);
+    widget.onInteractionChanged?.call(false);
   }
 
   @override
