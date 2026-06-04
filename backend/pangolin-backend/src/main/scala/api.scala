@@ -111,6 +111,7 @@ object api {
     .out(jsonBody[UploadResponse])
 
   private val newUserEndpoint = endpoint.post
+    .in("user")
     .out(jsonBody[NewUserResponse])
 
   private val reccomendationsEndpoint = endpoint.get
@@ -228,6 +229,7 @@ object api {
   }
 
   val router = Router(
+    "/" -> api.newUserRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,
