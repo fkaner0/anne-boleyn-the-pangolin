@@ -12,6 +12,13 @@ class Env {
     defaultValue: defaultRenderHost,
   );
 
+  static final int? apiPort = _parsePort(
+    const String.fromEnvironment('API_PORT'),
+  );
+
+  static int? _parsePort(String value) =>
+      value.isEmpty ? null : int.tryParse(value);
+
   static BackendMode _parseBackend(String value) {
     switch (value.toLowerCase()) {
       case 'mock':

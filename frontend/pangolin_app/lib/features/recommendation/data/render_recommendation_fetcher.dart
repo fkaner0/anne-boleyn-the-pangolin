@@ -7,8 +7,15 @@ import 'recommendation_fetcher.dart';
 class RenderRecommendationFetcher implements RecommendationFetcher {
   final ApiRecommendationFetcher _delegate;
 
-  RenderRecommendationFetcher({String host = defaultRenderHost})
-    : _delegate = ApiRecommendationFetcher(host: host);
+  RenderRecommendationFetcher({
+    String host = defaultRenderHost,
+    int? port,
+    bool useHttps = true,
+  }) : _delegate = ApiRecommendationFetcher(
+         host: host,
+         port: port,
+         useHttps: useHttps,
+       );
 
   @override
   Future<List<Recommendation>> fetchRecommendations() {

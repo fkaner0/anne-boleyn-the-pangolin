@@ -10,8 +10,13 @@ class RenderWallImageUploader implements WallImageUploader {
 
   RenderWallImageUploader({
     String host = defaultRenderHost,
+    int? port,
     bool useHttps = true,
-  }) : _delegate = ApiWallImageUploader(host: host, useHttps: useHttps);
+  }) : _delegate = ApiWallImageUploader(
+         host: host,
+         port: port,
+         useHttps: useHttps,
+       );
 
   @override
   Future<String> uploadImage(Uint8List bytes) => _delegate.uploadImage(bytes);

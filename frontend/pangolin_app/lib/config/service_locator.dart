@@ -45,19 +45,35 @@ void configureDependencies(BackendMode backend) {
       );
       break;
     case BackendMode.local:
-      // Default to render for now; local implementations can be added later
       final hostLocal = Env.apiHost;
+      final portLocal = Env.apiPort;
       getIt.registerLazySingleton<RecommendationFetcher>(
-        () => RenderRecommendationFetcher(host: hostLocal),
+        () => RenderRecommendationFetcher(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
       );
       getIt.registerLazySingleton<ProfileFetcher>(
-        () => RenderProfileFetcher(host: hostLocal),
+        () => RenderProfileFetcher(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
       );
       getIt.registerLazySingleton<ProfileRejectionDecider>(
-        () => RenderProfileRejectionDecider(host: hostLocal),
+        () => RenderProfileRejectionDecider(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
       );
       getIt.registerLazySingleton<WallImageUploader>(
-        () => RenderWallImageUploader(host: hostLocal),
+        () => RenderWallImageUploader(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
       );
       break;
     case BackendMode.render:

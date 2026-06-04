@@ -7,8 +7,13 @@ class RenderProfileRejectionDecider implements ProfileRejectionDecider {
 
   RenderProfileRejectionDecider({
     String host = defaultRenderHost,
+    int? port,
     bool useHttps = true,
-  }) : _delegate = ApiProfileRejectionDecider(host: host, useHttps: useHttps);
+  }) : _delegate = ApiProfileRejectionDecider(
+         host: host,
+         port: port,
+         useHttps: useHttps,
+       );
 
   @override
   Future<void> putProfileRejection({
