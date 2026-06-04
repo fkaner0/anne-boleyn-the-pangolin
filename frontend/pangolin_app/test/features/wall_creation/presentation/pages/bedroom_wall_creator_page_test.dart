@@ -308,4 +308,40 @@ void main() {
     expect(find.text('Create your wall'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
+
+  testWidgets('toolbar fades out while an item is being moved and back after', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    await pumpPage(tester, controller: controller);
+    await tester.pumpAndSettle();
+
+    double toolbarOpacity() => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(
+            of: find.byType(CreatorToolBar),
+            matching: find.byType(AnimatedOpacity),
+          ),
+        )
+        .opacity;
+
+    expect(toolbarOpacity(), 1.0);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Your text')),
+    );
+    await gesture.moveBy(const Offset(40, 0));
+    await tester.pump();
+
+    expect(toolbarOpacity(), 0.0);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(toolbarOpacity(), 1.0);
+  });
 }

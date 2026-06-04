@@ -178,22 +178,22 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               left: 0,
               right: 0,
               bottom: 16,
-              child: Column(
-                children: [
-                  PromptGenerator(onCreate: _addTextBoxWithText),
-                  IgnorePointer(
-                    ignoring: _interacting,
-                    child: AnimatedOpacity(
-                      opacity: _interacting ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: CreatorToolBar(
+              child: IgnorePointer(
+                ignoring: _interacting,
+                child: AnimatedOpacity(
+                  opacity: _interacting ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Column(
+                    children: [
+                      PromptGenerator(onCreate: _addTextBoxWithText),
+                      CreatorToolBar(
                         onAddTextBox: _addTextBox,
                         onAddImage: _addImage,
                         onAddSticker: _addSticker,
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],
