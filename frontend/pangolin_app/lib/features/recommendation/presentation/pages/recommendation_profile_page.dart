@@ -64,7 +64,6 @@ class RecommendationProfilePage extends StatelessWidget {
               children: [
                 ProfileHeaderBar(
                   name: profile.name,
-                  age: profile.age,
                   location: profile.location,
                   onBackPressed: () {
                     Navigator.of(context).pop();
