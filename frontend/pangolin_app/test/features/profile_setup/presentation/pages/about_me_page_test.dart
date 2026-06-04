@@ -90,11 +90,57 @@ void main() {
     expect(builder.build().profileImageUrl, isNotEmpty);
   });
 
+  Future<void> fillAllFields(WidgetTester tester) async {
+    await tester.enterText(find.widgetWithText(TextField, 'Your name'), 'Anne');
+    await tester.enterText(find.widgetWithText(TextField, 'Your age'), '29');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Where you are based'),
+      'London',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'A little about you'),
+      'painter',
+    );
+    await tester.ensureVisible(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('Next is disabled until every field is filled', (tester) async {
+    final builder = seededBuilder();
+    await pumpPage(
+      tester,
+      builder: builder,
+      imagePicker: _FakeImageFilePicker(
+        PickedImage(bytes: _onePixelPng, aspectRatio: 1),
+      ),
+    );
+
+    final nextButton = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Next'),
+    );
+    expect(nextButton.onPressed, isNull);
+
+    await fillAllFields(tester);
+
+    final enabledNext = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Next'),
+    );
+    expect(enabledNext.onPressed, isNotNull);
+  });
+
   testWidgets('Next passes the builder to the canvas editor', (tester) async {
-    final builder = seededBuilder()
-      ..setName('Anne')
-      ..setLocation('London');
-    await pumpPage(tester, builder: builder);
+    final builder = seededBuilder();
+    await pumpPage(
+      tester,
+      builder: builder,
+      imagePicker: _FakeImageFilePicker(
+        PickedImage(bytes: _onePixelPng, aspectRatio: 1),
+      ),
+    );
+
+    await fillAllFields(tester);
 
     await tester.tap(find.widgetWithText(TextButton, 'Next'));
     await tester.pumpAndSettle();

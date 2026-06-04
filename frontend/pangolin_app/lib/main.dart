@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/profile_setup/presentation/pages/about_me_page.dart';
-import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/profile_setup/presentation/pages/new_user_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'theme/app_palette.dart';
 import 'theme/app_theme.dart';
-
-const int _placeholderUserId = 0;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,9 +33,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pangolin App',
       theme: buildAppTheme(appPalette),
-      home: AboutMePage(
-        profileBuilder: ProfileBuilder()..setUserId(_placeholderUserId),
-      ),
+      home: const NewUserPage(),
     );
   }
 }

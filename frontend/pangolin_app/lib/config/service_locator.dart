@@ -4,6 +4,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
+import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
@@ -11,12 +12,14 @@ import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fe
 import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_updater.dart';
+import 'package:pangolin_app/features/profile_setup/data/mock_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 
 import 'package:pangolin_app/features/recommendation/data/render_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_rejection_decider.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_updater.dart';
+import 'package:pangolin_app/features/profile_setup/data/render_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/render_wall_image_uploader.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -47,6 +50,7 @@ void configureDependencies(BackendMode backend) {
         () => MockWallImageUploader(),
       );
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
+      getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
       break;
     case BackendMode.local:
       final hostLocal = Env.apiHost;
@@ -86,6 +90,13 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
+      getIt.registerLazySingleton<UserCreator>(
+        () => RenderUserCreator(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
       break;
     case BackendMode.render:
       final host = Env.apiHost;
@@ -103,6 +114,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileUpdater>(
         () => RenderProfileUpdater(host: host),
+      );
+      getIt.registerLazySingleton<UserCreator>(
+        () => RenderUserCreator(host: host),
       );
       break;
   }

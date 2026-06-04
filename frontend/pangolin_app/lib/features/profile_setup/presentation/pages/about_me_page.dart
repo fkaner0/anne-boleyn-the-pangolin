@@ -34,6 +34,19 @@ class _AboutMePageState extends State<AboutMePage> {
   Uint8List? _mainImageBytes;
   bool _uploadingImage = false;
 
+  String _name = '';
+  int? _age;
+  String _location = '';
+  String _bio = '';
+  bool _imageUploaded = false;
+
+  bool get _canSubmit =>
+      _name.isNotEmpty &&
+      _age != null &&
+      _location.isNotEmpty &&
+      _bio.isNotEmpty &&
+      _imageUploaded;
+
   Future<void> _pickMainImage() async {
     final picked = await _imagePicker.pickImage();
     if (picked == null || !mounted) return;
@@ -46,6 +59,7 @@ class _AboutMePageState extends State<AboutMePage> {
     try {
       final url = await _wallImageUploader.uploadImage(picked.bytes);
       _builder.setProfileImageUrl(url);
+      if (mounted) setState(() => _imageUploaded = true);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -78,7 +92,12 @@ class _AboutMePageState extends State<AboutMePage> {
           tooltip: 'Back',
           onPressed: () {},
         ),
-        actions: [TextButton(onPressed: _next, child: const Text('Next'))],
+        actions: [
+          TextButton(
+            onPressed: _canSubmit ? _next : null,
+            child: const Text('Next'),
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -87,7 +106,13 @@ class _AboutMePageState extends State<AboutMePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _FieldLabel('Name'),
-              _TextField(hintText: 'Your name', onChanged: _builder.setName),
+              _TextField(
+                hintText: 'Your name',
+                onChanged: (value) {
+                  _builder.setName(value);
+                  setState(() => _name = value);
+                },
+              ),
               const SizedBox(height: 24),
               _FieldLabel('Age'),
               _TextField(
@@ -97,13 +122,17 @@ class _AboutMePageState extends State<AboutMePage> {
                 onChanged: (value) {
                   final age = int.tryParse(value);
                   if (age != null) _builder.setAge(age);
+                  setState(() => _age = age);
                 },
               ),
               const SizedBox(height: 24),
               _FieldLabel('Rough location'),
               _TextField(
                 hintText: 'Where you are based',
-                onChanged: _builder.setLocation,
+                onChanged: (value) {
+                  _builder.setLocation(value);
+                  setState(() => _location = value);
+                },
               ),
               const SizedBox(height: 24),
               _FieldLabel('Main image'),
@@ -118,7 +147,10 @@ class _AboutMePageState extends State<AboutMePage> {
                 hintText: 'A little about you',
                 minLines: 3,
                 maxLines: 5,
-                onChanged: _builder.setBio,
+                onChanged: (value) {
+                  _builder.setBio(value);
+                  setState(() => _bio = value);
+                },
               ),
             ],
           ),
