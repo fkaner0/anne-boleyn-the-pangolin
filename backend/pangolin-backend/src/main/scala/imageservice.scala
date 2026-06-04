@@ -6,7 +6,6 @@ import io.github.cdimascio.dotenv.Dotenv
 import scala.jdk.CollectionConverters.given
 import imageUploaderAPI.ImageURL
 import java.awt.Image
-import java.io.InputStream
 
 object imageservice {
     import imageUploaderAPI.{CloudinaryImageUploader, ImageUploadType}
@@ -31,7 +30,7 @@ private object imageUploaderAPI {
     /// TODO: can newtype these xoxo
     case class ImageURL(value: String)
 
-    type ImageUploadType = InputStream | ImageURL
+    type ImageUploadType = Array[Byte] | ImageURL
 
     trait ImageUploader {
         def upload(imageFile: ImageUploadType): Option[ImageURL]
@@ -106,7 +105,7 @@ private object imageUploaderAPI {
             */
             val imageInput: Object = imageFile match {
                 case ImageURL(url) => url
-                case otherImgFmt => otherImgFmt
+                case otherImgSrc => otherImgSrc
             }
 
             cloudinaryUploader.unsignedUpload(

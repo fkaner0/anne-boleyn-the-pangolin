@@ -1,7 +1,7 @@
 class Position {
   final int x;
   final int y;
-  final int rotation;
+  final double rotation;
   final double aspectRatio;
   final double scale;
 
@@ -33,7 +33,7 @@ class Position {
     return Position(
       x: json['x'] as int,
       y: json['y'] as int,
-      rotation: json['rotation'] as int,
+      rotation: parseDouble(json['rotation'], 0.0),
       aspectRatio: parseDouble(json['aspectRatio'], 1.0),
       scale: parseDouble(json['scale'], 1.0),
     );

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -5,7 +6,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
@@ -23,6 +28,21 @@ class _FakeImageFilePicker implements ImageFilePicker {
   Future<PickedImage?> pickImage() async => result;
 }
 
+class _FakeProfileUpdater implements ProfileUpdater {
+  final bool fail;
+  final Completer<void>? gate;
+  Profile? received;
+
+  _FakeProfileUpdater({this.fail = false, this.gate});
+
+  @override
+  Future<void> updateProfile(Profile profile) async {
+    received = profile;
+    if (gate != null) await gate!.future;
+    if (fail) throw Exception('save failed');
+  }
+}
+
 void main() {
   setUp(() async {
     await getIt.reset();
@@ -32,15 +52,22 @@ void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
     BedroomWallCreatorController? controller,
+    ProfileUpdater? profileUpdater,
   }) {
     return tester.pumpWidget(
-      MaterialApp(home: BedroomWallCreatorPage(controller: controller)),
+      MaterialApp(
+        home: BedroomWallCreatorPage(
+          controller: controller,
+          profileUpdater: profileUpdater,
+        ),
+      ),
     );
   }
 
   BedroomWallCreatorController controllerWith(PickedImage? picked) {
     return BedroomWallCreatorController(
       imagePicker: _FakeImageFilePicker(picked),
+      wallImageUploader: MockWallImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
     );
   }
@@ -55,9 +82,35 @@ void main() {
     expect(controller.textItems.single.transform.rotation, 0.5);
   });
 
+  test('exportInto maps canvas items onto the profile builder', () {
+    final controller = BedroomWallCreatorController(
+      imagePicker: const _FakeImageFilePicker(null),
+      wallImageUploader: MockWallImageUploader(),
+      stickerCatalog: StickerCatalog.fromAssetKeys(const [
+        'assets/stickers/pangolin.png',
+      ]),
+    );
+    controller.addTextBox();
+    controller.updateText(controller.textItems.single.id, 'Hello wall');
+    controller.addSticker('pangolin');
+
+    final builder = ProfileBuilder()
+      ..setUserId(1)
+      ..setName('Alice')
+      ..setLocation('London');
+    controller.exportInto(builder);
+    final profile = builder.build();
+
+    expect(profile.textboxes, hasLength(1));
+    expect(profile.textboxes.single.body, 'Hello wall');
+    expect(profile.stickers, hasLength(1));
+    expect(profile.stickers.single.name, 'pangolin');
+  });
+
   test('addSticker adds known stickers and ignores unknown names', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
+      wallImageUploader: MockWallImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -70,12 +123,35 @@ void main() {
     expect(controller.stickerItems.single.stickerName, 'pangolin');
   });
 
-  testWidgets('shows the top bar with Back and Next', (tester) async {
+  test('addImage uploads the image and stores the returned url', () async {
+    final controller = BedroomWallCreatorController(
+      imagePicker: _FakeImageFilePicker(
+        PickedImage(bytes: _onePixelPng, aspectRatio: 1),
+      ),
+      wallImageUploader: MockWallImageUploader(),
+      stickerCatalog: getIt<StickerCatalog>(),
+    );
+
+    await controller.addImage();
+
+    final url = controller.imageItems.single.url;
+    expect(url, isNotNull);
+
+    final builder = ProfileBuilder()
+      ..setUserId(1)
+      ..setName('Alice')
+      ..setLocation('London');
+    controller.exportInto(builder);
+
+    expect(builder.build().images.single.url, url);
+  });
+
+  testWidgets('shows the top bar with Back and Save', (tester) async {
     await pumpPage(tester, controller: controllerWith(null));
 
     expect(find.text('Create your wall'), findsOneWidget);
     expect(find.byTooltip('Back'), findsOneWidget);
-    expect(find.widgetWithText(TextButton, 'Next'), findsOneWidget);
+    expect(find.byTooltip('Save'), findsOneWidget);
   });
 
   testWidgets('shows the three creation tools', (tester) async {
@@ -144,25 +220,59 @@ void main() {
     expect(find.text('Hello wall', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('Next opens the recommendations page', (tester) async {
-    await pumpPage(tester, controller: controllerWith(null));
+  testWidgets('Save sends the profile and moves to the next page', (
+    tester,
+  ) async {
+    final updater = _FakeProfileUpdater();
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: updater,
+    );
 
-    await tester.tap(find.widgetWithText(TextButton, 'Next'));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
+    expect(updater.received, isNotNull);
+    expect(find.text('Profile saved'), findsOneWidget);
     expect(find.text('Your recommendations'), findsOneWidget);
   });
 
-  testWidgets('Back on recommendations returns to the creator', (tester) async {
-    await pumpPage(tester, controller: controllerWith(null));
+  testWidgets('Save shows a loading bar while the request is in flight', (
+    tester,
+  ) async {
+    final gate = Completer<void>();
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: _FakeProfileUpdater(gate: gate),
+    );
 
-    await tester.tap(find.widgetWithText(TextButton, 'Next'));
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pump();
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+
+    gate.complete();
     await tester.pumpAndSettle();
-    expect(find.text('Your recommendations'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Back'));
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('Save shows an error and stays on the page when it fails', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      profileUpdater: _FakeProfileUpdater(fail: true),
+    );
+
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
 
+    expect(find.textContaining('Could not save'), findsOneWidget);
     expect(find.text('Create your wall'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 }

@@ -17,9 +17,9 @@ class MockProfileFetcher implements ProfileFetcher {
         location: 'Harrow, London',
         bio: 'Watercolouring a new pond every day',
         images: [
-          _image('Tim+1', 40, 40, -8),
-          _image('Tim+2', 250, 90, 6),
-          _image('Tim+3', 110, 260, -3),
+          _image('Tim+1', 40, 40, -0.14),
+          _image('Tim+2', 250, 90, 0.10),
+          _image('Tim+3', 110, 260, -0.05),
         ],
         textboxes: [
           _textbox(
@@ -27,19 +27,19 @@ class MockProfileFetcher implements ProfileFetcher {
             'Budding watercolour artist, been enjoying painting ponds.',
             420,
             60,
-            2,
+            0.03,
           ),
           _textbox(
             'Current focus',
             'Trying to capture reflections and soft greens in nature.',
             360,
             250,
-            -4,
+            -0.07,
           ),
         ],
         stickers: [
-          _sticker('pangolin', 200, 420, 8),
-          _sticker('heart', 320, 180, -6),
+          _sticker('pangolin', 200, 420, 0.14),
+          _sticker('heart', 320, 180, -0.10),
         ],
       ),
 
@@ -49,10 +49,10 @@ class MockProfileFetcher implements ProfileFetcher {
         location: 'Hammersmith, London',
         bio: 'still-4-lyferrrr',
         images: [
-          _image('Sally+1', 60, 70, -5),
-          _image('Sally+2', 290, 50, 8),
-          _image('Sally+3', 180, 260, -2),
-          _image('Sally+4', 460, 220, 5),
+          _image('Sally+1', 60, 70, -0.09),
+          _image('Sally+2', 290, 50, 0.14),
+          _image('Sally+3', 180, 260, -0.03),
+          _image('Sally+4', 460, 220, 0.09),
         ],
         textboxes: [
           _textbox(
@@ -60,17 +60,17 @@ class MockProfileFetcher implements ProfileFetcher {
             'I love apples. I love still life. I love drawing apples in still life.',
             500,
             40,
-            -3,
+            -0.05,
           ),
           _textbox(
             'Favourite subjects',
             'Fruit bowls, table cloth folds, and afternoon window light.',
             390,
             340,
-            4,
+            0.07,
           ),
         ],
-        stickers: [_sticker('star', 150, 200, 4)],
+        stickers: [_sticker('star', 150, 200, 0.07)],
       ),
 
       2 => Profile(
@@ -79,9 +79,9 @@ class MockProfileFetcher implements ProfileFetcher {
         location: 'Richmond, London',
         bio: 'willing to try anything new and messy',
         images: [
-          _image('Selena+1', 50, 40, 7),
-          _image('Selena+2', 240, 130, -6),
-          _image('Selena+3', 430, 70, 3),
+          _image('Selena+1', 50, 40, 0.12),
+          _image('Selena+2', 240, 130, -0.10),
+          _image('Selena+3', 430, 70, 0.05),
         ],
         textboxes: [
           _textbox(
@@ -89,19 +89,19 @@ class MockProfileFetcher implements ProfileFetcher {
             'Finger painting fanatic, check out my pangolin art.',
             390,
             250,
-            -5,
+            -0.09,
           ),
           _textbox(
             'Materials',
             'Mostly poster paint, fingers, cardboard, and lots of mess.',
             110,
             320,
-            3,
+            0.05,
           ),
         ],
         stickers: [
-          _sticker('pangolin', 470, 300, -10),
-          _sticker('sun', 60, 150, 6),
+          _sticker('pangolin', 470, 300, -0.17),
+          _sticker('sun', 60, 150, 0.10),
         ],
       ),
 
@@ -109,7 +109,7 @@ class MockProfileFetcher implements ProfileFetcher {
     };
   }
 
-  ProfileImage _image(String label, int x, int y, int rotation) {
+  ProfileImage _image(String label, int x, int y, double rotation) {
     return ProfileImage(
       url: 'https://via.placeholder.com/300?text=$label',
       position: Position(
@@ -122,7 +122,13 @@ class MockProfileFetcher implements ProfileFetcher {
     );
   }
 
-  ProfileText _textbox(String title, String body, int x, int y, int rotation) {
+  ProfileText _textbox(
+    String title,
+    String body,
+    int x,
+    int y,
+    double rotation,
+  ) {
     return ProfileText(
       title: title,
       body: body,
@@ -136,7 +142,7 @@ class MockProfileFetcher implements ProfileFetcher {
     );
   }
 
-  ProfileSticker _sticker(String name, int x, int y, int rotation) {
+  ProfileSticker _sticker(String name, int x, int y, double rotation) {
     return ProfileSticker(
       name: name,
       position: Position(

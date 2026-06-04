@@ -1,4 +1,4 @@
-id,userid,title,body,x,y,rotation,aspectratio,scale
-2,0,"this is a test title","with a test body!!"",0,0,0,1,1
-4,1,"hello :>>>","hihihihi",0,0,0,1,1
-3,0,"everything's fiiiine","(I hope)",100,50,40,1,1
+id,userid,title,body,font,fontARGB,backgroundARGB,x,y,rotation,aspectratio,scale
+2,1,"this is a test title","with a test body!!",,0xFFFFFFFF,0xFF000000,0,0,0,1,1
+4,2,"hello :>>>","hihihihi",,0xFFFFAAFF,0x00000000,0,0,0,1,1
+3,1,"everything's fiiiine","(I hope)",,0xFFFFFFFF,0xFFFF3030,100,50,40,1,1

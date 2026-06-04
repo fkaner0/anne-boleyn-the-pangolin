@@ -1,8 +1,14 @@
+-- create uint4 for colour storage (as ARGB value)
+CREATE DOMAIN uint4 AS int8
+  CHECK(VALUE >= 0 AND VALUE < 4294967296);
+
 CREATE TABLE profile (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   name text NOT NULL,
   location text NOT NULL,
-  profileImageUrl text NOT NULL,
+  bio text NOT NULL,
+  wallBackgroundHexARGB uint4 NOT NULL,
+  profileImageUrl text NOT NULL
 );
 
 CREATE TABLE profileImage (
@@ -11,9 +17,9 @@ CREATE TABLE profileImage (
   url text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
-  scale double precision NOT NULL,
+  scale double precision NOT NULL
 );
 
 CREATE TABLE profileTextbox (
@@ -21,41 +27,23 @@ CREATE TABLE profileTextbox (
   userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
   title text NOT NULL,
   body text NOT NULL,
+  font text, -- NB: this is nullable. may want to change.
+  fontARGB uint4 NOT NULL,
+  backgroundARGB uint4 NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
-  scale double precision NOT NULL,
+  scale double precision NOT NULL
 );
 
 CREATE TABLE profileSticker (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
-  stickerName text NOT NULL,
+  name text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
-  rotation integer NOT NULL,
+  rotation double precision NOT NULL,
   aspectRatio double precision NOT NULL,
-  scale double precision NOT NULL,
-);
-
-COPY profileImage
-FROM 'profileImage.csv'
-WITH (
-    FORMAT csv,
-    HEADER true
-);
-
-COPY profileTextbox
-FROM 'profileTextbox.csv'
-WITH (
-    FORMAT csv,
-    HEADER true
-);
-
-COPY profileSticker
-FROM 'profileSticker.csv'
-WITH (
-    FORMAT csv,
-    HEADER true
+  scale double precision NOT NULL
 );

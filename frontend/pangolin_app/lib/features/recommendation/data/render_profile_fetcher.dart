@@ -6,8 +6,15 @@ import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 class RenderProfileFetcher implements ProfileFetcher {
   final ApiProfileFetcher _delegate;
 
-  RenderProfileFetcher({String host = defaultRenderHost})
-    : _delegate = ApiProfileFetcher(host: host);
+  RenderProfileFetcher({
+    String host = defaultRenderHost,
+    int? port,
+    bool useHttps = true,
+  }) : _delegate = ApiProfileFetcher(
+         host: host,
+         port: port,
+         useHttps: useHttps,
+       );
 
   @override
   Future<Profile> fetchProfile(int userId) {

@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../domain/profile_text.dart';
 import 'bedroom_wall_interactive_item.dart';
@@ -18,7 +17,7 @@ class BedroomWallTextBoxItem extends BedroomWallInteractiveBase {
       left: textbox.position.x.toDouble(),
       top: textbox.position.y.toDouble(),
       child: Transform.rotate(
-        angle: textbox.position.rotation * math.pi / 180,
+        angle: textbox.position.rotation,
         child: super.build(context),
       ),
     );

@@ -1,13 +1,19 @@
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 
 class ProfileBuilder {
   int? _userId;
   String? _name;
+  int? _age;
   String? _location;
+  String? _bio;
+  String? _profileImageUrl;
+  int? _wallBackgroundHexARGB;
   final List<ProfileImage> _images = [];
   final List<ProfileText> _textboxes = [];
+  final List<ProfileSticker> _stickers = [];
 
   ProfileBuilder();
 
@@ -15,9 +21,30 @@ class ProfileBuilder {
   ProfileBuilder.from(Profile profile)
     : _userId = profile.userId,
       _name = profile.name,
-      _location = profile.location {
+      _age = profile.age,
+      _location = profile.location,
+      _bio = profile.bio,
+      _profileImageUrl = profile.profileImageUrl,
+      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB {
     _images.addAll(profile.images);
     _textboxes.addAll(profile.textboxes);
+    _stickers.addAll(profile.stickers);
+  }
+
+  // Creates an independent copy of this builder.
+  ProfileBuilder copy() {
+    final clone = ProfileBuilder()
+      .._userId = _userId
+      .._name = _name
+      .._age = _age
+      .._location = _location
+      .._bio = _bio
+      .._profileImageUrl = _profileImageUrl
+      .._wallBackgroundHexARGB = _wallBackgroundHexARGB;
+    clone._images.addAll(_images);
+    clone._textboxes.addAll(_textboxes);
+    clone._stickers.addAll(_stickers);
+    return clone;
   }
 
   ProfileBuilder setUserId(int userId) {
@@ -30,8 +57,28 @@ class ProfileBuilder {
     return this;
   }
 
+  ProfileBuilder setAge(int age) {
+    _age = age;
+    return this;
+  }
+
   ProfileBuilder setLocation(String location) {
     _location = location;
+    return this;
+  }
+
+  ProfileBuilder setBio(String bio) {
+    _bio = bio;
+    return this;
+  }
+
+  ProfileBuilder setProfileImageUrl(String profileImageUrl) {
+    _profileImageUrl = profileImageUrl;
+    return this;
+  }
+
+  ProfileBuilder setWallBackgroundHexARGB(int wallBackgroundHexARGB) {
+    _wallBackgroundHexARGB = wallBackgroundHexARGB;
     return this;
   }
 
@@ -59,6 +106,18 @@ class ProfileBuilder {
     return this;
   }
 
+  /// Appends a single ProfileSticker
+  ProfileBuilder addSticker(ProfileSticker sticker) {
+    _stickers.add(sticker);
+    return this;
+  }
+
+  // Appends all `stickers` ProfileSticker to the profile.
+  ProfileBuilder addStickers(Iterable<ProfileSticker> stickers) {
+    _stickers.addAll(stickers);
+    return this;
+  }
+
   // Requires userId, name, and location to be set before building the Profile.
   Profile build() {
     final userId = _userId;
@@ -81,8 +140,14 @@ class ProfileBuilder {
       userId: userId!,
       name: name!,
       location: location!,
+      age: _age ?? Profile.defaultAge,
+      bio: _bio ?? Profile.defaultBio,
+      profileImageUrl: _profileImageUrl ?? Profile.defaultProfileImageUrl,
+      wallBackgroundHexARGB:
+          _wallBackgroundHexARGB ?? Profile.defaultWallBackgroundHexARGB,
       images: List.unmodifiable(_images),
       textboxes: List.unmodifiable(_textboxes),
+      stickers: List.unmodifiable(_stickers),
     );
   }
 }

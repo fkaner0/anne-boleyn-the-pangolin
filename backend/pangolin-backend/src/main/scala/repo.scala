@@ -22,7 +22,7 @@ object repo {
   trait Positioned {
     val x: Int
     val y: Int
-    val rotation: Int
+    val rotation: Double
     val aspectRatio: Double
     val scale: Double
   }
@@ -32,7 +32,7 @@ object repo {
       url: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -44,7 +44,7 @@ object repo {
       url: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -57,9 +57,12 @@ object repo {
       userId: Int,
       title: String,
       body: String,
+      font: Option[String],
+      fontARGB: Long,
+      backgroundARGB: Long,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -70,9 +73,12 @@ object repo {
       userId: Int,
       title: String,
       body: String,
+      font: Option[String],
+      fontARGB: Long,
+      backgroundARGB: Long,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -83,10 +89,10 @@ object repo {
 
   case class ProfileStickerCreator(
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -95,10 +101,10 @@ object repo {
   case class ProfileSticker(
       @Id id: Int,
       userId: Int,
-      stickerName: String,
+      name: String,
       x: Int,
       y: Int,
-      rotation: Int,
+      rotation: Double,
       aspectRatio: Double,
       scale: Double,
   ) extends Positioned derives DbCodec
@@ -110,6 +116,8 @@ object repo {
   case class ProfileCreator(
       name: String,
       location: String,
+      bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -118,6 +126,8 @@ object repo {
       @Id id: Int,
       name: String,
       location: String,
+      bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -140,8 +150,7 @@ object repo {
   }
 
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextboxRepo =
-    Repo[ProfileTextboxCreator, ProfileTextbox, Int]
+  private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
@@ -175,9 +184,11 @@ object repo {
 
   def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
     profileRepo.insertReturning(ProfileCreator(
-      "Placeholder Name",
-      "Placeholder Location",
-      "https://placehold.co/400x400.jpg"
+      name = "no name provided",
+      location = "no location provided",
+      bio = "no bio provided",
+      wallBackgroundHexARGB = 0,
+      profileImageUrl = "https://placehold.co/400x400.jpg",
     )).id.asRight
   }
 
@@ -185,7 +196,7 @@ object repo {
     = table.deleteAllById(table.findAll(spec).map(getId))
     
   private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
-  = table.insertAll(elems)
+    = table.insertAll(elems)
 
   private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
   private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
@@ -215,7 +226,7 @@ object repo {
         /// but apparently it makes the frontend easier so we will leave as-is for now
         /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
       }
-      case None => Left(())
+      case None => Left("Provided userId does not exist. No profile to update.")
     }
   }
 
