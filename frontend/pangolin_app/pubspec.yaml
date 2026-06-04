@@ -37,6 +37,7 @@ dependencies:
   http: ^1.6.0
   get_it: ^8.1.1
   image_picker: ^1.1.2
+  image: ^4.9.1
 
 
 dev_dependencies:
