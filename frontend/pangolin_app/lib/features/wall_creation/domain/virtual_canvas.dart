@@ -3,7 +3,7 @@
 class VirtualCanvas {
   static const double defaultWidth = 400;
 
-  static const double defaultHeight = 700;
+  static const double defaultHeight = 980;
 
   final double width;
 
