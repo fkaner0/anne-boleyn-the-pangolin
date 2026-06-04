@@ -7,6 +7,9 @@ class ProfileBuilder {
   int? _userId;
   String? _name;
   String? _location;
+  String? _bio;
+  String? _profileImageUrl;
+  int? _wallBackgroundHexARGB;
   final List<ProfileImage> _images = [];
   final List<ProfileText> _textboxes = [];
   final List<ProfileSticker> _stickers = [];
@@ -17,7 +20,10 @@ class ProfileBuilder {
   ProfileBuilder.from(Profile profile)
     : _userId = profile.userId,
       _name = profile.name,
-      _location = profile.location {
+      _location = profile.location,
+      _bio = profile.bio,
+      _profileImageUrl = profile.profileImageUrl,
+      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB {
     _images.addAll(profile.images);
     _textboxes.addAll(profile.textboxes);
     _stickers.addAll(profile.stickers);
@@ -28,7 +34,10 @@ class ProfileBuilder {
     final clone = ProfileBuilder()
       .._userId = _userId
       .._name = _name
-      .._location = _location;
+      .._location = _location
+      .._bio = _bio
+      .._profileImageUrl = _profileImageUrl
+      .._wallBackgroundHexARGB = _wallBackgroundHexARGB;
     clone._images.addAll(_images);
     clone._textboxes.addAll(_textboxes);
     clone._stickers.addAll(_stickers);
@@ -47,6 +56,21 @@ class ProfileBuilder {
 
   ProfileBuilder setLocation(String location) {
     _location = location;
+    return this;
+  }
+
+  ProfileBuilder setBio(String bio) {
+    _bio = bio;
+    return this;
+  }
+
+  ProfileBuilder setProfileImageUrl(String profileImageUrl) {
+    _profileImageUrl = profileImageUrl;
+    return this;
+  }
+
+  ProfileBuilder setWallBackgroundHexARGB(int wallBackgroundHexARGB) {
+    _wallBackgroundHexARGB = wallBackgroundHexARGB;
     return this;
   }
 
@@ -108,6 +132,10 @@ class ProfileBuilder {
       userId: userId!,
       name: name!,
       location: location!,
+      bio: _bio ?? Profile.defaultBio,
+      profileImageUrl: _profileImageUrl ?? Profile.defaultProfileImageUrl,
+      wallBackgroundHexARGB:
+          _wallBackgroundHexARGB ?? Profile.defaultWallBackgroundHexARGB,
       images: List.unmodifiable(_images),
       textboxes: List.unmodifiable(_textboxes),
       stickers: List.unmodifiable(_stickers),
