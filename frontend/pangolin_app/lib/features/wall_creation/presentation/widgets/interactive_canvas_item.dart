@@ -8,6 +8,7 @@ class InteractiveCanvasItem extends StatefulWidget {
   final Widget child;
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(bool active)? onInteractionChanged;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
   final double maxScale;
 
@@ -18,6 +19,7 @@ class InteractiveCanvasItem extends StatefulWidget {
     required this.child,
     required this.onTransformEnd,
     this.onInteractionChanged,
+    this.onDragUpdate,
     this.minScale = 0.3,
     this.maxScale = 5.0,
   });
@@ -27,7 +29,7 @@ class InteractiveCanvasItem extends StatefulWidget {
 }
 
 class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
-  static const double _hitSlop = 6.0;
+  static const double _hitSlop = 10.0;
 
   late CanvasTransform _transform = widget.initialTransform;
 
@@ -51,6 +53,7 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    widget.onDragUpdate?.call(details.focalPoint);
     setState(() {
       _transform = _startTransform.copyWith(
         center:

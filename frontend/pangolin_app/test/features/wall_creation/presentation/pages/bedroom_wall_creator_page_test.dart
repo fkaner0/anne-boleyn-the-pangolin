@@ -344,4 +344,31 @@ void main() {
 
     expect(toolbarOpacity(), 1.0);
   });
+
+  testWidgets('dragging an item to the top bar deletes it', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    await pumpPage(tester, controller: controller);
+    await tester.pumpAndSettle();
+
+    expect(controller.items, hasLength(1));
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Your text')),
+    );
+    await gesture.moveBy(const Offset(40, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -500));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.delete), findsOneWidget);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(controller.items, isEmpty);
+  });
 }

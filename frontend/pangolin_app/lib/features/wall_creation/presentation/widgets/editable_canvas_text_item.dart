@@ -13,6 +13,7 @@ class EditableCanvasTextItem extends StatefulWidget {
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
   final void Function(bool active)? onInteractionChanged;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
   final double maxScale;
 
@@ -26,6 +27,7 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.onTransformEnd,
     required this.onTextChanged,
     this.onInteractionChanged,
+    this.onDragUpdate,
     this.placeholder = 'Your text',
     this.minScale = 0.3,
     this.maxScale = 5.0,
@@ -36,7 +38,7 @@ class EditableCanvasTextItem extends StatefulWidget {
 }
 
 class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
-  static const double _hitSlop = 6.0;
+  static const double _hitSlop = 10.0;
 
   late final TextEditingController _controller = TextEditingController(
     text: widget.text,
@@ -110,6 +112,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    widget.onDragUpdate?.call(details.focalPoint);
     setState(() {
       _transform = _startTransform.copyWith(
         center:

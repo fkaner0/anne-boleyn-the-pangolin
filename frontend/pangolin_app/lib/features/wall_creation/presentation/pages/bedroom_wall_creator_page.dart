@@ -51,6 +51,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
 
   bool _saving = false;
   bool _interacting = false;
+  bool _dragOverBin = false;
+  int? _draggingItemId;
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -83,6 +85,32 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
 
     if (stickerName == null || !mounted) return;
     setState(() => _controller.addSticker(stickerName));
+  }
+
+  void _onItemInteractionChanged(int id, bool active) {
+    if (active) {
+      setState(() {
+        _interacting = true;
+        _draggingItemId = id;
+      });
+      return;
+    }
+
+    final deletedId = _dragOverBin ? _draggingItemId : null;
+    setState(() {
+      if (deletedId != null) _controller.removeItem(deletedId);
+      _interacting = false;
+      _dragOverBin = false;
+      _draggingItemId = null;
+    });
+  }
+
+  void _onItemDragUpdate(Offset globalPosition) {
+    final binZoneBottom = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final overBin = globalPosition.dy <= binZoneBottom;
+    if (overBin != _dragOverBin) {
+      setState(() => _dragOverBin = overBin);
+    }
   }
 
   Future<void> _save() async {
@@ -131,7 +159,19 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Create your wall'),
+        backgroundColor: _dragOverBin
+            ? Theme.of(context).colorScheme.errorContainer
+            : null,
+        title: _interacting
+            ? Icon(
+                Icons.delete,
+                size: _dragOverBin ? 32 : 26,
+                color: _dragOverBin
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              )
+            : const Text('Create your wall'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
@@ -167,10 +207,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   onTextChanged: _controller.updateText,
                   onPromptAddImage: _addImageFromPrompt,
                   onPromptAddTextBox: _addTextBoxFromPrompt,
-                  onItemInteractionChanged: (active) {
-                    if (active == _interacting) return;
-                    setState(() => _interacting = active);
-                  },
+                  onItemInteractionChanged: _onItemInteractionChanged,
+                  onItemDragUpdate: _onItemDragUpdate,
                 ),
               ),
             ),
