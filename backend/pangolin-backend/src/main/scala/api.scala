@@ -7,7 +7,7 @@ import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.Part
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody}
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
@@ -73,6 +73,7 @@ object api {
       location: String,
       profileImageUrl: String,
       bio: String,
+      wallBackgroundHexARGB: Long,
       wallImages: Vector[ProfileImage],
       wallTextboxes: Vector[ProfileTextbox],
       wallStickers: Vector[ProfileSticker],
@@ -106,7 +107,7 @@ object api {
   private val profileEditEndpoint = endpoint.put
     .in("profile" / "edit" / path[Int]("userId"))
     .in(jsonBody[FullProfile])
-    // .out() /// TODO: is nothing ok?
+    .out(emptyOutput) /// TODO: or do we want something?
 
   private val uploadWallImageEndpoint = endpoint.post
     .in("wallImage")
@@ -160,6 +161,7 @@ object api {
             location = user.location,
             bio = user.bio,
             profileImageUrl = user.profileImageUrl,
+            wallBackgroundHexARGB = user.wallBackgroundHexARGB,
             wallImages = images.map(_.toApi),
             wallTextboxes = textboxes.map(_.toApi),
             wallStickers = stickers.map(_.toApi),
@@ -265,6 +267,7 @@ object api {
       location = profile.location,
       bio = profile.bio,
       profileImageUrl = profile.profileImageUrl,
+      wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
     )
   }
 

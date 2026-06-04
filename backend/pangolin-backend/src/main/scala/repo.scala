@@ -116,6 +116,8 @@ object repo {
   case class ProfileCreator(
       name: String,
       location: String,
+      bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -125,6 +127,7 @@ object repo {
       name: String,
       location: String,
       bio: String,
+      wallBackgroundHexARGB: Long,
       profileImageUrl: String,
   ) derives DbCodec
 
@@ -181,9 +184,11 @@ object repo {
 
   def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
     profileRepo.insertReturning(ProfileCreator(
-      "Placeholder Name",
-      "Placeholder Location",
-      "https://placehold.co/400x400.jpg"
+      name = "no name provided",
+      location = "no location provided",
+      bio = "no bio provided",
+      wallBackgroundHexARGB = 0,
+      profileImageUrl = "https://placehold.co/400x400.jpg",
     )).id.asRight
   }
 

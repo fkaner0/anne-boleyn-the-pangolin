@@ -6,6 +6,8 @@ CREATE TABLE profile (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   name text NOT NULL,
   location text NOT NULL,
+  bio text NOT NULL,
+  wallBackgroundHexARGB uint4 NOT NULL,
   profileImageUrl text NOT NULL
 );
 
