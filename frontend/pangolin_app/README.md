@@ -18,11 +18,19 @@ flutter run --dart-define=BACKEND=mock
 flutter run --dart-define=BACKEND=render
 ```
 
+-- Run on localhost entirely
+
+```bash
+flutter run --dart-define=BACKEND=local
+```
+
+
 - Override the API host used by the Render implementation:
 
 ```bash
 flutter run --dart-define=BACKEND=render --dart-define=API_HOST=your-host.example.com
 ```
+
 
 Notes:
 - The app reads `BACKEND` and `API_HOST` via `const String.fromEnvironment`.
