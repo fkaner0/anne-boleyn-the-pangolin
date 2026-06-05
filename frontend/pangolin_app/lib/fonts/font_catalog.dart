@@ -2,10 +2,15 @@ class FontCatalog {
   const FontCatalog();
 
   static const List<String> fonts = [
-    'Bauhaus 93',
+    'Archivo Black',
     'Comic Sans',
-    'Bradley Hand ITC',
-    // etc.
+    'EB Garamond',
+    'Inspiration',
+    'Tektur',
+    'Manslava',
+    'Playpen_Sans',
+    'Quicksand',
+    'Silkscreen',
   ];
 
   /// Returns the font after [current] in the list, wrapping around.

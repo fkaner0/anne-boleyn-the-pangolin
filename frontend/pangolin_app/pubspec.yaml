@@ -85,15 +85,34 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   fonts:
-    - family: Bauhaus 93
+    - family: Archivo Black
       fonts:
-        - asset: assets/fonts/BAUHS93.TTF
-    - family: Bradley Hand ITC
+        - asset: assets/fonts/Archivo_Black/ArchivoBlack-Regular.ttf
+    - family: EB Garamond
       fonts:
-        - asset: assets/fonts/BRADHITC.TTF
+        - asset: assets/fonts/EB_Garamond/EBGaramond-VariableFont_wght.ttf
+    - family: Inspiration
+      fonts:
+        - asset: assets/fonts/Inspiration/Inspiration-Regular.ttf
+    - family: Manslava
+      fonts:
+        - asset: assets/fonts/Mansalva/Mansalva-Regular.ttf
+    - family: Playpen_Sans
+      fonts:
+        - asset: assets/fonts/Playpen_Sans/PlaypenSans-VariableFont_wght.ttf
     - family: Comic Sans
       fonts:
-        - asset: assets/fonts/COMIC.TTF
+        - asset: assets/fonts/Comic_Sans/COMIC.TTF
+    - family: Quicksand
+      fonts:
+        - asset: assets/fonts/Quicksand/Quicksand-VariableFont_wght.ttf
+    - family: Silkscreen
+      fonts:
+        - asset: assets/fonts/Silkscreen/Silkscreen-Regular.ttf
+    - family: Tektur
+      fonts:
+        - asset: assets/fonts/Tektur/Tektur-VariableFont_wdth,wght.ttf
+
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
