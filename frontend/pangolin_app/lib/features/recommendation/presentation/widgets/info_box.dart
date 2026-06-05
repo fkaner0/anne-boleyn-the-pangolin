@@ -3,6 +3,8 @@ import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/recommendation.dart';
 
 class InfoBox extends StatelessWidget {
+  static const double _cardHeight = 110;
+
   final String name;
   final int? age;
   final String location;
@@ -22,6 +24,7 @@ class InfoBox extends StatelessWidget {
     final url = recommendation.imageUrl;
     return InfoBox(
       name: recommendation.name,
+      age: recommendation.age,
       location: recommendation.location,
       bio: recommendation.bio,
       image: url.isEmpty ? null : NetworkImage(url),
@@ -42,53 +45,68 @@ class InfoBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageProvider = image;
 
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: imageProvider == null
-                ? _imagePlaceholder(context)
-                : Image(
-                    image: imageProvider,
-                    width: 90,
-                    height: 90,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _imagePlaceholder(context),
-                  ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: context.paletteColors.surfaceMuted,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    age == null ? name : '$name ($age)',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+    return SizedBox(
+      height: _cardHeight,
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: imageProvider == null
+                  ? _imagePlaceholder(context)
+                  : Image(
+                      image: imageProvider,
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _imagePlaceholder(context),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    location,
-                    style: const TextStyle(fontStyle: FontStyle.italic),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(bio, maxLines: 3, overflow: TextOverflow.ellipsis),
-                ],
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                height: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: context.paletteColors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      age == null ? name : '$name ($age)',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      location,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontStyle: FontStyle.italic),
+                    ),
+                    const SizedBox(height: 6),
+                    Flexible(
+                      child: Text(
+                        bio,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

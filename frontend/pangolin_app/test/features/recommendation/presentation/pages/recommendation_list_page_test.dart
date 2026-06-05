@@ -20,6 +20,7 @@ void main() {
         Recommendation(
           userId: 0,
           name: 'Alice',
+          age: 30,
           location: 'London',
           bio: 'Artist',
           imageUrl: 'https://example.com/alice.jpg',
@@ -35,7 +36,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Alice'), findsOneWidget);
+    expect(find.text('Alice (30)'), findsOneWidget);
     expect(find.text('London'), findsOneWidget);
     verify(() => mockFetcher.fetchRecommendations()).called(1);
   });
