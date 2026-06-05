@@ -33,6 +33,7 @@ object api {
       name: String,
       location: String,
       bio: String,
+      age: Int,
       profileImageUrl: String,
       rejected: Boolean,
   )
@@ -73,6 +74,7 @@ object api {
       location: String,
       profileImageUrl: String,
       bio: String,
+      age: Int,
       wallBackgroundHexARGB: Long,
       wallImages: Vector[ProfileImage],
       wallTextboxes: Vector[ProfileTextbox],
@@ -147,6 +149,7 @@ object api {
       name = user.name,
       location = user.location,
       bio = user.bio,
+      age = user.age,
       profileImageUrl = user.profileImageUrl,
       rejected = false,
     )
@@ -161,6 +164,7 @@ object api {
             name = user.name,
             location = user.location,
             bio = user.bio,
+            age = user.age,
             profileImageUrl = user.profileImageUrl,
             wallBackgroundHexARGB = user.wallBackgroundHexARGB,
             wallImages = images.map(_.toApi),
@@ -266,6 +270,7 @@ object api {
       name = profile.name,
       location = profile.location,
       bio = profile.bio,
+      age = profile.age,
       profileImageUrl = profile.profileImageUrl,
       wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
     )

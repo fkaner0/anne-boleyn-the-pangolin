@@ -119,6 +119,7 @@ object repo {
       bio: String,
       wallBackgroundHexARGB: Long,
       profileImageUrl: String,
+      age: Int,
   ) derives DbCodec
 
   @Table(PostgresDbType)
@@ -129,6 +130,7 @@ object repo {
       bio: String,
       wallBackgroundHexARGB: Long,
       profileImageUrl: String,
+      age: Int,
   ) derives DbCodec
 
   object Profile {
@@ -189,6 +191,7 @@ object repo {
       bio = "no bio provided",
       wallBackgroundHexARGB = 0,
       profileImageUrl = "https://placehold.co/400x400.jpg",
+      age = 0,
     )).id.asRight
   }
 
