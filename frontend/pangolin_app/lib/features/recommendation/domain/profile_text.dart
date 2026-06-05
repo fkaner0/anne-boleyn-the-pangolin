@@ -4,7 +4,7 @@ class ProfileText {
   final String title;
   final String body;
   final String? font;
-  final int fontHexARGB;
+  final int? fontHexARGB;
   final int? backgroundHexARGB;
   final Position position;
 

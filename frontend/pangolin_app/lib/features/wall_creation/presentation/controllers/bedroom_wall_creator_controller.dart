@@ -190,6 +190,9 @@ class BedroomWallCreatorController {
             ProfileText(
               title: '',
               body: item.text,
+              font: item.font,
+              fontHexARGB: item.textColor?.toARGB32(),
+              backgroundHexARGB: item.backgroundColor?.toARGB32(),
               position: _positionFor(item.transform, 1.0),
             ),
           );
