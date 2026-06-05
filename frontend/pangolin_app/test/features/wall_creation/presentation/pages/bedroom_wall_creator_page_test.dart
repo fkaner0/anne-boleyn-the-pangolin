@@ -15,6 +15,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/controllers/bed
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/creator_tool_bar.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 
 final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -70,6 +71,7 @@ void main() {
       imagePicker: _FakeImageFilePicker(picked),
       wallImageUploader: MockWallImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
+      fontCatalog: getIt<FontCatalog>(),
     );
   }
 
