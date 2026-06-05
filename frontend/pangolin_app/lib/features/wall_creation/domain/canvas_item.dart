@@ -88,7 +88,7 @@ final class CanvasTextItem extends CanvasItem {
     );
   }
 
-  CanvasTextItem withTextColor(Color? color) {
+  CanvasTextItem withTextColor(Color? textColor) {
     return CanvasTextItem(
       id: id,
       transform: transform,
@@ -99,13 +99,13 @@ final class CanvasTextItem extends CanvasItem {
     );
   }
 
-  CanvasTextItem withBackgroundColor(Color? color) {
+  CanvasTextItem withBackgroundColor(Color? backgroundColor) {
     return CanvasTextItem(
       id: id,
       transform: transform,
       text: text,
       font: font,
-      textColor: color,
+      textColor: textColor,
       backgroundColor: backgroundColor,
     );
   }
