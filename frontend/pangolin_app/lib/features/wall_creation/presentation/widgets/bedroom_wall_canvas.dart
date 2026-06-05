@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_image.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
@@ -21,6 +22,7 @@ class BedroomWallCanvas extends StatelessWidget {
 
   final VirtualCanvas canvas;
   final StickerCatalog stickerCatalog;
+  final FontCatalog fontCatalog;
   final List<CanvasItem> items;
   final List<CanvasPrompt> prompts;
   final void Function(int id, CanvasTransform transform) onItemTransform;
@@ -35,6 +37,7 @@ class BedroomWallCanvas extends StatelessWidget {
     super.key,
     required this.canvas,
     required this.stickerCatalog,
+    required this.fontCatalog,
     required this.items,
     required this.prompts,
     required this.onItemTransform,
@@ -84,6 +87,7 @@ class BedroomWallCanvas extends StatelessWidget {
         minWidth: _textMinWidth * renderScale,
         maxWidth: _textMaxWidth * renderScale,
         text: item.text,
+        fontCatalog: fontCatalog,
         onTransformEnd: onEnd,
         onTextChanged: (text) => onTextChanged(item.id, text),
         onFontChanged: (font) => onFontChanged(item.id, font),

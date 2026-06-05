@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 
 import '../../domain/canvas_transform.dart';
@@ -12,6 +13,7 @@ class EditableCanvasTextItem extends StatefulWidget {
   final double maxWidth;
   final String text;
   final String? font;
+  final FontCatalog fontCatalog;
   final Color? textColor;
   final Color? backgroundColor;
   final String placeholder;
@@ -30,6 +32,7 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.minWidth,
     required this.maxWidth,
     required this.text,
+    required this.fontCatalog,
     required this.onTransformEnd,
     required this.onTextChanged,
     required this.onFontChanged,
@@ -157,6 +160,14 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     widget.onTransformEnd(_transform);
   }
 
+  Future<void> _cycleFont() async {
+    final nextFont = widget.fontCatalog.next(_font);
+    setState(() => _font = nextFont);
+    widget.onFontChanged(nextFont);
+    _refreshOverlay();
+    _startEditing();
+  }
+
   Future<void> _pickColor(
     Color? defaultVal,
     String dialogText,
@@ -247,10 +258,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                         ),
                         _TextFontCycleButton(
                           colorScheme: colorScheme,
-
-                          /// TODO
-                          onTap: () => (),
-                          // onTap: _cycleFont,
+                          onTap: _cycleFont,
                         ),
                       ],
                     ),
@@ -275,6 +283,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                               textInputAction: TextInputAction.done,
                               style: TextStyle(
                                 fontSize: 18,
+                                fontFamily: _font,
                                 color: effectiveTextColor,
                               ),
                               decoration: InputDecoration(
@@ -313,6 +322,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
 
     final textStyle = TextStyle(
       fontSize: widget.baseFontSize * scale,
+      fontFamily: _font,
       color: resolvedTextColor,
     );
     final text = _controller.text;

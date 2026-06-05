@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -36,6 +37,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         imagePicker: GalleryImageFilePicker(),
         wallImageUploader: getIt<WallImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
+        fontCatalog: getIt<FontCatalog>(),
       );
 
   late final ProfileBuilder _profileBuilder =
@@ -152,6 +154,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               child: BedroomWallCanvas(
                 canvas: _controller.canvas,
                 stickerCatalog: _controller.stickerCatalog,
+                fontCatalog: _controller.fontCatalog,
                 items: _controller.items,
                 prompts: _controller.prompts,
                 onItemTransform: (id, transform) {

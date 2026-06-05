@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/wall_creation/domain/virtual_canvas.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
@@ -12,6 +13,7 @@ import 'bedroom_wall_textbox_item.dart';
 class BedroomWallView extends StatelessWidget {
   final Profile profile;
   final StickerCatalog stickerCatalog;
+  final FontCatalog fontCatalog;
   final void Function(ProfileImage) onImageTap;
   final void Function(ProfileText) onTextTap;
 
@@ -19,6 +21,7 @@ class BedroomWallView extends StatelessWidget {
     super.key,
     required this.profile,
     required this.stickerCatalog,
+    required this.fontCatalog,
     required this.onImageTap,
     required this.onTextTap,
   });

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import '../../data/profile_fetcher.dart';
 import '../../domain/profile.dart';
@@ -16,17 +17,18 @@ class RecommendationProfilePage extends StatelessWidget {
     required this.userId,
   });
 
-  Future<(Profile, StickerCatalog)> _load() async {
+  Future<(Profile, StickerCatalog, FontCatalog)> _load() async {
     final profileFuture = profileFetcher.fetchProfile(userId);
-    final catalogFuture = StickerCatalog.load().catchError(
+    final stickerCatalogFuture = StickerCatalog.load().catchError(
       (_) => StickerCatalog.fromAssetKeys(const <String>[]),
     );
-    return (await profileFuture, await catalogFuture);
+    final fontCatalog = FontCatalog(); // TODO: is this right?
+    return (await profileFuture, await stickerCatalogFuture, fontCatalog);
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<(Profile, StickerCatalog)>(
+    return FutureBuilder<(Profile, StickerCatalog, FontCatalog)>(
       future: _load(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -56,7 +58,7 @@ class RecommendationProfilePage extends StatelessWidget {
           );
         }
 
-        final (profile, stickerCatalog) = snapshot.data!;
+        final (profile, stickerCatalog, fontCatalog) = snapshot.data!;
 
         return Scaffold(
           body: SafeArea(
@@ -75,6 +77,7 @@ class RecommendationProfilePage extends StatelessWidget {
                     child: BedroomWallView(
                       profile: profile,
                       stickerCatalog: stickerCatalog,
+                      fontCatalog: fontCatalog,
                       onImageTap: (image) {
                         Navigator.of(context).push(
                           MaterialPageRoute(

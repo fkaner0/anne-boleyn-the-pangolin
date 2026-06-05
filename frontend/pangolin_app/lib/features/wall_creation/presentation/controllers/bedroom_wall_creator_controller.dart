@@ -7,6 +7,7 @@ import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'dart:typed_data';
 
 import '../../data/image_file_picker.dart';
@@ -21,6 +22,7 @@ class BedroomWallCreatorController {
   final ImageFilePicker imagePicker;
   final WallImageUploader wallImageUploader;
   final StickerCatalog stickerCatalog;
+  final FontCatalog fontCatalog;
   final List<CanvasItem> _items = [];
   final List<CanvasPrompt> _prompts;
   int _nextId = 0;
@@ -29,6 +31,7 @@ class BedroomWallCreatorController {
     required this.imagePicker,
     required this.wallImageUploader,
     required this.stickerCatalog,
+    required this.fontCatalog,
     VirtualCanvas? canvas,
   }) : canvas = canvas ?? const VirtualCanvas(),
        _prompts = CanvasPrompt.defaults();
