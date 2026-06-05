@@ -335,7 +335,10 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
       child: IntrinsicWidth(
         child: Container(
           padding: EdgeInsets.all(8 * scale),
-          decoration: BoxDecoration(color: resolvedBackgroundColor),
+          decoration: BoxDecoration(
+            color: resolvedBackgroundColor,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Text(
             text.isEmpty ? widget.placeholder : text,
             textAlign: TextAlign.center,
