@@ -123,6 +123,7 @@ void main() {
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
+      fontCatalog: const FontCatalog(),
     );
     controller.addTextBox();
     controller.updateText(controller.textItems.single.id, 'Hello wall');
@@ -148,6 +149,7 @@ void main() {
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
+      fontCatalog: const FontCatalog(),
     );
 
     controller.addSticker('pangolin');
@@ -164,6 +166,7 @@ void main() {
       ),
       wallImageUploader: MockWallImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
+      fontCatalog: const FontCatalog(),
     );
 
     await controller.addImage();
