@@ -22,6 +22,8 @@ class EditableCanvasTextItem extends StatefulWidget {
   final void Function(String? font) onFontChanged;
   final void Function(Color? color) onTextColorChanged;
   final void Function(Color? color) onTextBackgroundColorChanged;
+  final void Function(bool active)? onInteractionChanged;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
   final double maxScale;
 
@@ -41,6 +43,8 @@ class EditableCanvasTextItem extends StatefulWidget {
     this.font,
     this.textColor,
     this.backgroundColor,
+    this.onInteractionChanged,
+    this.onDragUpdate,
     this.placeholder = 'Your text',
     this.minScale = 0.3,
     this.maxScale = 5.0,
@@ -51,6 +55,8 @@ class EditableCanvasTextItem extends StatefulWidget {
 }
 
 class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
+  static const double _hitSlop = 24.0;
+
   late final TextEditingController _controller = TextEditingController(
     text: widget.text,
   );
@@ -139,9 +145,11 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
     _startTransform = _transform;
+    widget.onInteractionChanged?.call(true);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    widget.onDragUpdate?.call(details.focalPoint);
     setState(() {
       _transform = _startTransform.copyWith(
         center:
@@ -158,6 +166,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
     widget.onTransformEnd(_transform);
+    widget.onInteractionChanged?.call(false);
   }
 
   Future<void> _cycleFont() async {
@@ -365,7 +374,10 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
               onScaleStart: _onScaleStart,
               onScaleUpdate: _onScaleUpdate,
               onScaleEnd: _onScaleEnd,
-              child: box,
+              child: Padding(
+                padding: const EdgeInsets.all(_hitSlop),
+                child: box,
+              ),
             ),
           ),
         ),

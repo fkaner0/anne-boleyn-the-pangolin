@@ -32,6 +32,8 @@ class BedroomWallCanvas extends StatelessWidget {
   final void Function(int id, Color? color) onTextBackgroundColorChanged;
   final Future<void> Function(int promptId) onPromptAddImage;
   final void Function(int promptId) onPromptAddTextBox;
+  final void Function(int id, bool active) onItemInteractionChanged;
+  final void Function(Offset globalPosition) onItemDragUpdate;
 
   const BedroomWallCanvas({
     super.key,
@@ -47,6 +49,8 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.onTextBackgroundColorChanged,
     required this.onPromptAddImage,
     required this.onPromptAddTextBox,
+    required this.onItemInteractionChanged,
+    required this.onItemDragUpdate,
   });
 
   CanvasTransform _toRendered(CanvasTransform transform, double renderScale) {
@@ -71,6 +75,9 @@ class BedroomWallCanvas extends StatelessWidget {
             Size(_imageBaseWidth, _imageBaseWidth / item.aspectRatio) *
             renderScale,
         onTransformEnd: onEnd,
+        onInteractionChanged: (active) =>
+            onItemInteractionChanged(item.id, active),
+        onDragUpdate: onItemDragUpdate,
         child: Image.memory(item.bytes, fit: BoxFit.cover),
       ),
       CanvasStickerItem() => InteractiveCanvasItem(
@@ -78,6 +85,9 @@ class BedroomWallCanvas extends StatelessWidget {
         initialTransform: initialTransform,
         baseSize: Size.square(_stickerBaseSize) * renderScale,
         onTransformEnd: onEnd,
+        onInteractionChanged: (active) =>
+            onItemInteractionChanged(item.id, active),
+        onDragUpdate: onItemDragUpdate,
         child: StickerImage(catalog: stickerCatalog, name: item.stickerName),
       ),
       CanvasTextItem() => EditableCanvasTextItem(
@@ -94,6 +104,9 @@ class BedroomWallCanvas extends StatelessWidget {
         onTextColorChanged: (color) => onTextColorChanged(item.id, color),
         onTextBackgroundColorChanged: (color) =>
             onTextBackgroundColorChanged(item.id, color),
+        onInteractionChanged: (active) =>
+            onItemInteractionChanged(item.id, active),
+        onDragUpdate: onItemDragUpdate,
       ),
     };
   }

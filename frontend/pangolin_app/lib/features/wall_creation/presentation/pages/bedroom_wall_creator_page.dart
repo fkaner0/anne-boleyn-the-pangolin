@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -51,10 +52,17 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       widget.profileUpdater ?? getIt<ProfileUpdater>();
 
   bool _saving = false;
+  bool _interacting = false;
+  bool _dragOverBin = false;
+  int? _draggingItemId;
 
   Future<void> _addImage() async {
     await _controller.addImage();
     if (mounted) setState(() {});
+  }
+
+  void _addTextBoxWithText(String text) {
+    setState(() => _controller.addTextBoxWithText(text));
   }
 
   void _addTextBox() {
@@ -79,6 +87,32 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
 
     if (stickerName == null || !mounted) return;
     setState(() => _controller.addSticker(stickerName));
+  }
+
+  void _onItemInteractionChanged(int id, bool active) {
+    if (active) {
+      setState(() {
+        _interacting = true;
+        _draggingItemId = id;
+      });
+      return;
+    }
+
+    final deletedId = _dragOverBin ? _draggingItemId : null;
+    setState(() {
+      if (deletedId != null) _controller.removeItem(deletedId);
+      _interacting = false;
+      _dragOverBin = false;
+      _draggingItemId = null;
+    });
+  }
+
+  void _onItemDragUpdate(Offset globalPosition) {
+    final binZoneBottom = MediaQuery.of(context).padding.top + kToolbarHeight;
+    final overBin = globalPosition.dy <= binZoneBottom;
+    if (overBin != _dragOverBin) {
+      setState(() => _dragOverBin = overBin);
+    }
   }
 
   Future<void> _save() async {
@@ -127,11 +161,23 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: const Text('Create your wall'),
+        backgroundColor: _dragOverBin
+            ? Theme.of(context).colorScheme.errorContainer
+            : null,
+        title: _interacting
+            ? Icon(
+                Icons.delete,
+                size: _dragOverBin ? 32 : 26,
+                color: _dragOverBin
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurfaceVariant,
+              )
+            : const Text('Create your wall'),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).maybePop(),
         ),
         actions: [
           IconButton(
@@ -151,34 +197,48 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: BedroomWallCanvas(
-                canvas: _controller.canvas,
-                stickerCatalog: _controller.stickerCatalog,
-                fontCatalog: _controller.fontCatalog,
-                items: _controller.items,
-                prompts: _controller.prompts,
-                onItemTransform: (id, transform) {
-                  setState(() => _controller.updateTransform(id, transform));
-                },
-                onTextChanged: _controller.updateText,
-                onFontChanged: _controller.updateTextFont,
-                onTextColorChanged: _controller.updateTextboxTextColour,
-                onTextBackgroundColorChanged:
-                    _controller.updateTextboxBackgroundColour,
-
-                /// TODO?
-                onPromptAddImage: _addImageFromPrompt,
-                onPromptAddTextBox: _addTextBoxFromPrompt,
+              child: SingleChildScrollView(
+                child: BedroomWallCanvas(
+                  canvas: _controller.canvas,
+                  stickerCatalog: _controller.stickerCatalog,
+                  fontCatalog: _controller.fontCatalog,
+                  items: _controller.items,
+                  prompts: _controller.prompts,
+                  onItemTransform: (id, transform) {
+                    setState(() => _controller.updateTransform(id, transform));
+                  },
+                  onTextChanged: _controller.updateText,
+                  onFontChanged: _controller.updateTextFont,
+                  onTextColorChanged: _controller.updateTextboxTextColour,
+                  onTextBackgroundColorChanged:
+                      _controller.updateTextboxBackgroundColour,
+                  onPromptAddImage: _addImageFromPrompt,
+                  onPromptAddTextBox: _addTextBoxFromPrompt,
+                  onItemInteractionChanged: _onItemInteractionChanged,
+                  onItemDragUpdate: _onItemDragUpdate,
+                ),
               ),
             ),
             Positioned(
               left: 0,
               right: 0,
               bottom: 16,
-              child: CreatorToolBar(
-                onAddTextBox: _addTextBox,
-                onAddImage: _addImage,
-                onAddSticker: _addSticker,
+              child: IgnorePointer(
+                ignoring: _interacting,
+                child: AnimatedOpacity(
+                  opacity: _interacting ? 0.0 : 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Column(
+                    children: [
+                      PromptGenerator(onCreate: _addTextBoxWithText),
+                      CreatorToolBar(
+                        onAddTextBox: _addTextBox,
+                        onAddImage: _addImage,
+                        onAddSticker: _addSticker,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],

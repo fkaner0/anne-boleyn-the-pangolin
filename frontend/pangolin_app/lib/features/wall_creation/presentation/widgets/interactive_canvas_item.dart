@@ -7,6 +7,8 @@ class InteractiveCanvasItem extends StatefulWidget {
   final Size baseSize;
   final Widget child;
   final void Function(CanvasTransform transform) onTransformEnd;
+  final void Function(bool active)? onInteractionChanged;
+  final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
   final double maxScale;
 
@@ -16,6 +18,8 @@ class InteractiveCanvasItem extends StatefulWidget {
     required this.baseSize,
     required this.child,
     required this.onTransformEnd,
+    this.onInteractionChanged,
+    this.onDragUpdate,
     this.minScale = 0.3,
     this.maxScale = 5.0,
   });
@@ -25,6 +29,8 @@ class InteractiveCanvasItem extends StatefulWidget {
 }
 
 class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
+  static const double _hitSlop = 24.0;
+
   late CanvasTransform _transform = widget.initialTransform;
 
   bool _gesturing = false;
@@ -43,9 +49,11 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
     _gesturing = true;
     _startFocalPoint = details.focalPoint;
     _startTransform = _transform;
+    widget.onInteractionChanged?.call(true);
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    widget.onDragUpdate?.call(details.focalPoint);
     setState(() {
       _transform = _startTransform.copyWith(
         center:
@@ -62,18 +70,21 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
   void _onScaleEnd(ScaleEndDetails details) {
     _gesturing = false;
     widget.onTransformEnd(_transform);
+    widget.onInteractionChanged?.call(false);
   }
 
   @override
   Widget build(BuildContext context) {
     final width = widget.baseSize.width * _transform.scale;
     final height = widget.baseSize.height * _transform.scale;
+    final boxWidth = width + _hitSlop * 2;
+    final boxHeight = height + _hitSlop * 2;
 
     return Positioned(
-      left: _transform.center.dx - width / 2,
-      top: _transform.center.dy - height / 2,
-      width: width,
-      height: height,
+      left: _transform.center.dx - boxWidth / 2,
+      top: _transform.center.dy - boxHeight / 2,
+      width: boxWidth,
+      height: boxHeight,
       child: Transform.rotate(
         angle: _transform.rotation,
         child: GestureDetector(
@@ -81,7 +92,9 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
           onScaleStart: _onScaleStart,
           onScaleUpdate: _onScaleUpdate,
           onScaleEnd: _onScaleEnd,
-          child: widget.child,
+          child: Center(
+            child: SizedBox(width: width, height: height, child: widget.child),
+          ),
         ),
       ),
     );
