@@ -167,11 +167,11 @@ class BedroomWallCreatorController {
     _updateTextFromId(id, (item) => item.withFont(font));
   }
 
-  void updateTextboxTextColour(int id, Color? color) {
+  void updateTextboxTextColor(int id, Color? color) {
     _updateTextFromId(id, (item) => item.withTextColor(color));
   }
 
-  void updateTextboxBackgroundColour(int id, Color? color) {
+  void updateTextboxBackgroundColor(int id, Color? color) {
     _updateTextFromId(id, (item) => item.withBackgroundColor(color));
   }
 
