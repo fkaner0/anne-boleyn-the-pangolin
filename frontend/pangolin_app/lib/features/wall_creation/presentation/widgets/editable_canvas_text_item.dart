@@ -220,7 +220,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
             borderRadius: BorderRadius.circular(8 * scale),
           ),
           child: Text(
-            widget.editable ? (text.isEmpty ? widget.placeholder : text) : '',
+            widget.editable && text.isEmpty ? widget.placeholder : text,
             textAlign: TextAlign.center,
             style: text.isEmpty
                 ? textStyle.copyWith(color: colorScheme.onSurfaceVariant)
@@ -251,7 +251,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                       child: box,
                     ),
                   )
-                : Padding(padding: const EdgeInsets.all(_hitSlop), child: box),
+                : box,
           ),
         ),
       ),

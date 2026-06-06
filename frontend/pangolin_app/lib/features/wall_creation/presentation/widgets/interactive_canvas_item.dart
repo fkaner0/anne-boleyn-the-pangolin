@@ -84,6 +84,10 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
 
     final editable = widget.editable;
 
+    final centeredBox = Center(
+      child: SizedBox(width: width, height: height, child: widget.child),
+    );
+
     return Positioned(
       left: _transform.center.dx - boxWidth / 2,
       top: _transform.center.dy - boxHeight / 2,
@@ -97,21 +101,9 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
                 onScaleStart: _onScaleStart,
                 onScaleUpdate: _onScaleUpdate,
                 onScaleEnd: _onScaleEnd,
-                child: Center(
-                  child: SizedBox(
-                    width: width,
-                    height: height,
-                    child: widget.child,
-                  ),
-                ),
+                child: centeredBox,
               )
-            : Center(
-                child: SizedBox(
-                  width: width,
-                  height: height,
-                  child: widget.child,
-                ),
-              ),
+            : centeredBox,
       ),
     );
   }
