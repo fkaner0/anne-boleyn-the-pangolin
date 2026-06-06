@@ -210,7 +210,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   canvas: _controller.canvas,
                   stickerCatalog: _controller.stickerCatalog,
                   items: _controller.items,
-                  prompts: _controller.prompts,
+                  prompts: _preview ? const [] : _controller.prompts,
                   onItemTransform: (id, transform) {
                     setState(() => _controller.updateTransform(id, transform));
                   },
