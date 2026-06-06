@@ -7,6 +7,7 @@ class InteractiveCanvasItem extends StatefulWidget {
   final Size baseSize;
   final Widget child;
   final void Function(CanvasTransform transform) onTransformEnd;
+  final bool editable;
   final void Function(bool active)? onInteractionChanged;
   final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
@@ -18,6 +19,7 @@ class InteractiveCanvasItem extends StatefulWidget {
     required this.baseSize,
     required this.child,
     required this.onTransformEnd,
+    required this.editable,
     this.onInteractionChanged,
     this.onDragUpdate,
     this.minScale = 0.3,
@@ -80,6 +82,8 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
     final boxWidth = width + _hitSlop * 2;
     final boxHeight = height + _hitSlop * 2;
 
+    final editable = widget.editable;
+
     return Positioned(
       left: _transform.center.dx - boxWidth / 2,
       top: _transform.center.dy - boxHeight / 2,
@@ -87,15 +91,27 @@ class _InteractiveCanvasItemState extends State<InteractiveCanvasItem> {
       height: boxHeight,
       child: Transform.rotate(
         angle: _transform.rotation,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onScaleStart: _onScaleStart,
-          onScaleUpdate: _onScaleUpdate,
-          onScaleEnd: _onScaleEnd,
-          child: Center(
-            child: SizedBox(width: width, height: height, child: widget.child),
-          ),
-        ),
+        child: editable
+            ? GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onScaleStart: _onScaleStart,
+                onScaleUpdate: _onScaleUpdate,
+                onScaleEnd: _onScaleEnd,
+                child: Center(
+                  child: SizedBox(
+                    width: width,
+                    height: height,
+                    child: widget.child,
+                  ),
+                ),
+              )
+            : Center(
+                child: SizedBox(
+                  width: width,
+                  height: height,
+                  child: widget.child,
+                ),
+              ),
       ),
     );
   }

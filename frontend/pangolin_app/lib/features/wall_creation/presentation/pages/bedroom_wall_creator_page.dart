@@ -219,6 +219,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                   onPromptAddTextBox: _addTextBoxFromPrompt,
                   onItemInteractionChanged: _onItemInteractionChanged,
                   onItemDragUpdate: _onItemDragUpdate,
+                  editable: !_preview,
                 ),
               ),
             ),

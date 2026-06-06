@@ -12,6 +12,7 @@ class EditableCanvasTextItem extends StatefulWidget {
   final String placeholder;
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
+  final bool editable;
   final void Function(bool active)? onInteractionChanged;
   final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
@@ -26,6 +27,7 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.text,
     required this.onTransformEnd,
     required this.onTextChanged,
+    required this.editable,
     this.onInteractionChanged,
     this.onDragUpdate,
     this.placeholder = 'Your text',
