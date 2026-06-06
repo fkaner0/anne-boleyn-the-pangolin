@@ -10,9 +10,9 @@ class EditableCanvasTextItem extends StatefulWidget {
   final double maxWidth;
   final String text;
   final String placeholder;
+  final bool editable;
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
-  final bool editable;
   final void Function(bool active)? onInteractionChanged;
   final void Function(Offset globalPosition)? onDragUpdate;
   final double minScale;
@@ -25,9 +25,9 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.minWidth,
     required this.maxWidth,
     required this.text,
+    required this.editable,
     required this.onTransformEnd,
     required this.onTextChanged,
-    required this.editable,
     this.onInteractionChanged,
     this.onDragUpdate,
     this.placeholder = 'Your text',
@@ -162,6 +162,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                     children: [
                       Expanded(
                         child: TextField(
+                          readOnly: !widget.editable,
                           controller: _controller,
                           focusNode: _focusNode,
                           onChanged: widget.onTextChanged,
@@ -219,7 +220,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
             borderRadius: BorderRadius.circular(8 * scale),
           ),
           child: Text(
-            text.isEmpty ? widget.placeholder : text,
+            widget.editable ? (text.isEmpty ? widget.placeholder : text) : '',
             textAlign: TextAlign.center,
             style: text.isEmpty
                 ? textStyle.copyWith(color: colorScheme.onSurfaceVariant)
@@ -238,17 +239,19 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
           angle: _transform.rotation,
           child: Opacity(
             opacity: _editing ? 0.0 : 1.0,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _startEditing,
-              onScaleStart: _onScaleStart,
-              onScaleUpdate: _onScaleUpdate,
-              onScaleEnd: _onScaleEnd,
-              child: Padding(
-                padding: const EdgeInsets.all(_hitSlop),
-                child: box,
-              ),
-            ),
+            child: widget.editable
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _startEditing,
+                    onScaleStart: _onScaleStart,
+                    onScaleUpdate: _onScaleUpdate,
+                    onScaleEnd: _onScaleEnd,
+                    child: Padding(
+                      padding: const EdgeInsets.all(_hitSlop),
+                      child: box,
+                    ),
+                  )
+                : Padding(padding: const EdgeInsets.all(_hitSlop), child: box),
           ),
         ),
       ),

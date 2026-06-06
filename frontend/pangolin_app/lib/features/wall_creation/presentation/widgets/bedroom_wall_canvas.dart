@@ -92,9 +92,9 @@ class BedroomWallCanvas extends StatelessWidget {
         minWidth: _textMinWidth * renderScale,
         maxWidth: _textMaxWidth * renderScale,
         text: item.text,
+        editable: editable,
         onTransformEnd: onEnd,
         onTextChanged: (text) => onTextChanged(item.id, text),
-        editable: editable,
         onInteractionChanged: (active) =>
             onItemInteractionChanged(item.id, active),
         onDragUpdate: onItemDragUpdate,
