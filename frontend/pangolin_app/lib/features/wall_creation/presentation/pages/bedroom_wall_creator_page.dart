@@ -53,6 +53,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   bool _interacting = false;
   bool _dragOverBin = false;
   int? _draggingItemId;
+  bool _preview = false;
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -154,6 +155,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     );
   }
 
+  void _togglePreview() {
+    setState(() => _preview = !_preview);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,6 +183,11 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           onPressed: () => Navigator.of(context).maybePop(),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.preview),
+            tooltip: _preview ? 'Hide Preview' : 'Preview',
+            onPressed: _togglePreview,
+          ),
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save',
@@ -212,28 +222,29 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 16,
-              child: IgnorePointer(
-                ignoring: _interacting,
-                child: AnimatedOpacity(
-                  opacity: _interacting ? 0.0 : 1.0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Column(
-                    children: [
-                      PromptGenerator(onCreate: _addTextBoxWithText),
-                      CreatorToolBar(
-                        onAddTextBox: _addTextBox,
-                        onAddImage: _addImage,
-                        onAddSticker: _addSticker,
-                      ),
-                    ],
+            if (!_preview)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 16,
+                child: IgnorePointer(
+                  ignoring: _interacting,
+                  child: AnimatedOpacity(
+                    opacity: _interacting ? 0.0 : 1.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Column(
+                      children: [
+                        PromptGenerator(onCreate: _addTextBoxWithText),
+                        CreatorToolBar(
+                          onAddTextBox: _addTextBox,
+                          onAddImage: _addImage,
+                          onAddSticker: _addSticker,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
