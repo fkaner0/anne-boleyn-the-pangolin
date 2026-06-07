@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
@@ -70,12 +71,25 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   late Color? _textColor = widget.textColor;
   late Color? _backgroundColor = widget.backgroundColor;
 
+  bool _pickingColor = false;
+  String _colorPickerTitle = '';
+  Color _pendingColor = const Color(0xFF000000);
+  void Function(Color)? _onColorPicked;
+
   bool _gesturing = false;
   Offset _startFocalPoint = Offset.zero;
   CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
 
   void _refreshOverlay() {
-    _overlayEntry?.markNeedsBuild();
+    if (_overlayEntry == null) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.persistentCallbacks) {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _overlayEntry?.markNeedsBuild();
+      });
+    } else {
+      _overlayEntry!.markNeedsBuild();
+    }
   }
 
   @override
@@ -164,34 +178,27 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     _focusNode.requestFocus();
   }
 
-  Future<void> _pickColor(
+  void _pickColor(
     Color? defaultVal,
     String dialogText,
     void Function(Color) onColorChange,
-  ) async {
+  ) {
+    if (_pickingColor) return;
     _focusNode.unfocus();
+    _pickingColor = true;
+    _colorPickerTitle = dialogText;
+    _pendingColor = defaultVal ?? Theme.of(context).colorScheme.onSurface;
+    _onColorPicked = onColorChange;
+    _refreshOverlay();
+  }
 
-    Color pickerColor = defaultVal ?? Theme.of(context).colorScheme.onSurface;
-
-    await showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(dialogText),
-        content: ColorPicker(
-          pickerColor: pickerColor,
-          onColorChanged: (color) => pickerColor = color,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted) return;
-    onColorChange(pickerColor);
+  void _finishPickColor() {
+    if (!_pickingColor) return;
+    final onPicked = _onColorPicked;
+    final color = _pendingColor;
+    _pickingColor = false;
+    _onColorPicked = null;
+    onPicked?.call(color);
     _refreshOverlay();
     _focusNode.requestFocus();
   }
@@ -301,6 +308,34 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                 ],
               ),
             ),
+            if (_pickingColor)
+              Positioned.fill(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _finishPickColor,
+                  child: ColoredBox(
+                    color: Colors.black54,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () {},
+                        child: AlertDialog(
+                          title: Text(_colorPickerTitle),
+                          content: ColorPicker(
+                            pickerColor: _pendingColor,
+                            onColorChanged: (color) => _pendingColor = color,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: _finishPickColor,
+                              child: const Text('Done'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
