@@ -63,18 +63,20 @@ class BedroomWallCreatorController {
     );
   }
 
-  void addTextBoxWithText(String text) {
+  void addTextBoxWithText(String text, {Offset? center}) {
     _items.add(
       CanvasTextItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: center != null
+            ? CanvasTransform(center: center)
+            : _centeredTransform(),
         text: text,
       ),
     );
   }
 
-  void addTextBox() {
-    addTextBoxWithText('');
+  void addTextBox({Offset? center}) {
+    addTextBoxWithText('', center: center);
   }
 
   void addSticker(String stickerName) {
