@@ -74,12 +74,6 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
   Offset _startFocalPoint = Offset.zero;
   CanvasTransform _startTransform = const CanvasTransform(center: Offset.zero);
 
-  @override
-  void initState() {
-    super.initState();
-    _focusNode.addListener(_onFocusChange);
-  }
-
   void _refreshOverlay() {
     _overlayEntry?.markNeedsBuild();
   }
@@ -109,18 +103,11 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChange);
     _overlayEntry?.remove();
     _overlayEntry = null;
     _focusNode.dispose();
     _controller.dispose();
     super.dispose();
-  }
-
-  void _onFocusChange() {
-    if (!_focusNode.hasFocus && _editing) {
-      _stopEditing();
-    }
   }
 
   void _startEditing() {
@@ -169,12 +156,12 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     widget.onInteractionChanged?.call(false);
   }
 
-  Future<void> _cycleFont() async {
+  void _cycleFont() {
     final nextFont = widget.fontCatalog.next(_font);
     setState(() => _font = nextFont);
     widget.onFontChanged(nextFont);
     _refreshOverlay();
-    _startEditing();
+    _focusNode.requestFocus();
   }
 
   Future<void> _pickColor(
@@ -206,7 +193,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     if (!mounted) return;
     onColorChange(pickerColor);
     _refreshOverlay();
-    _startEditing();
+    _focusNode.requestFocus();
   }
 
   OverlayEntry _buildOverlayEntry() {
