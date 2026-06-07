@@ -1,11 +1,11 @@
-import 'dart:ui' show Offset;
-
+import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'dart:typed_data';
 
 import '../../data/image_file_picker.dart';
@@ -20,6 +20,7 @@ class BedroomWallCreatorController {
   final ImageFilePicker imagePicker;
   final WallImageUploader wallImageUploader;
   final StickerCatalog stickerCatalog;
+  final FontCatalog fontCatalog;
   final List<CanvasItem> _items = [];
   final List<CanvasPrompt> _prompts;
   int _nextId = 0;
@@ -28,6 +29,7 @@ class BedroomWallCreatorController {
     required this.imagePicker,
     required this.wallImageUploader,
     required this.stickerCatalog,
+    required this.fontCatalog,
     VirtualCanvas? canvas,
   }) : canvas = canvas ?? const VirtualCanvas(),
        _prompts = CanvasPrompt.defaults();
@@ -61,18 +63,20 @@ class BedroomWallCreatorController {
     );
   }
 
-  void addTextBoxWithText(String text) {
+  void addTextBoxWithText(String text, {Offset? center}) {
     _items.add(
       CanvasTextItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: center != null
+            ? CanvasTransform(center: center)
+            : _centeredTransform(),
         text: text,
       ),
     );
   }
 
-  void addTextBox() {
-    addTextBoxWithText('');
+  void addTextBox({Offset? center}) {
+    addTextBoxWithText('', center: center);
   }
 
   void addSticker(String stickerName) {
@@ -144,14 +148,31 @@ class BedroomWallCreatorController {
     _items.add(updated);
   }
 
-  void updateText(int id, String text) {
+  void _updateTextFromId(int id, CanvasTextItem Function(CanvasTextItem) f) {
     final index = _items.indexWhere((item) => item.id == id);
     if (index == -1) return;
 
     final item = _items[index];
     if (item is CanvasTextItem) {
-      _items[index] = item.withText(text);
+      _items[index] = f(item);
     }
+  }
+
+  void updateText(int id, String text) {
+    _updateTextFromId(id, (item) => item.withText(text));
+  }
+
+  // TODO: FONT TYPE?
+  void updateTextFont(int id, String? font) {
+    _updateTextFromId(id, (item) => item.withFont(font));
+  }
+
+  void updateTextboxTextColor(int id, Color? color) {
+    _updateTextFromId(id, (item) => item.withTextColor(color));
+  }
+
+  void updateTextboxBackgroundColor(int id, Color? color) {
+    _updateTextFromId(id, (item) => item.withBackgroundColor(color));
   }
 
   void exportInto(ProfileBuilder builder) {
@@ -169,6 +190,9 @@ class BedroomWallCreatorController {
             ProfileText(
               title: '',
               body: item.text,
+              font: item.font,
+              fontHexARGB: item.textColor?.toARGB32(),
+              backgroundHexARGB: item.backgroundColor?.toARGB32(),
               position: _positionFor(item.transform, 1.0),
             ),
           );

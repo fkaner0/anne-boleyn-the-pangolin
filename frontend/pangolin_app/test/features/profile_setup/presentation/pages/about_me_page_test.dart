@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart
 import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 final Uint8List _onePixelPng = base64Decode(
@@ -55,6 +56,7 @@ void main() {
     imagePicker: const _FakeImageFilePicker(null),
     wallImageUploader: MockWallImageUploader(),
     stickerCatalog: getIt<StickerCatalog>(),
+    fontCatalog: const FontCatalog(),
   );
 
   testWidgets('entering fields builds them into the profile builder', (

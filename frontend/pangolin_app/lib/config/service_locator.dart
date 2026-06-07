@@ -7,6 +7,7 @@ import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/compressing_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/data/default_image_compressor.dart';
 import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
@@ -34,6 +35,10 @@ void configureDependencies(BackendMode backend) {
     getIt.registerLazySingleton<StickerCatalog>(
       () => StickerCatalog.fromAssetKeys(const <String>[]),
     );
+  }
+
+  if (!getIt.isRegistered<FontCatalog>()) {
+    getIt.registerLazySingleton<FontCatalog>(() => FontCatalog());
   }
 
   switch (backend) {
