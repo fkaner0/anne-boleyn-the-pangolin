@@ -6,12 +6,14 @@ class WiggleHint extends StatefulWidget {
   final Widget child;
   final bool enabled;
   final Duration delay;
+  final Duration interval;
 
   const WiggleHint({
     super.key,
     required this.child,
     this.enabled = true,
     this.delay = const Duration(seconds: 3),
+    this.interval = const Duration(seconds: 15),
   });
 
   @override
@@ -23,7 +25,8 @@ class _WiggleHintState extends State<WiggleHint>
   late final AnimationController _controller;
   late final Animation<double> _wiggle;
 
-  Timer? _timer;
+  Timer? _delayTimer;
+  Timer? _repeatTimer;
 
   @override
   void initState() {
@@ -49,21 +52,31 @@ class _WiggleHintState extends State<WiggleHint>
     if (widget.enabled && !oldWidget.enabled) {
       _scheduleWiggle();
     } else if (!widget.enabled && oldWidget.enabled) {
-      _timer?.cancel();
+      _cancelTimers();
       _controller.reset();
     }
   }
 
   void _scheduleWiggle() {
-    _timer?.cancel();
-    _timer = Timer(widget.delay, () {
-      if (mounted) _controller.forward(from: 0);
+    _cancelTimers();
+    _delayTimer = Timer(widget.delay, () {
+      _wiggleNow();
+      _repeatTimer = Timer.periodic(widget.interval, (_) => _wiggleNow());
     });
+  }
+
+  void _wiggleNow() {
+    if (mounted) _controller.forward(from: 0);
+  }
+
+  void _cancelTimers() {
+    _delayTimer?.cancel();
+    _repeatTimer?.cancel();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    _cancelTimers();
     _controller.dispose();
     super.dispose();
   }
