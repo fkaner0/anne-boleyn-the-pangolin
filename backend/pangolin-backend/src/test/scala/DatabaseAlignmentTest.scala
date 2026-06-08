@@ -84,6 +84,10 @@ final class SchemaAlignmentTest extends FunSuite {
     assertCaseClassMatchesTable[repo.Profile]("profile")
   }
 
+  test("Account matches account table ordering") {
+    assertCaseClassMatchesTable[repo.Account]("account")
+  }
+
   test("ProfileImage matches profileimage table ordering") {
     assertCaseClassMatchesTable[repo.ProfileImage]("profileimage")
   }
