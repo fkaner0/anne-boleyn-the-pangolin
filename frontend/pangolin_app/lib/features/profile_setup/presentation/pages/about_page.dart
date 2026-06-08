@@ -84,7 +84,10 @@ class _AboutPageState extends ConsumerState<AboutPage> {
               children: [
 
                 // --- Hobby ---
-                Text('Hobby', style: theme.textTheme.titleMedium),
+                _TextWithInfoButton(
+                  text: Text('Hobby', style: theme.textTheme.titleMedium),
+                  infoText: "We'll only show you people with the same hobby",
+                ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   // initialValue: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
@@ -114,7 +117,10 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 _divider,
 
                 // --- Passion-meter ---
-                Text('Passion-meter', style: theme.textTheme.titleMedium),
+                _TextWithInfoButton(
+                  text: Text('Passion-meter', style: theme.textTheme.titleMedium),
+                  infoText: "We only use this as a rough guide when finding people. Try not to overthink it!",
+                ),
                 _divider,
                 /// TODO
                 // FormField<double>(
@@ -249,9 +255,9 @@ class _AdditionalInfoSection extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
-              Text(
-                'Additional Info (optional)',
-                style: theme.textTheme.titleMedium,
+              _TextWithInfoButton(
+                text: Text('Additional Info (optional)', style: theme.textTheme.titleMedium,),
+                infoText: "All of the following are optional and aren't visible to anyone else",
               ),
             ],
           ),
@@ -331,3 +337,27 @@ class _AddChipButton extends StatelessWidget {
 //     );
 
 const _divider = SizedBox(height: 36);
+
+class _TextWithInfoButton extends StatelessWidget {
+  final Text text;
+  final String infoText;
+  final double iconSize = 18;
+
+  const _TextWithInfoButton({required this.text, required this.infoText});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        text,
+        IconButton(
+          iconSize: iconSize,
+          tooltip: infoText,
+          onPressed: () => (), 
+          icon: const Icon(Icons.info_outlined),
+          ),
+      ],
+    );
+  }
+  
+}
