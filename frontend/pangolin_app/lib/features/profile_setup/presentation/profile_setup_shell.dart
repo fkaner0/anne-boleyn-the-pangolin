@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -18,20 +17,23 @@ import 'package:pangolin_app/theme/palette_colors.dart';
 import 'pages/about_page.dart';
 import 'pages/old___about_me_page.dart';
 
-class SignupShell extends ConsumerStatefulWidget {
-  const SignupShell({super.key});
+class SignupShell extends StatefulWidget {
+  final int userId;
+
+  const SignupShell({super.key, required this.userId});
 
   @override
-  ConsumerState<SignupShell> createState() => _SignupShellState();
+  State<SignupShell> createState() => _SignupShellState();
 }
 
-class _SignupShellState extends ConsumerState<SignupShell> {
+class _SignupShellState extends State<SignupShell> {
   static const _steps = ['About', 'Wall', 'Intro'];
 
   int _step = 0;
   bool _submitting = false;
 
-  late final ProfileBuilder _profileBuilder = ProfileBuilder()..setUserId(0);
+  late final ProfileBuilder _profileBuilder = ProfileBuilder()
+    ..setUserId(widget.userId);
 
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(

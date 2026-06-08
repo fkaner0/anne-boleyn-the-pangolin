@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -15,9 +14,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(500, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
-    await tester.pumpWidget(
-      const ProviderScope(child: MaterialApp(home: SignupShell())),
-    );
+    await tester.pumpWidget(const MaterialApp(home: SignupShell(userId: 0)));
     await tester.pumpAndSettle();
   }
 
