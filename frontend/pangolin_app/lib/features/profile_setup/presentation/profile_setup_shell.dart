@@ -13,6 +13,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/controllers/bed
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/theme/palette_colors.dart';
 
 import 'pages/about_page.dart';
 import 'pages/old___about_me_page.dart';
@@ -115,6 +116,9 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 }
 
 class _SignupProgressBar extends StatelessWidget {
+  static const double _connectorWidth = 40;
+  static const double _ballSize = 28;
+
   final int currentStep;
   final List<String> steps;
 
@@ -123,37 +127,39 @@ class _SignupProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final completedColor = colorScheme.primary;
+    final currentColor = context.paletteColors.pangolin;
+    final uncompletedColor = colorScheme.outline;
+
+    Color colorFor(int i) {
+      if (i < currentStep) return completedColor;
+      if (i == currentStep) return currentColor;
+      return uncompletedColor;
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
-        children: List.generate(steps.length, (i) {
-          final isActive = i == currentStep;
-          final isPast = i < currentStep;
-          return Expanded(
-            child: Row(
-              children: [
-                _StepIndicator(
-                  label: steps[i],
-                  index: i + 1,
-                  isActive: isActive,
-                  isPast: isPast,
-                ),
-                if (i < steps.length - 1)
-                  Expanded(
-                    child: Container(
-                      height: 2,
-                      color: isPast
-                          ? colorScheme.primary
-                          : colorScheme.tertiary,
-
-                      /// TODO: colors? idk
-                    ),
-                  ),
-              ],
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var i = 0; i < steps.length; i++) ...[
+            _StepIndicator(
+              label: steps[i],
+              index: i + 1,
+              color: colorFor(i),
+              isActive: i == currentStep,
+              ballSize: _ballSize,
             ),
-          );
-        }),
+            if (i < steps.length - 1)
+              Container(
+                width: _connectorWidth,
+                height: 2,
+                margin: const EdgeInsets.only(top: _ballSize / 2 - 1),
+                color: i < currentStep ? completedColor : uncompletedColor,
+              ),
+          ],
+        ],
       ),
     );
   }
@@ -162,45 +168,39 @@ class _SignupProgressBar extends StatelessWidget {
 class _StepIndicator extends StatelessWidget {
   final String label;
   final int index;
+  final Color color;
   final bool isActive;
-  final bool isPast;
+  final double ballSize;
 
   const _StepIndicator({
     required this.label,
     required this.index,
+    required this.color,
     required this.isActive,
-    required this.isPast,
+    required this.ballSize,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final numberColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
+        ? Colors.white
+        : Colors.black;
 
-    final color = isActive || isPast
-        ? colorScheme.primary
-        : colorScheme.tertiary;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isActive || isPast
-                ? colorScheme.primary
-                : colorScheme.tertiary,
-            border: Border.all(color: color, width: 2),
-          ),
+          width: ballSize,
+          height: ballSize,
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           child: Center(
             child: Text(
               '$index',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isActive || isPast
-                    ? colorScheme.surface
-                    : colorScheme.tertiary,
+                color: numberColor,
               ),
             ),
           ),
@@ -210,7 +210,7 @@ class _StepIndicator extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: isActive ? colorScheme.primary : colorScheme.tertiary,
+            color: color,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
