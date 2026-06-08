@@ -147,11 +147,18 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   void _onItemDragUpdate(Offset globalPosition) {
-    final binZoneBottom = MediaQuery.of(context).padding.top + kToolbarHeight;
-    final overBin = globalPosition.dy <= binZoneBottom;
+    final overBin = globalPosition.dy <= _binZoneBottom();
     if (overBin != _dragOverBin) {
       setState(() => _dragOverBin = overBin);
     }
+  }
+
+  double _binZoneBottom() {
+    final renderObject = _viewportKey.currentContext?.findRenderObject();
+    if (renderObject is RenderBox && renderObject.hasSize) {
+      return renderObject.localToGlobal(Offset.zero).dy;
+    }
+    return MediaQuery.of(context).padding.top + kToolbarHeight;
   }
 
   void _onSavePressed() {

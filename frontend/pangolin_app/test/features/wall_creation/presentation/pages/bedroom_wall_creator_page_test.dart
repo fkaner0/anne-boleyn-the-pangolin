@@ -376,4 +376,44 @@ void main() {
 
     expect(controller.items, isEmpty);
   });
+
+  testWidgets('the bin zone follows the app bar when offset from the top', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(400, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = controllerWith(null);
+    controller.addTextBox();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const SizedBox(height: 120),
+              Expanded(child: BedroomWallCreatorPage(controller: controller)),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(controller.items, hasLength(1));
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Your text')),
+    );
+    await gesture.moveBy(const Offset(40, 0));
+    await tester.pump();
+    await gesture.moveTo(const Offset(200, 140));
+    await tester.pump();
+
+    expect(find.byIcon(Icons.delete), findsOneWidget);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(controller.items, isEmpty);
+  });
 }
