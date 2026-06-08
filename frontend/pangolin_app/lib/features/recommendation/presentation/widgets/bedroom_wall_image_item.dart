@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/profile_image.dart';
-import 'message_send_badge.dart';
+import 'wiggle_hint.dart';
 
 class BedroomWallImageItem extends StatelessWidget {
   static const double _baseWidth = 160;
@@ -8,12 +8,14 @@ class BedroomWallImageItem extends StatelessWidget {
   final ProfileImage image;
   final double renderScale;
   final VoidCallback onTap;
+  final bool wiggle;
 
   const BedroomWallImageItem({
     super.key,
     required this.image,
     required this.renderScale,
     required this.onTap,
+    this.wiggle = false,
   });
 
   @override
@@ -30,32 +32,24 @@ class BedroomWallImageItem extends StatelessWidget {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: position.rotation,
-          child: GestureDetector(
-            onTap: onTap,
-            child: SizedBox(
-              width: width,
-              height: height,
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Image.network(
-                      image.url,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Theme.of(context).colorScheme.outline,
-                          alignment: Alignment.center,
-                          child: const Icon(Icons.broken_image, size: 40),
-                        );
-                      },
-                    ),
-                  ),
-                  const Positioned(
-                    right: 8,
-                    bottom: 8,
-                    child: MessageSendBadge(),
-                  ),
-                ],
+          child: WiggleHint(
+            enabled: wiggle,
+            child: GestureDetector(
+              onTap: onTap,
+              child: SizedBox(
+                width: width,
+                height: height,
+                child: Image.network(
+                  image.url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Theme.of(context).colorScheme.outline,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, size: 40),
+                    );
+                  },
+                ),
               ),
             ),
           ),

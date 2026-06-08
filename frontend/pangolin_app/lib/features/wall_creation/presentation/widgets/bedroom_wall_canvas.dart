@@ -34,6 +34,7 @@ class BedroomWallCanvas extends StatelessWidget {
   final void Function(int promptId) onPromptAddTextBox;
   final void Function(int id, bool active) onItemInteractionChanged;
   final void Function(Offset globalPosition) onItemDragUpdate;
+  final bool editable;
 
   const BedroomWallCanvas({
     super.key,
@@ -51,6 +52,7 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.onPromptAddTextBox,
     required this.onItemInteractionChanged,
     required this.onItemDragUpdate,
+    required this.editable,
   });
 
   CanvasTransform _toRendered(CanvasTransform transform, double renderScale) {
@@ -75,6 +77,7 @@ class BedroomWallCanvas extends StatelessWidget {
             Size(_imageBaseWidth, _imageBaseWidth / item.aspectRatio) *
             renderScale,
         onTransformEnd: onEnd,
+        editable: editable,
         onInteractionChanged: (active) =>
             onItemInteractionChanged(item.id, active),
         onDragUpdate: onItemDragUpdate,
@@ -85,6 +88,7 @@ class BedroomWallCanvas extends StatelessWidget {
         initialTransform: initialTransform,
         baseSize: Size.square(_stickerBaseSize) * renderScale,
         onTransformEnd: onEnd,
+        editable: editable,
         onInteractionChanged: (active) =>
             onItemInteractionChanged(item.id, active),
         onDragUpdate: onItemDragUpdate,
@@ -101,6 +105,7 @@ class BedroomWallCanvas extends StatelessWidget {
         textColor: item.textColor,
         backgroundColor: item.backgroundColor,
         fontCatalog: fontCatalog,
+        editable: editable,
         onTransformEnd: onEnd,
         onTextChanged: (text) => onTextChanged(item.id, text),
         onFontChanged: (font) => onFontChanged(item.id, font),
