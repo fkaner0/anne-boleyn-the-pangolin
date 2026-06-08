@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
-import 'package:pangolin_app/features/wall_creation/data/gallery_image_file_picker.dart';
-import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
-import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
@@ -16,6 +16,8 @@ class AboutMePage extends StatefulWidget {
   final ImageFilePicker? imagePicker;
   final WallImageUploader? wallImageUploader;
   final BedroomWallCreatorController? wallController;
+  final VoidCallback? onNext;
+  final VoidCallback? onBack;
 
   const AboutMePage({
     super.key,
@@ -23,6 +25,8 @@ class AboutMePage extends StatefulWidget {
     this.imagePicker,
     this.wallImageUploader,
     this.wallController,
+    this.onNext,
+    this.onBack,
   });
 
   @override
@@ -46,14 +50,54 @@ class _AboutMePageState extends State<AboutMePage> {
 
   ProfileBuilder get _builder => widget.profileBuilder;
 
+  late final TextEditingController _nameController;
+  late final TextEditingController _ageController;
+  late final TextEditingController _locationController;
+  late final TextEditingController _bioController;
+
   Uint8List? _mainImageBytes;
   bool _uploadingImage = false;
 
-  String _name = '';
-  int? _age;
-  String _location = '';
-  String _bio = '';
-  bool _imageUploaded = false;
+  late String _name;
+  late int? _age;
+  late String _location;
+  late String _bio;
+  late bool _imageUploaded;
+  String? _profileImageUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _name = _builder.name ?? '';
+    _age = _builder.age;
+    _location = _builder.location ?? '';
+    _bio = _builder.bio ?? '';
+
+    final url = _builder.profileImageUrl;
+    _profileImageUrl = (url != null && url.isNotEmpty) ? url : null;
+    _imageUploaded = _profileImageUrl != null;
+
+    _nameController = TextEditingController(text: _name);
+    _ageController = TextEditingController(text: _age?.toString() ?? '');
+    _locationController = TextEditingController(text: _location);
+    _bioController = TextEditingController(text: _bio);
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _ageController.dispose();
+    _locationController.dispose();
+    _bioController.dispose();
+    super.dispose();
+  }
+
+  ImageProvider? get _mainImageProvider {
+    if (_mainImageBytes != null) return MemoryImage(_mainImageBytes!);
+    final url = _profileImageUrl;
+    if (url != null && url.isNotEmpty) return NetworkImage(url);
+    return null;
+  }
 
   bool get _canSubmit =>
       _name.isNotEmpty &&
@@ -74,7 +118,12 @@ class _AboutMePageState extends State<AboutMePage> {
     try {
       final url = await _wallImageUploader.uploadImage(picked.bytes);
       _builder.setProfileImageUrl(url);
-      if (mounted) setState(() => _imageUploaded = true);
+      if (mounted) {
+        setState(() {
+          _profileImageUrl = url;
+          _imageUploaded = true;
+        });
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -89,6 +138,12 @@ class _AboutMePageState extends State<AboutMePage> {
   }
 
   void _next() {
+    final onNext = widget.onNext;
+    if (onNext != null) {
+      onNext();
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BedroomWallCreatorPage(
@@ -108,7 +163,7 @@ class _AboutMePageState extends State<AboutMePage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () {},
+          onPressed: widget.onBack ?? () {},
         ),
         actions: [
           TextButton(
@@ -138,14 +193,13 @@ class _AboutMePageState extends State<AboutMePage> {
                   age: _age,
                   location: _location,
                   bio: _bio,
-                  image: _mainImageBytes != null
-                      ? MemoryImage(_mainImageBytes!)
-                      : null,
+                  image: _mainImageProvider,
                 ),
               ),
               const SizedBox(height: 24),
               _FieldLabel('Name'),
               _TextField(
+                controller: _nameController,
                 hintText: 'Your name',
                 onChanged: (value) {
                   _builder.setName(value);
@@ -155,6 +209,7 @@ class _AboutMePageState extends State<AboutMePage> {
               const SizedBox(height: 24),
               _FieldLabel('Age'),
               _TextField(
+                controller: _ageController,
                 hintText: 'Your age',
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -167,6 +222,7 @@ class _AboutMePageState extends State<AboutMePage> {
               const SizedBox(height: 24),
               _FieldLabel('Rough location'),
               _TextField(
+                controller: _locationController,
                 hintText: 'Where you are based',
                 onChanged: (value) {
                   _builder.setLocation(value);
@@ -185,13 +241,14 @@ class _AboutMePageState extends State<AboutMePage> {
                 ),
               ),
               _MainImagePicker(
-                bytes: _mainImageBytes,
+                image: _mainImageProvider,
                 uploading: _uploadingImage,
                 onTap: _uploadingImage ? null : _pickMainImage,
               ),
               const SizedBox(height: 24),
               _FieldLabel('Short Bio'),
               _TextField(
+                controller: _bioController,
                 hintText: 'Summarise your vibe!',
                 minLines: 3,
                 maxLines: 5,
@@ -233,6 +290,7 @@ class _FieldLabel extends StatelessWidget {
 class _TextField extends StatelessWidget {
   final String hintText;
   final ValueChanged<String> onChanged;
+  final TextEditingController? controller;
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final int minLines;
@@ -242,6 +300,7 @@ class _TextField extends StatelessWidget {
   const _TextField({
     required this.hintText,
     required this.onChanged,
+    this.controller,
     this.keyboardType,
     this.inputFormatters,
     this.minLines = 1,
@@ -252,6 +311,7 @@ class _TextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: controller,
       onChanged: onChanged,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
@@ -267,12 +327,12 @@ class _TextField extends StatelessWidget {
 }
 
 class _MainImagePicker extends StatelessWidget {
-  final Uint8List? bytes;
+  final ImageProvider? image;
   final bool uploading;
   final VoidCallback? onTap;
 
   const _MainImagePicker({
-    required this.bytes,
+    required this.image,
     required this.uploading,
     required this.onTap,
   });
@@ -293,8 +353,8 @@ class _MainImagePicker extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            if (bytes != null)
-              Image.memory(bytes!, fit: BoxFit.cover)
+            if (image != null)
+              Image(image: image!, fit: BoxFit.cover)
             else
               Icon(Icons.add, size: 48, color: colorScheme.outline),
             if (uploading)

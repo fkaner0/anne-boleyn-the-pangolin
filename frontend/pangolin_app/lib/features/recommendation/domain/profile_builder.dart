@@ -11,6 +11,10 @@ class ProfileBuilder {
   String? _bio;
   String? _profileImageUrl;
   int? _wallBackgroundHexARGB;
+  String? _hobby;
+  double? _passionLevel;
+  final List<String> _subInterests = [];
+  final List<String> _otherInterests = [];
   final List<ProfileImage> _images = [];
   final List<ProfileText> _textboxes = [];
   final List<ProfileSticker> _stickers = [];
@@ -40,11 +44,56 @@ class ProfileBuilder {
       .._location = _location
       .._bio = _bio
       .._profileImageUrl = _profileImageUrl
-      .._wallBackgroundHexARGB = _wallBackgroundHexARGB;
+      .._wallBackgroundHexARGB = _wallBackgroundHexARGB
+      .._hobby = _hobby
+      .._passionLevel = _passionLevel;
+    clone._subInterests.addAll(_subInterests);
+    clone._otherInterests.addAll(_otherInterests);
     clone._images.addAll(_images);
     clone._textboxes.addAll(_textboxes);
     clone._stickers.addAll(_stickers);
     return clone;
+  }
+
+  int? get userId => _userId;
+  String? get name => _name;
+  int? get age => _age;
+  String? get location => _location;
+  String? get bio => _bio;
+  String? get profileImageUrl => _profileImageUrl;
+  String? get hobby => _hobby;
+  double? get passionLevel => _passionLevel;
+  List<String> get subInterests => List.unmodifiable(_subInterests);
+  List<String> get otherInterests => List.unmodifiable(_otherInterests);
+
+  ProfileBuilder setHobby(String hobby) {
+    _hobby = hobby;
+    return this;
+  }
+
+  ProfileBuilder setPassionLevel(double passionLevel) {
+    _passionLevel = passionLevel;
+    return this;
+  }
+
+  ProfileBuilder addSubInterest(String interest) {
+    _subInterests.add(interest);
+    return this;
+  }
+
+  ProfileBuilder removeSubInterest(String interest) {
+    _subInterests.remove(interest);
+    return this;
+  }
+
+  ProfileBuilder addOtherInterest(String interest) {
+    _otherInterests.add(interest);
+    return this;
+  }
+
+  ProfileBuilder removeOtherInterest(String interest) {
+    _otherInterests.remove(interest);
+    return this;
   }
 
   ProfileBuilder setUserId(int userId) {

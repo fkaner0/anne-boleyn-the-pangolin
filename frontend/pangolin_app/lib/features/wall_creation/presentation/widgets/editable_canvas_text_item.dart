@@ -18,6 +18,7 @@ class EditableCanvasTextItem extends StatefulWidget {
   final Color? textColor;
   final Color? backgroundColor;
   final String placeholder;
+  final bool editable;
   final void Function(CanvasTransform transform) onTransformEnd;
   final void Function(String text) onTextChanged;
   final void Function(String? font) onFontChanged;
@@ -36,6 +37,7 @@ class EditableCanvasTextItem extends StatefulWidget {
     required this.maxWidth,
     required this.text,
     required this.fontCatalog,
+    required this.editable,
     required this.onTransformEnd,
     required this.onTextChanged,
     required this.onFontChanged,
@@ -278,6 +280,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                         children: [
                           Expanded(
                             child: TextField(
+                              readOnly: !widget.editable,
                               controller: _controller,
                               focusNode: _focusNode,
                               onChanged: widget.onTextChanged,
@@ -285,7 +288,9 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                               maxLines: null,
                               textInputAction: TextInputAction.done,
                               style: TextStyle(
+                                inherit: false,
                                 fontSize: 18,
+                                textBaseline: TextBaseline.alphabetic,
                                 fontFamily: _font,
                                 color: effectiveTextColor,
                               ),
@@ -352,6 +357,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     final resolvedBackgroundColor = _backgroundColor ?? colorScheme.surface;
 
     final textStyle = TextStyle(
+      inherit: false,
       fontSize: widget.baseFontSize * scale,
       fontFamily: _font,
       color: resolvedTextColor,
@@ -371,7 +377,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            text.isEmpty ? widget.placeholder : text,
+            widget.editable && text.isEmpty ? widget.placeholder : text,
             textAlign: TextAlign.center,
             style: text.isEmpty
                 ? textStyle.copyWith(color: colorScheme.onSurfaceVariant)
@@ -390,17 +396,19 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
           angle: _transform.rotation,
           child: Opacity(
             opacity: _editing ? 0.0 : 1.0,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: _startEditing,
-              onScaleStart: _onScaleStart,
-              onScaleUpdate: _onScaleUpdate,
-              onScaleEnd: _onScaleEnd,
-              child: Padding(
-                padding: const EdgeInsets.all(_hitSlop),
-                child: box,
-              ),
-            ),
+            child: widget.editable
+                ? GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _startEditing,
+                    onScaleStart: _onScaleStart,
+                    onScaleUpdate: _onScaleUpdate,
+                    onScaleEnd: _onScaleEnd,
+                    child: Padding(
+                      padding: const EdgeInsets.all(_hitSlop),
+                      child: box,
+                    ),
+                  )
+                : box,
           ),
         ),
       ),

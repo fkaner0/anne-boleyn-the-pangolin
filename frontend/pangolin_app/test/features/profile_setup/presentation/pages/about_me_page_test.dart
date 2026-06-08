@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/profile_setup/presentation/pages/about_me_page.dart';
+import 'package:pangolin_app/features/profile_setup/presentation/pages/old___about_me_page.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
-import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart';
-import 'package:pangolin_app/features/wall_creation/data/mock_wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
@@ -81,6 +81,23 @@ void main() {
     expect(profile.age, 29);
     expect(profile.location, 'London');
     expect(profile.bio, 'painter and falconer');
+  });
+
+  testWidgets('repopulates its fields from the builder', (tester) async {
+    final builder = seededBuilder()
+      ..setName('Anne')
+      ..setAge(29)
+      ..setLocation('London')
+      ..setBio('painter and falconer');
+    await pumpPage(tester, builder: builder);
+
+    expect(find.widgetWithText(TextField, 'Anne'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '29'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'London'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextField, 'painter and falconer'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('picking a main image uploads it and stores the url', (
