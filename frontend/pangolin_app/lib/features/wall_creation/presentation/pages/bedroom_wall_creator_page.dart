@@ -93,7 +93,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _addImage() async {
-    await _controller.addImage();
+    await _controller.addImage(center: _visibleCanvasCenter());
     if (mounted) setState(() {});
   }
 
@@ -125,7 +125,9 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     );
 
     if (stickerName == null || !mounted) return;
-    setState(() => _controller.addSticker(stickerName));
+    setState(
+      () => _controller.addSticker(stickerName, center: _visibleCanvasCenter()),
+    );
   }
 
   void _onItemInteractionChanged(int id, bool active) {

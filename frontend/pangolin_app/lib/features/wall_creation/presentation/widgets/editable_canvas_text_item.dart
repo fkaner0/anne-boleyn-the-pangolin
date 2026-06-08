@@ -290,6 +290,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                               style: TextStyle(
                                 inherit: false,
                                 fontSize: 18,
+                                textBaseline: TextBaseline.alphabetic,
                                 fontFamily: _font,
                                 color: effectiveTextColor,
                               ),
