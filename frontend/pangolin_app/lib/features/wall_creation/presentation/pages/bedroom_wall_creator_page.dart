@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -37,6 +38,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         imagePicker: GalleryImageFilePicker(),
         wallImageUploader: getIt<WallImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
+        fontCatalog: getIt<FontCatalog>(),
       );
 
   late final ProfileBuilder _profileBuilder =
@@ -49,11 +51,42 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   late final ProfileUpdater _profileUpdater =
       widget.profileUpdater ?? getIt<ProfileUpdater>();
 
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey _viewportKey = GlobalKey();
+
   bool _saving = false;
   bool _interacting = false;
   bool _dragOverBin = false;
   int? _draggingItemId;
   bool _preview = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  /// The center of the currently visible canvas area, in logical canvas
+  /// coordinates, so newly added items land on screen rather than off-screen
+  /// at the center of the (taller-than-viewport) canvas.
+  Offset _visibleCanvasCenter() {
+    final canvas = _controller.canvas;
+    final renderObject = _viewportKey.currentContext?.findRenderObject();
+    if (renderObject is! RenderBox ||
+        !renderObject.hasSize ||
+        renderObject.size.width == 0) {
+      return Offset(canvas.width / 2, canvas.height / 2);
+    }
+
+    final size = renderObject.size;
+    final scrollOffset = _scrollController.hasClients
+        ? _scrollController.offset
+        : 0.0;
+    final renderScale = size.width / canvas.width;
+    final centerY = (size.height / 2 + scrollOffset) / renderScale;
+
+    return Offset(canvas.width / 2, centerY.clamp(0.0, canvas.height));
+  }
 
   Future<void> _addImage() async {
     await _controller.addImage();
@@ -61,11 +94,14 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   void _addTextBoxWithText(String text) {
-    setState(() => _controller.addTextBoxWithText(text));
+    setState(
+      () =>
+          _controller.addTextBoxWithText(text, center: _visibleCanvasCenter()),
+    );
   }
 
   void _addTextBox() {
-    setState(_controller.addTextBox);
+    setState(() => _controller.addTextBox(center: _visibleCanvasCenter()));
   }
 
   Future<void> _addImageFromPrompt(int promptId) async {
@@ -206,15 +242,31 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           children: [
             Positioned.fill(
               child: SingleChildScrollView(
+                key: _viewportKey,
+                controller: _scrollController,
                 child: BedroomWallCanvas(
                   canvas: _controller.canvas,
                   stickerCatalog: _controller.stickerCatalog,
+                  fontCatalog: _controller.fontCatalog,
                   items: _controller.items,
                   prompts: _preview ? const [] : _controller.prompts,
                   onItemTransform: (id, transform) {
                     setState(() => _controller.updateTransform(id, transform));
                   },
                   onTextChanged: _controller.updateText,
+                  onFontChanged: (id, font) {
+                    setState(() => _controller.updateTextFont(id, font));
+                  },
+                  onTextColorChanged: (id, color) {
+                    setState(
+                      () => _controller.updateTextboxTextColor(id, color),
+                    );
+                  },
+                  onTextBackgroundColorChanged: (id, color) {
+                    setState(
+                      () => _controller.updateTextboxBackgroundColor(id, color),
+                    );
+                  },
                   onPromptAddImage: _addImageFromPrompt,
                   onPromptAddTextBox: _addTextBoxFromPrompt,
                   onItemInteractionChanged: _onItemInteractionChanged,

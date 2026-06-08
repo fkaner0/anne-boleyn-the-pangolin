@@ -8,6 +8,7 @@ import 'package:pangolin_app/features/wall_creation/data/image_file_picker.dart'
 import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
 class AboutMePage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _AboutMePageState extends State<AboutMePage> {
         imagePicker: _imagePicker,
         wallImageUploader: _wallImageUploader,
         stickerCatalog: getIt<StickerCatalog>(),
+        fontCatalog: getIt<FontCatalog>(),
       );
 
   ProfileBuilder get _builder => widget.profileBuilder;
