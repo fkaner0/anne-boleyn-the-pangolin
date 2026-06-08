@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'image_compressor.dart';
+import '../compressor/image_compressor.dart';
 import 'wall_image_uploader.dart';
 
 class CompressingWallImageUploader implements WallImageUploader {

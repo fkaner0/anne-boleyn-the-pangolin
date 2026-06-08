@@ -8,8 +8,8 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
-import '../../data/gallery_image_file_picker.dart';
-import '../../data/wall_image_uploader.dart';
+import '../../data/picker/gallery_image_file_picker.dart';
+import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
@@ -19,12 +19,16 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
   final ProfileBuilder? profileBuilder;
   final ProfileUpdater? profileUpdater;
+  final VoidCallback? onSave;
+  final VoidCallback? onBack;
 
   const BedroomWallCreatorPage({
     super.key,
     this.controller,
     this.profileBuilder,
     this.profileUpdater,
+    this.onSave,
+    this.onBack,
   });
 
   @override
@@ -143,11 +147,27 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   void _onItemDragUpdate(Offset globalPosition) {
-    final binZoneBottom = MediaQuery.of(context).padding.top + kToolbarHeight;
-    final overBin = globalPosition.dy <= binZoneBottom;
+    final overBin = globalPosition.dy <= _binZoneBottom();
     if (overBin != _dragOverBin) {
       setState(() => _dragOverBin = overBin);
     }
+  }
+
+  double _binZoneBottom() {
+    final renderObject = _viewportKey.currentContext?.findRenderObject();
+    if (renderObject is RenderBox && renderObject.hasSize) {
+      return renderObject.localToGlobal(Offset.zero).dy;
+    }
+    return MediaQuery.of(context).padding.top + kToolbarHeight;
+  }
+
+  void _onSavePressed() {
+    final onSave = widget.onSave;
+    if (onSave != null) {
+      onSave();
+      return;
+    }
+    _save();
   }
 
   Future<void> _save() async {
@@ -216,7 +236,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         actions: [
           IconButton(
@@ -227,7 +247,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save',
-            onPressed: _saving ? null : _save,
+            onPressed: _saving ? null : _onSavePressed,
           ),
         ],
         bottom: _saving
