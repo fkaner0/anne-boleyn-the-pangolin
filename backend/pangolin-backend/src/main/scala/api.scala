@@ -1,7 +1,9 @@
 package pangolin
 
 import cats.effect.IO
+import cats.syntax.all.*
 import fs2.Stream
+import fs2.concurrent.Channel
 import fs2.io.toInputStreamResource
 import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
@@ -133,11 +135,11 @@ object api {
     .out(jsonBody[Vector[Recommendation]])
 
   private val messageSendEndpoint = endpoint.post
-    .in("message" / path[Int]("senderId") / path[Int]("receiverId"))
+    .in("message" / "send" / path[Int]("senderId") / path[Int]("receiverId"))
     .in(jsonBody[Message])
 
   private val messageListenSseEndpoint = endpoint.get
-    .in("message" / path[Int]("senderId") / path[Int]("receiverId"))
+    .in("message" / "listen" / path[Int]("receiverId"))
     .out(serverSentEventsBody[IO])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
@@ -219,18 +221,15 @@ object api {
     }
   )
 
-  private val messageSendRoutes = serverInterpreter.toRoutes(
-    messageSendEndpoint.serverLogic { (senderId, receiverId, message) =>
-      // TODO: upload image to database
-      // TODO: trigger SSEs for listener
-      ???
+  private def messageSendRoutes(channel: Channel[IO, ServerSentEvent]) = serverInterpreter.toRoutes(
+    messageSendEndpoint.serverLogicSuccess { (senderId, receiverId, message) =>
+      // TODO: add message to database
+      channel.send(ServerSentEvent(Some(message.message))).as(())
     }
   )
 
-  private val messageListenSseRoutes = serverInterpreter.toRoutes(
-    messageListenSseEndpoint.serverLogicSuccess { (senderId, receiverId) =>
-      IO(fs2.Stream.awakeEvery[IO](1.seconds).map(time => ServerSentEvent(Some(time.toString))))
-    }
+  private def messageListenSseRoutes(channel: Channel[IO, ServerSentEvent]) = serverInterpreter.toRoutes(
+    messageListenSseEndpoint.serverLogicSuccess { _ => IO.pure(channel.stream) }
   )
 
   extension (image: repo.ProfileImage) {
@@ -321,12 +320,13 @@ object api {
     )
   }
 
-  val router = Router(
+  def router(channel: Channel[IO, ServerSentEvent]) = Router(
     "/" -> api.newUserRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,
     "/" -> api.uploadRoutes,
-    "/" -> api.messageListenSseRoutes,
+    "/" -> api.messageSendRoutes(channel),
+    "/" -> api.messageListenSseRoutes(channel),
   ).orNotFound
 }
