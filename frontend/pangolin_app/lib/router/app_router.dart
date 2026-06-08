@@ -7,13 +7,13 @@ import '../features/profile_setup/presentation/profile_setup_shell.dart';
 /// Named route constants — use these everywhere instead of raw strings.
 class AppRoutes {
   AppRoutes._();
-  static const String login           = '/';
-  static const String signup          = '/signup';
-  static const String mainShell       = '/main';
+  static const String login = '/';
+  static const String signup = '/signup';
+  static const String mainShell = '/main';
   static const String recommendations = '/main/recommendations';
-  static const String connections     = '/main/connections';
-  static const String editProfile     = '/main/edit-profile';
-  static const String profile         = '/main/profile';
+  static const String connections = '/main/connections';
+  static const String editProfile = '/main/edit-profile';
+  static const String profile = '/main/profile';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -21,7 +21,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     // initialLocation: AppRoutes.login,
     initialLocation: AppRoutes.signup,
     routes: [
-
       // Login page
       GoRoute(
         path: AppRoutes.login,
@@ -37,19 +36,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Main app shell with bottom nav
       ShellRoute(
-        builder: (context, state, child) => const TmpFakePage(pageName: 'MainScaffold(child: child)'),
+        builder: (context, state, child) =>
+            const TmpFakePage(pageName: 'MainScaffold(child: child)'),
         routes: [
           GoRoute(
             path: AppRoutes.editProfile,
-            builder: (context, state) => const TmpFakePage(pageName: 'EditProfilePage()'),
+            builder: (context, state) =>
+                const TmpFakePage(pageName: 'EditProfilePage()'),
           ),
           GoRoute(
             path: AppRoutes.recommendations,
-            builder: (context, state) => const TmpFakePage(pageName: 'RecommendationsPage()'),
+            builder: (context, state) =>
+                const TmpFakePage(pageName: 'RecommendationsPage()'),
           ),
           GoRoute(
             path: AppRoutes.connections,
-            builder: (context, state) => const TmpFakePage(pageName: 'ConnectionsPage()'),
+            builder: (context, state) =>
+                const TmpFakePage(pageName: 'ConnectionsPage()'),
           ),
         ],
       ),

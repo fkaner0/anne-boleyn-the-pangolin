@@ -18,7 +18,7 @@ class AboutPage extends ConsumerStatefulWidget {
 class _AboutPageState extends ConsumerState<AboutPage> {
   final _formKey = GlobalKey<FormState>();
   bool _additionalInfoExpanded = false;
-  final _newSubInterestController   = TextEditingController();
+  final _newSubInterestController = TextEditingController();
   final _newOtherInterestController = TextEditingController();
 
   @override
@@ -68,9 +68,9 @@ class _AboutPageState extends ConsumerState<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
-    final profile  = ref.watch(profileSetupProvider);
+    //final profile = ref.watch(profileSetupProvider);
     final notifier = ref.read(profileSetupProvider.notifier);
-    final theme    = Theme.of(context);
+    final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Stack(
@@ -82,12 +82,6 @@ class _AboutPageState extends ConsumerState<AboutPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
-                // --- Hobby ---
-                _TextWithInfoButton(
-                  text: Text('Hobby', style: theme.textTheme.titleMedium),
-                  infoText: "We'll only show you people with the same hobby",
-                ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   // initialValue: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
@@ -105,23 +99,16 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                   onSaved: (val) {
                     if (val != null) notifier.updateHobby(val);
                   },
+
                   /// TODO: this absolutely needs to be abstracted somewhere to a HobbyModel
                   /// but I want simple for now so I'm hardcoding it here. PLEASE CHANGE.
                   items: ["Painting", "Pottery", "Photography", "Knitting"]
-                          .map((h) => DropdownMenuItem(
-                                value: h,
-                                child: Text(h),
-                              ))
-                          .toList(),
+                      .map((h) => DropdownMenuItem(value: h, child: Text(h)))
+                      .toList(),
                 ),
+                _divider,
                 _divider,
 
-                // --- Passion-meter ---
-                _TextWithInfoButton(
-                  text: Text('Passion-meter', style: theme.textTheme.titleMedium),
-                  infoText: "We only use this as a rough guide when finding people. Try not to overthink it!",
-                ),
-                _divider,
                 /// TODO
                 // FormField<double>(
                 //   initialValue: profile?.passionLevel ?? 0.5,
@@ -159,11 +146,13 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 _AdditionalInfoSection(
                   expanded: _additionalInfoExpanded,
                   onToggle: () => setState(
-                      () => _additionalInfoExpanded = !_additionalInfoExpanded),
+                    () => _additionalInfoExpanded = !_additionalInfoExpanded,
+                  ),
+
                   /// TODO:
                   // subInterests:   profile?.subInterests   ?? [],
                   // otherInterests: profile?.otherInterests ?? [],
-                  subInterests:   [],
+                  subInterests: [],
                   otherInterests: [],
                   onAddSubInterest: () => _showAddInterestDialog(
                     context,
@@ -176,7 +165,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                       }
                     },
                   ),
-                  onRemoveSubInterest:   notifier.removeSubInterest,
+                  onRemoveSubInterest: notifier.removeSubInterest,
                   onAddOtherInterest: () => _showAddInterestDialog(
                     context,
                     _newOtherInterestController,
@@ -244,7 +233,6 @@ class _AdditionalInfoSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         // --- Header (always visible) ---
         GestureDetector(
           onTap: onToggle,
@@ -255,10 +243,6 @@ class _AdditionalInfoSection extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
-              _TextWithInfoButton(
-                text: Text('Additional Info (optional)', style: theme.textTheme.titleMedium,),
-                infoText: "All of the following are optional and aren't visible to anyone else",
-              ),
             ],
           ),
         ),
@@ -273,14 +257,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              /// TODO: add chips back in
-              // ...subInterests.map((s) => InterestChip(
-              //       label: s,
-              //       onRemove: () => onRemoveSubInterest(s),
-              //     )),
-              _AddChipButton(onPressed: onAddSubInterest),
-            ],
+            children: [_AddChipButton(onPressed: onAddSubInterest)],
           ),
           const SizedBox(height: 20),
 
@@ -290,14 +267,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
-              /// TODO: add chips back in
-              // ...otherInterests.map((s) => InterestChip(
-              //       label: s,
-              //       onRemove: () => onRemoveOtherInterest(s),
-              //     )),
-              _AddChipButton(onPressed: onAddOtherInterest),
-            ],
+            children: [_AddChipButton(onPressed: onAddOtherInterest)],
           ),
         ],
       ],
@@ -337,27 +307,3 @@ class _AddChipButton extends StatelessWidget {
 //     );
 
 const _divider = SizedBox(height: 36);
-
-class _TextWithInfoButton extends StatelessWidget {
-  final Text text;
-  final String infoText;
-  final double iconSize = 18;
-
-  const _TextWithInfoButton({required this.text, required this.infoText});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        text,
-        IconButton(
-          iconSize: iconSize,
-          tooltip: infoText,
-          onPressed: () => (), 
-          icon: const Icon(Icons.info_outlined),
-          ),
-      ],
-    );
-  }
-  
-}

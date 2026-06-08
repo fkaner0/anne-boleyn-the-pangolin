@@ -13,7 +13,7 @@ class PangoPalApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'PangoPal',
       routerConfig: router,
-      theme: buildAppTheme(appPalette)
+      theme: buildAppTheme(appPalette),
     );
   }
 }

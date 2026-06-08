@@ -19,12 +19,14 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
   final ProfileBuilder? profileBuilder;
   final ProfileUpdater? profileUpdater;
+  final VoidCallback? onSave;
 
   const BedroomWallCreatorPage({
     super.key,
     this.controller,
     this.profileBuilder,
     this.profileUpdater,
+    this.onSave,
   });
 
   @override
@@ -150,6 +152,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     }
   }
 
+  void _onSavePressed() {
+    final onSave = widget.onSave;
+    if (onSave != null) {
+      onSave();
+      return;
+    }
+    _save();
+  }
+
   Future<void> _save() async {
     if (_saving) return;
 
@@ -227,7 +238,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           IconButton(
             icon: const Icon(Icons.save),
             tooltip: 'Save',
-            onPressed: _saving ? null : _save,
+            onPressed: _saving ? null : _onSavePressed,
           ),
         ],
         bottom: _saving

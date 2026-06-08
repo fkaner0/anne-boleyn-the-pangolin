@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 
 class TmpFakePage extends StatelessWidget {
   final String pageName;
-  const TmpFakePage({super.key, this.pageName="Untitled Page"});
+  const TmpFakePage({super.key, this.pageName = "Untitled Page"});
 
   @override
   Widget build(BuildContext context) {

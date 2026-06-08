@@ -7,7 +7,7 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 
 class _RecordingUploader implements WallImageUploader {
   Uint8List? received;
-    
+
   @override
   Future<String> uploadImage(Uint8List bytes) async {
     received = bytes;

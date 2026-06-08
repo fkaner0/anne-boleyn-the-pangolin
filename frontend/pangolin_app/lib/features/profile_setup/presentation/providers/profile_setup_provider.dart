@@ -7,11 +7,12 @@ import '../../../../shared/user_model.dart';
 
 /// Holds the editable state of the current user's profile during sign-up
 /// and on the profile/edit pages.
-final profileSetupProvider =
-    StateNotifierProvider<ProfileNotifier, UserModel?>((ref) {
-  return ProfileNotifier();
-  // return ProfileNotifier(ref.read(apiServiceProvider));
-});
+final profileSetupProvider = StateNotifierProvider<ProfileNotifier, UserModel?>(
+  (ref) {
+    return ProfileNotifier();
+    // return ProfileNotifier(ref.read(apiServiceProvider));
+  },
+);
 
 class ProfileNotifier extends StateNotifier<UserModel?> {
   // final ApiService _api;
@@ -21,16 +22,16 @@ class ProfileNotifier extends StateNotifier<UserModel?> {
   void initialise(UserModel user) => state = user;
 
   void updateHobby(String hobby) => ();
-      // state = state?.copyWith(hobby: hobby);
+  // state = state?.copyWith(hobby: hobby);
 
   void updatePassionLevel(double level) => ();
-      // state = state?.copyWith(passionLevel: level);
+  // state = state?.copyWith(passionLevel: level);
 
   void updateName(String name) => ();
-      // state = state?.copyWith(name: name);
+  // state = state?.copyWith(name: name);
 
   void updateAge(int age) => ();
-      // state = state?.copyWith(age: age);
+  // state = state?.copyWith(age: age);
 
   void addSubInterest(String interest) {
     // if (state == null) return;

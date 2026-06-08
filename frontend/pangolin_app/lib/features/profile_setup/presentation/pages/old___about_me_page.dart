@@ -16,6 +16,7 @@ class AboutMePage extends StatefulWidget {
   final ImageFilePicker? imagePicker;
   final WallImageUploader? wallImageUploader;
   final BedroomWallCreatorController? wallController;
+  final VoidCallback? onNext;
 
   const AboutMePage({
     super.key,
@@ -23,6 +24,7 @@ class AboutMePage extends StatefulWidget {
     this.imagePicker,
     this.wallImageUploader,
     this.wallController,
+    this.onNext,
   });
 
   @override
@@ -89,6 +91,12 @@ class _AboutMePageState extends State<AboutMePage> {
   }
 
   void _next() {
+    final onNext = widget.onNext;
+    if (onNext != null) {
+      onNext();
+      return;
+    }
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => BedroomWallCreatorPage(

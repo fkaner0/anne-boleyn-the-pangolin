@@ -1,53 +1,114 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../router/app_router.dart';
+import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
+import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
+import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/stickers/sticker_catalog.dart';
+
 import 'pages/about_page.dart';
+import 'pages/old___about_me_page.dart';
 
-/// Tracks which step of sign-up the user is on (0 = About, 1 = Wall, 2 = Intro).
-final _signupStepProvider = StateProvider<int>((ref) => 0);
-
-class SignupShell extends ConsumerWidget {
+class SignupShell extends ConsumerStatefulWidget {
   const SignupShell({super.key});
 
+  @override
+  ConsumerState<SignupShell> createState() => _SignupShellState();
+}
+
+class _SignupShellState extends ConsumerState<SignupShell> {
   static const _steps = ['About', 'Wall', 'Intro'];
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final step = ref.watch(_signupStepProvider);
+  int _step = 0;
+  bool _submitting = false;
 
+  late final ProfileBuilder _profileBuilder = ProfileBuilder()..setUserId(0);
+
+  late final BedroomWallCreatorController _wallController =
+      BedroomWallCreatorController(
+        imagePicker: GalleryImageFilePicker(),
+        wallImageUploader: getIt<WallImageUploader>(),
+        stickerCatalog: getIt<StickerCatalog>(),
+        fontCatalog: getIt<FontCatalog>(),
+      );
+
+  late final ProfileUpdater _profileUpdater = getIt<ProfileUpdater>();
+
+  void _goNext() {
+    if (_step < _steps.length - 1) {
+      setState(() => _step += 1);
+    }
+  }
+
+  Future<void> _finish() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+
+    final builder = _profileBuilder.copy();
+    _wallController.exportInto(builder);
+    final profile = builder.build();
+
+    try {
+      await _profileUpdater.updateProfile(profile);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(content: Text('Could not save your profile.')),
+        );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _submitting = false);
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RecommendationListPage(
+          recommendationFetcher: getIt<RecommendationFetcher>(),
+          profileFetcher: getIt<ProfileFetcher>(),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Column(
           children: [
-            _SignupProgressBar(currentStep: step, steps: _steps),
+            _SignupProgressBar(currentStep: _step, steps: _steps),
             const Divider(height: 1),
-            Expanded(
-              child: _buildStep(step, ref, context),
-            ),
+            Expanded(child: _buildStep()),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStep(int step, WidgetRef ref, BuildContext context) {
-    void goNext() {
-      if (step < _steps.length - 1) {
-        ref.read(_signupStepProvider.notifier).state = step + 1;
-      } else {
-        // Sign-up complete — navigate to main app
-        context.go(AppRoutes.recommendations);
-      }
-    }
-
-    return switch (step) {
-      0 => AboutPage(onNext: goNext),
-      1 => AboutPage(onNext: goNext),
-      2 => AboutPage(onNext: goNext),
-      // 1 => WallPage(onNext: goNext),
-      // 2 => IntroPage(onNext: goNext),
+  Widget _buildStep() {
+    return switch (_step) {
+      0 => AboutPage(onNext: _goNext),
+      1 => BedroomWallCreatorPage(
+        controller: _wallController,
+        profileBuilder: _profileBuilder,
+        onSave: _goNext,
+      ),
+      2 => AboutMePage(
+        profileBuilder: _profileBuilder,
+        wallController: _wallController,
+        onNext: _finish,
+      ),
       _ => const SizedBox.shrink(),
     };
   }
@@ -57,10 +118,7 @@ class _SignupProgressBar extends StatelessWidget {
   final int currentStep;
   final List<String> steps;
 
-  const _SignupProgressBar({
-    required this.currentStep,
-    required this.steps,
-  });
+  const _SignupProgressBar({required this.currentStep, required this.steps});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +129,7 @@ class _SignupProgressBar extends StatelessWidget {
       child: Row(
         children: List.generate(steps.length, (i) {
           final isActive = i == currentStep;
-          final isPast   = i < currentStep;
+          final isPast = i < currentStep;
           return Expanded(
             child: Row(
               children: [
@@ -87,7 +145,9 @@ class _SignupProgressBar extends StatelessWidget {
                       height: 2,
                       color: isPast
                           ? colorScheme.primary
-                          : colorScheme.tertiary, /// TODO: colors? idk
+                          : colorScheme.tertiary,
+
+                      /// TODO: colors? idk
                     ),
                   ),
               ],
@@ -116,7 +176,9 @@ class _StepIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final color = isActive || isPast ? colorScheme.primary : colorScheme.tertiary;
+    final color = isActive || isPast
+        ? colorScheme.primary
+        : colorScheme.tertiary;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -125,7 +187,9 @@ class _StepIndicator extends StatelessWidget {
           height: 28,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: isActive || isPast ? colorScheme.primary : colorScheme.tertiary,
+            color: isActive || isPast
+                ? colorScheme.primary
+                : colorScheme.tertiary,
             border: Border.all(color: color, width: 2),
           ),
           child: Center(
@@ -134,7 +198,9 @@ class _StepIndicator extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isActive || isPast ? colorScheme.surface : colorScheme.tertiary,
+                color: isActive || isPast
+                    ? colorScheme.surface
+                    : colorScheme.tertiary,
               ),
             ),
           ),
