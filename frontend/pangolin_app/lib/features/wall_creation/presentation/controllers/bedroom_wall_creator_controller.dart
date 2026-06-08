@@ -8,8 +8,8 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'dart:typed_data';
 
-import '../../data/image_file_picker.dart';
-import '../../data/wall_image_uploader.dart';
+import '../../data/picker/image_file_picker.dart';
+import '../../data/uploader/wall_image_uploader.dart';
 import '../../domain/canvas_item.dart';
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';

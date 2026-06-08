@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
-import 'package:pangolin_app/features/wall_creation/data/default_image_compressor.dart';
+import 'package:pangolin_app/features/wall_creation/data/compressor/default_image_compressor.dart';
 
 void main() {
   test('caps the longest side and shrinks an oversized image', () async {

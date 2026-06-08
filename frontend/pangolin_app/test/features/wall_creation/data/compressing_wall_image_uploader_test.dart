@@ -1,13 +1,13 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pangolin_app/features/wall_creation/data/compressing_wall_image_uploader.dart';
-import 'package:pangolin_app/features/wall_creation/data/image_compressor.dart';
-import 'package:pangolin_app/features/wall_creation/data/wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/data/uploader/compressing_wall_image_uploader.dart';
+import 'package:pangolin_app/features/wall_creation/data/compressor/image_compressor.dart';
+import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 
 class _RecordingUploader implements WallImageUploader {
   Uint8List? received;
-
+    
   @override
   Future<String> uploadImage(Uint8List bytes) async {
     received = bytes;
