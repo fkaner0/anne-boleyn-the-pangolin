@@ -1,12 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-// import '../../pages/auth/login_page.dart';
-// import '../../pages/signup/signup_shell.dart';
-// import '../../pages/recommendations/recommendations_page.dart';
-// import '../../pages/matched_profile/matched_profile_page.dart';
-// import '../../pages/profile/profile_page.dart';
-// import '../../pages/connections/connections_page.dart';
-// import '../../widgets/bottom_nav_bar.dart';
 import '../features/profile_view/profile_viewer_page.dart';
 import 'tmp_fake_page.dart';
 
@@ -24,7 +17,8 @@ class AppRoutes {
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    // initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.signup,
     routes: [
 
       // Login page
