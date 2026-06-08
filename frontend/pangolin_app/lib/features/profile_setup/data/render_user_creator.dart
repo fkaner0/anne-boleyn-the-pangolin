@@ -13,5 +13,5 @@ class RenderUserCreator implements UserCreator {
   }) : _delegate = ApiUserCreator(host: host, port: port, useHttps: useHttps);
 
   @override
-  Future<int> createUser() => _delegate.createUser();
+  Future<int> createUser(String username) => _delegate.createUser(username);
 }

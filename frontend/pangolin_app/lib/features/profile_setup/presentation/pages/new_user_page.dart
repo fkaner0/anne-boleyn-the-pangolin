@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
@@ -25,8 +27,11 @@ class _NewUserPageState extends State<NewUserPage> {
     setState(() => _creating = true);
 
     final int userId;
+
+    /// TMP: for before we have a login/signup sorted out
+    final username = "newuser::${Random().nextDouble()}";
     try {
-      userId = await _userCreator.createUser();
+      userId = await _userCreator.createUser(username);
     } catch (_) {
       if (!mounted) return;
       setState(() => _creating = false);

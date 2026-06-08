@@ -16,16 +16,22 @@ class ApiUserCreator implements UserCreator {
   });
 
   @override
-  Future<int> createUser() async {
+  Future<int> createUser(String username) async {
     final authority = port == null ? host : '$host:$port';
     final uri = useHttps
         ? Uri.https(authority, '/user')
         : Uri.http(authority, '/user');
 
-    final response = await http.post(uri);
+    final response = await http.post(
+      uri,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'username': username}),
+    );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('Failed to create user: ${response.statusCode}');
+      throw Exception(
+        'Failed to create user $username: ${response.statusCode}',
+      );
     }
 
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
