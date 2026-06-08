@@ -60,7 +60,9 @@ class BedroomWallTextBoxItem extends StatelessWidget {
                       text,
                       textAlign: TextAlign.center,
                       style: TextStyle(
+                        inherit: false,
                         fontSize: _baseFontSize * renderScale * scale,
+                        fontFamily: textbox.font,
                         color: colorScheme.onSurface,
                       ),
                     ),
