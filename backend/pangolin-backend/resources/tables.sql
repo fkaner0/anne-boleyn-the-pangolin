@@ -2,8 +2,14 @@
 CREATE DOMAIN uint4 AS int8
   CHECK(VALUE >= 0 AND VALUE < 4294967296);
 
+CREATE TABLE account (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  username text NOT NULL
+);
+
 CREATE TABLE profile (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  accountId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   name text NOT NULL,
   location text NOT NULL,
   bio text NOT NULL,
@@ -11,9 +17,9 @@ CREATE TABLE profile (
   profileImageUrl text NOT NULL
 );
 
-CREATE TABLE profileImage (
+CREATE TABLE wallImage (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  profileId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
   url text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
@@ -22,9 +28,9 @@ CREATE TABLE profileImage (
   scale double precision NOT NULL
 );
 
-CREATE TABLE profileTextbox (
+CREATE TABLE wallTextbox (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  profileId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
   title text NOT NULL,
   body text NOT NULL,
   font text, -- NB: this is nullable. may want to change.
@@ -37,9 +43,9 @@ CREATE TABLE profileTextbox (
   scale double precision NOT NULL
 );
 
-CREATE TABLE profileSticker (
+CREATE TABLE wallSticker (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  userId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  profileId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
   name text NOT NULL,
   x integer NOT NULL,
   y integer NOT NULL,
