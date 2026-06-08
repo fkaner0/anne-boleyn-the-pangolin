@@ -39,6 +39,15 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
     _loadRecommendations();
   }
 
+  void _log(String buttonId) {
+    unawaited(
+      (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
+        userId: widget.userId,
+        buttonId: buttonId,
+      ),
+    );
+  }
+
   Future<void> _loadRecommendations() async {
     try {
       final recommendations = await widget.recommendationFetcher
@@ -65,7 +74,10 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            _log(ButtonIds.recommendationListBack);
+            Navigator.of(context).pop();
+          },
         ),
       ),
       body: Builder(
@@ -91,13 +103,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
               return RecommendationListItem(
                 recommendation: recommendation,
                 onTap: () {
-                  unawaited(
-                    (widget.logger ?? getIt<ButtonClickLogger>())
-                        .logButtonClick(
-                          userId: widget.userId,
-                          buttonId: ButtonIds.recommendationList,
-                        ),
-                  );
+                  _log(ButtonIds.recommendationList);
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(

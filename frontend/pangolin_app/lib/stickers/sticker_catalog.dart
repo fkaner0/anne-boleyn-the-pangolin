@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 class StickerCatalog {
@@ -37,6 +38,11 @@ class StickerCatalog {
   static Future<StickerCatalog> load({AssetBundle? bundle}) {
     if (bundle != null) return _loadFrom(bundle);
     return _cached ??= _loadFrom(rootBundle);
+  }
+
+  @visibleForTesting
+  static void resetCache() {
+    _cached = null;
   }
 
   static Future<StickerCatalog> _loadFrom(AssetBundle bundle) async {

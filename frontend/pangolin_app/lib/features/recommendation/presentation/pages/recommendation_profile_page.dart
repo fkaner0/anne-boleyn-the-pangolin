@@ -26,11 +26,11 @@ class RecommendationProfilePage extends StatelessWidget {
     this.logger,
   });
 
-  void _logWallInteraction() {
+  void _log(String buttonId) {
     unawaited(
       (logger ?? getIt<ButtonClickLogger>()).logButtonClick(
         userId: viewerUserId,
-        buttonId: ButtonIds.bedroomWall,
+        buttonId: buttonId,
       ),
     );
   }
@@ -64,6 +64,7 @@ class RecommendationProfilePage extends StatelessWidget {
                     name: 'Profile',
                     location: 'Error',
                     onBackPressed: () {
+                      _log(ButtonIds.bedroomWallBack);
                       Navigator.of(context).pop();
                     },
                   ),
@@ -86,6 +87,7 @@ class RecommendationProfilePage extends StatelessWidget {
                   name: profile.name,
                   location: profile.location,
                   onBackPressed: () {
+                    _log(ButtonIds.bedroomWallBack);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -97,10 +99,12 @@ class RecommendationProfilePage extends StatelessWidget {
                       stickerCatalog: stickerCatalog,
                       fontCatalog: fontCatalog,
                       onImageTap: (image) {
-                        _logWallInteraction();
+                        _log(ButtonIds.bedroomWall);
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => BedroomWallDetailPage(
+                              viewerUserId: viewerUserId,
+                              logger: logger,
                               profile: profile,
                               image: image,
                             ),
@@ -108,10 +112,12 @@ class RecommendationProfilePage extends StatelessWidget {
                         );
                       },
                       onTextTap: (textbox) {
-                        _logWallInteraction();
+                        _log(ButtonIds.bedroomWall);
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => BedroomWallDetailPage(
+                              viewerUserId: viewerUserId,
+                              logger: logger,
                               profile: profile,
                               textbox: textbox,
                             ),
