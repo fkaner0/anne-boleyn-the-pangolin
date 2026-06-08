@@ -83,6 +83,23 @@ void main() {
     expect(profile.bio, 'painter and falconer');
   });
 
+  testWidgets('repopulates its fields from the builder', (tester) async {
+    final builder = seededBuilder()
+      ..setName('Anne')
+      ..setAge(29)
+      ..setLocation('London')
+      ..setBio('painter and falconer');
+    await pumpPage(tester, builder: builder);
+
+    expect(find.widgetWithText(TextField, 'Anne'), findsOneWidget);
+    expect(find.widgetWithText(TextField, '29'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'London'), findsOneWidget);
+    expect(
+      find.widgetWithText(TextField, 'painter and falconer'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('picking a main image uploads it and stores the url', (
     tester,
   ) async {

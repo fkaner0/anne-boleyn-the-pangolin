@@ -49,6 +49,12 @@ class _SignupShellState extends ConsumerState<SignupShell> {
     }
   }
 
+  void _goBack() {
+    if (_step > 0) {
+      setState(() => _step -= 1);
+    }
+  }
+
   Future<void> _finish() async {
     if (_submitting) return;
     setState(() => _submitting = true);
@@ -99,16 +105,18 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 
   Widget _buildStep() {
     return switch (_step) {
-      0 => AboutPage(onNext: _goNext),
+      0 => AboutPage(onNext: _goNext, profileBuilder: _profileBuilder),
       1 => BedroomWallCreatorPage(
         controller: _wallController,
         profileBuilder: _profileBuilder,
         onSave: _goNext,
+        onBack: _goBack,
       ),
       2 => AboutMePage(
         profileBuilder: _profileBuilder,
         wallController: _wallController,
         onNext: _finish,
+        onBack: _goBack,
       ),
       _ => const SizedBox.shrink(),
     };

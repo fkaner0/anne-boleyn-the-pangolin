@@ -57,4 +57,34 @@ void main() {
 
     expect(find.text('About me'), findsOneWidget);
   });
+
+  testWidgets('the wall back button returns to the About step and keeps the '
+      'selected hobby', (tester) async {
+    await pumpShell(tester);
+    await completeAboutStep(tester);
+
+    expect(find.text('Create your wall'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hobby'), findsOneWidget);
+    expect(find.text('Painting'), findsOneWidget);
+  });
+
+  testWidgets('the About Me back button returns to the wall step', (
+    tester,
+  ) async {
+    await pumpShell(tester);
+    await completeAboutStep(tester);
+    await tester.tap(find.byTooltip('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('About me'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Create your wall'), findsOneWidget);
+  });
 }

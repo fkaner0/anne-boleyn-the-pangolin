@@ -20,6 +20,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final ProfileBuilder? profileBuilder;
   final ProfileUpdater? profileUpdater;
   final VoidCallback? onSave;
+  final VoidCallback? onBack;
 
   const BedroomWallCreatorPage({
     super.key,
@@ -27,6 +28,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.profileBuilder,
     this.profileUpdater,
     this.onSave,
+    this.onBack,
   });
 
   @override
@@ -227,7 +229,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           tooltip: 'Back',
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         actions: [
           IconButton(

@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 
-import '../providers/profile_setup_provider.dart';
-
-class AboutPage extends ConsumerStatefulWidget {
+class AboutPage extends StatefulWidget {
   final VoidCallback onNext;
-  const AboutPage({super.key, required this.onNext});
+  final ProfileBuilder profileBuilder;
+  const AboutPage({
+    super.key,
+    required this.onNext,
+    required this.profileBuilder,
+  });
 
   @override
-  ConsumerState<AboutPage> createState() => _AboutPageState();
+  State<AboutPage> createState() => _AboutPageState();
 }
 
-class _AboutPageState extends ConsumerState<AboutPage> {
+class _AboutPageState extends State<AboutPage> {
   final _formKey = GlobalKey<FormState>();
   bool _additionalInfoExpanded = false;
   final _newSubInterestController = TextEditingController();
@@ -66,8 +69,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
 
   @override
   Widget build(BuildContext context) {
-    //final profile = ref.watch(profileSetupProvider);
-    final notifier = ref.read(profileSetupProvider.notifier);
+    final builder = widget.profileBuilder;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -91,24 +93,17 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 Text('Hobby', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  // initialValue: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
-                  initialValue: null,
+                  initialValue: builder.hobby,
                   hint: const Text('Select a hobby'),
                   decoration: const InputDecoration(),
                   validator: (val) =>
                       val == null ? 'Please select a hobby' : null,
-                  // onChanged is required by DropdownButtonFormField to
-                  // update the displayed value. We mirror it to the
-                  // provider so the rest of the UI stays in sync.
                   onChanged: (val) {
-                    if (val != null) notifier.updateHobby(val);
+                    if (val != null) builder.setHobby(val);
                   },
                   onSaved: (val) {
-                    if (val != null) notifier.updateHobby(val);
+                    if (val != null) builder.setHobby(val);
                   },
-
-                  /// TODO: this absolutely needs to be abstracted somewhere to a HobbyModel
-                  /// but I want simple for now so I'm hardcoding it here. PLEASE CHANGE.
                   items: ["Painting", "Pottery", "Photography", "Knitting"]
                       .map((h) => DropdownMenuItem(value: h, child: Text(h)))
                       .toList(),
@@ -117,16 +112,16 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 Text('Passion-meter', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 FormField<double>(
-                  initialValue: 0.5,
+                  initialValue: builder.passionLevel ?? 0.5,
                   onSaved: (val) {
-                    if (val != null) notifier.updatePassionLevel(val);
+                    if (val != null) builder.setPassionLevel(val);
                   },
                   builder: (field) {
                     return PassionMeter(
                       value: field.value ?? 0.5,
                       onChanged: (val) {
                         field.didChange(val);
-                        notifier.updatePassionLevel(val);
+                        builder.setPassionLevel(val);
                       },
                     );
                   },
@@ -139,36 +134,34 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                   onToggle: () => setState(
                     () => _additionalInfoExpanded = !_additionalInfoExpanded,
                   ),
-
-                  /// TODO:
-                  // subInterests:   profile?.subInterests   ?? [],
-                  // otherInterests: profile?.otherInterests ?? [],
-                  subInterests: [],
-                  otherInterests: [],
+                  subInterests: builder.subInterests,
+                  otherInterests: builder.otherInterests,
                   onAddSubInterest: () => _showAddInterestDialog(
                     context,
                     _newSubInterestController,
                     () {
                       final text = _newSubInterestController.text.trim();
                       if (text.isNotEmpty) {
-                        notifier.addSubInterest(text);
+                        setState(() => builder.addSubInterest(text));
                         _newSubInterestController.clear();
                       }
                     },
                   ),
-                  onRemoveSubInterest: notifier.removeSubInterest,
+                  onRemoveSubInterest: (interest) =>
+                      setState(() => builder.removeSubInterest(interest)),
                   onAddOtherInterest: () => _showAddInterestDialog(
                     context,
                     _newOtherInterestController,
                     () {
                       final text = _newOtherInterestController.text.trim();
                       if (text.isNotEmpty) {
-                        notifier.addOtherInterest(text);
+                        setState(() => builder.addOtherInterest(text));
                         _newOtherInterestController.clear();
                       }
                     },
                   ),
-                  onRemoveOtherInterest: notifier.removeOtherInterest,
+                  onRemoveOtherInterest: (interest) =>
+                      setState(() => builder.removeOtherInterest(interest)),
                 ),
               ],
             ),
