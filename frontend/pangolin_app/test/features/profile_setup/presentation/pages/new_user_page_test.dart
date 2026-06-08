@@ -36,7 +36,7 @@ void main() {
     );
   }
 
-  testWidgets('creating a user navigates to the About me page', (tester) async {
+  testWidgets('creating a user navigates into the signup flow', (tester) async {
     final creator = _FakeUserCreator(id: 7);
     await pumpPage(tester, creator);
 
@@ -44,7 +44,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(creator.callCount, 1);
-    expect(find.text('About me'), findsOneWidget);
+    expect(find.text('About your craft'), findsOneWidget);
   });
 
   testWidgets('shows a loading spinner while creating', (tester) async {
