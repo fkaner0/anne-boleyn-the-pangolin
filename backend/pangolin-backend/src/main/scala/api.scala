@@ -225,8 +225,8 @@ object api {
 
 
   extension (sticker: ProfileSticker) {
-    private def fromApi(userId: Int) = repo.ProfileStickerCreator(
-      userId = userId,
+    private def fromApi(profileId: Int) = repo.ProfileStickerCreator(
+      profileId = profileId,
       name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
@@ -237,8 +237,8 @@ object api {
   }
 
   extension (image: ProfileImage) {
-    private def fromApi(userId: Int) = repo.ProfileImageCreator(
-      userId = userId,
+    private def fromApi(profileId: Int) = repo.ProfileImageCreator(
+      profileId = profileId,
       url = image.url,
       x = image.position.x,
       y = image.position.y,
@@ -249,8 +249,8 @@ object api {
   }
   
   extension (textbox: ProfileTextbox) {
-    private def fromApi(userId: Int) = repo.ProfileTextboxCreator(
-      userId = userId,
+    private def fromApi(profileId: Int) = repo.ProfileTextboxCreator(
+      profileId = profileId,
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,

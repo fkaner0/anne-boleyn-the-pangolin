@@ -28,7 +28,7 @@ object repo {
   }
 
   case class ProfileImageCreator(
-      userId: Int,
+      profileId: Int,
       url: String,
       x: Int,
       y: Int,
@@ -40,7 +40,7 @@ object repo {
   @Table(PostgresDbType)
   case class ProfileImage(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       url: String,
       x: Int,
       y: Int,
@@ -54,7 +54,7 @@ object repo {
   }
 
   case class ProfileTextboxCreator(
-      userId: Int,
+      profileId: Int,
       title: String,
       body: String,
       font: Option[String],
@@ -70,7 +70,7 @@ object repo {
   @Table(PostgresDbType)
   case class ProfileTextbox(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       title: String,
       body: String,
       font: Option[String],
@@ -88,7 +88,7 @@ object repo {
   }
 
   case class ProfileStickerCreator(
-      userId: Int,
+      profileId: Int,
       name: String,
       x: Int,
       y: Int,
@@ -100,7 +100,7 @@ object repo {
   @Table(PostgresDbType)
   case class ProfileSticker(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       name: String,
       x: Int,
       y: Int,
@@ -157,28 +157,28 @@ object repo {
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 
-  private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
-    .where(sql"${ProfileImage.Table.userId} = $userId")
+  private def profileImagesSpec(profileId: Int) = Spec[ProfileImage]
+    .where(sql"${ProfileImage.Table.profileId} = $profileId")
 
-  private def profileTextboxesSpec(userId: Int) = Spec[ProfileTextbox]
-    .where(sql"${ProfileTextbox.Table.userId} = $userId")
+  private def profileTextboxesSpec(profileId: Int) = Spec[ProfileTextbox]
+    .where(sql"${ProfileTextbox.Table.profileId} = $profileId")
 
-  private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
-    .where(sql"${ProfileSticker.Table.userId} = $userId")
+  private def profileStickersSpec(profileId: Int) = Spec[ProfileSticker]
+    .where(sql"${ProfileSticker.Table.profileId} = $profileId")
 
   val getRecommendations = inDatabase {
     profileRepo.findAll.asRight
   }
 
-  def getProfile(userId: Int) = inDatabase {
+  def getProfile(profileId: Int) = inDatabase {
     profileRepo
-      .findById(userId)
+      .findById(profileId)
       .map { profile =>
-        val images = profileImageRepo.findAll(profileImagesSpec(userId))
+        val images = profileImageRepo.findAll(profileImagesSpec(profileId))
         val textboxes =
-          profileTextboxRepo.findAll(profileTextboxesSpec(userId))
+          profileTextboxRepo.findAll(profileTextboxesSpec(profileId))
         val stickers =
-          profileStickerRepo.findAll(profileStickersSpec(userId))
+          profileStickerRepo.findAll(profileStickersSpec(profileId))
         (profile, images, textboxes, stickers)
       }
       .toRight(())
@@ -201,9 +201,9 @@ object repo {
   private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
     = table.insertAll(elems)
 
-  private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
-  private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
-  private def removeStickers(userId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(userId), _.id)
+  private def removeTextboxes(profileId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(profileId), _.id)
+  private def removeImages(profileId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(profileId), _.id)
+  private def removeStickers(profileId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(profileId), _.id)
   private def addTextboxes(using DbCon) = addAll(profileTextboxRepo)
   private def addImages(using DbCon) = addAll(profileImageRepo)
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
@@ -229,7 +229,7 @@ object repo {
         /// but apparently it makes the frontend easier so we will leave as-is for now
         /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
       }
-      case None => Left("Provided userId does not exist. No profile to update.")
+      case None => Left("Provided profileId does not exist. No profile to update.")
     }
   }
 
