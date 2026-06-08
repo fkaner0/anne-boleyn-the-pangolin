@@ -47,14 +47,14 @@ class _PinchToZoomState extends State<PinchToZoom>
   }
 
   void _onScaleStart(ScaleStartDetails details) {
+    if (details.pointerCount < 2) return;
     _resetController.stop();
     _initialFocalPoint = details.localFocalPoint;
-    _engaged = false;
+    _engaged = true;
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    if (details.pointerCount < 2) return;
-    _engaged = true;
+    if (!_engaged || details.pointerCount < 2) return;
 
     final scale = details.scale.clamp(1.0, widget.maxScale);
     final focal = details.localFocalPoint;

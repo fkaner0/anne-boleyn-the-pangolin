@@ -47,6 +47,30 @@ void main() {
     expect(currentScale(tester), closeTo(1.0, 0.001));
   });
 
+  testWidgets('snaps back when fingers are released one at a time', (
+    tester,
+  ) async {
+    await pumpPinch(tester);
+
+    final center = tester.getCenter(find.byType(PinchToZoom));
+    final finger1 = await tester.startGesture(center - const Offset(10, 0));
+    final finger2 = await tester.startGesture(center + const Offset(10, 0));
+    await finger1.moveBy(const Offset(-60, 0));
+    await finger2.moveBy(const Offset(60, 0));
+    await tester.pump();
+
+    expect(currentScale(tester), greaterThan(1.0));
+
+    await finger1.up();
+    await tester.pump();
+    await finger2.moveBy(const Offset(5, 0));
+    await tester.pump();
+    await finger2.up();
+    await tester.pumpAndSettle();
+
+    expect(currentScale(tester), closeTo(1.0, 0.001));
+  });
+
   testWidgets('a single-finger drag does not zoom', (tester) async {
     await pumpPinch(tester);
 
