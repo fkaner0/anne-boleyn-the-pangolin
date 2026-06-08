@@ -24,6 +24,7 @@ ThemeData buildAppTheme(Palette palette) {
     useMaterial3: true,
     colorScheme: colorScheme,
     scaffoldBackgroundColor: palette.offWhite,
+    fontFamily: 'Playpen_Sans',
     extensions: [PaletteColors.fromPalette(palette)],
   );
 }

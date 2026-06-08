@@ -288,6 +288,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                               maxLines: null,
                               textInputAction: TextInputAction.done,
                               style: TextStyle(
+                                inherit: false,
                                 fontSize: 18,
                                 fontFamily: _font,
                                 color: effectiveTextColor,
@@ -355,6 +356,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
     final resolvedBackgroundColor = _backgroundColor ?? colorScheme.surface;
 
     final textStyle = TextStyle(
+      inherit: false,
       fontSize: widget.baseFontSize * scale,
       fontFamily: _font,
       color: resolvedTextColor,
