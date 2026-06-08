@@ -87,8 +87,8 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 Text('Hobby', style: theme.textTheme.titleMedium),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  // value: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
-                  value: null,
+                  // initialValue: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
+                  initialValue: null,
                   hint: const Text('Select a hobby'),
                   decoration: const InputDecoration(),
                   validator: (val) =>
@@ -111,11 +111,11 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                               ))
                           .toList(),
                 ),
-                const SizedBox(height: 28),
+                _divider,
 
                 // --- Passion-meter ---
                 Text('Passion-meter', style: theme.textTheme.titleMedium),
-                const SizedBox(height: 12),
+                _divider,
                 /// TODO
                 // FormField<double>(
                 //   initialValue: profile?.passionLevel ?? 0.5,
@@ -147,7 +147,7 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                 //     );
                 //   },
                 // ),
-                const SizedBox(height: 28),
+                _divider,
 
                 // --- Additional Info (optional, collapsible) ---
                 _AdditionalInfoSection(
@@ -323,3 +323,11 @@ class _AddChipButton extends StatelessWidget {
     );
   }
 }
+
+// const _divider = Divider(
+//       height: 40,
+//       indent: 20,
+//       endIndent: 20,
+//     );
+
+const _divider = SizedBox(height: 36);
