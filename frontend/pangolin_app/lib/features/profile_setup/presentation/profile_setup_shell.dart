@@ -83,6 +83,7 @@ class _SignupShellState extends State<SignupShell> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RecommendationListPage(
+          userId: widget.userId,
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),

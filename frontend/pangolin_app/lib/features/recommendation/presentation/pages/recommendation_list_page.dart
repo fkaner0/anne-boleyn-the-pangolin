@@ -1,19 +1,27 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
 
 class RecommendationListPage extends StatefulWidget {
+  final int userId;
   final RecommendationFetcher recommendationFetcher;
   final ProfileFetcher? profileFetcher;
+  final ButtonClickLogger? logger;
 
   const RecommendationListPage({
     super.key,
+    required this.userId,
     required this.recommendationFetcher,
     this.profileFetcher,
+    this.logger,
   });
 
   @override
@@ -83,9 +91,17 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
               return RecommendationListItem(
                 recommendation: recommendation,
                 onTap: () {
+                  unawaited(
+                    (widget.logger ?? getIt<ButtonClickLogger>())
+                        .logButtonClick(
+                          userId: widget.userId,
+                          buttonId: ButtonIds.recommendationList,
+                        ),
+                  );
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(
+                        viewerUserId: widget.userId,
                         profileFetcher:
                             widget.profileFetcher ?? getIt<ProfileFetcher>(),
                         userId: recommendation.userId,
