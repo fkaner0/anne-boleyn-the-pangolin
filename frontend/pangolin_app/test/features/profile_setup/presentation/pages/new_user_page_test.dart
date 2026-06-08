@@ -16,7 +16,7 @@ class _FakeUserCreator implements UserCreator {
   _FakeUserCreator({this.id = 42, this.fail = false, this.gate});
 
   @override
-  Future<int> createUser() async {
+  Future<int> createUser(String username) async {
     callCount++;
     if (gate != null) await gate!.future;
     if (fail) throw Exception('no user');
