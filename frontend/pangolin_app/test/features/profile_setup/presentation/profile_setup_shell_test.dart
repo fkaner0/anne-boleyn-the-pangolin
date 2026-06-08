@@ -26,7 +26,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Painting').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_forward));
+    await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
   }
 

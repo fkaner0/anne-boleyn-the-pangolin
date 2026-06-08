@@ -73,12 +73,24 @@ class _AboutPageState extends State<AboutPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Stack(
-      children: [
-        Form(
+    return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text('About your craft'),
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            tooltip: 'Save',
+            onPressed: _onNext,
+          ),
+        ],
+      ),
+      body: SafeArea(
+        child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 100),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,8 +101,8 @@ class _AboutPageState extends State<AboutPage> {
                     color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text('Hobby', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 24),
+                const _SectionTitle('Hobby'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: builder.hobby,
@@ -109,7 +121,7 @@ class _AboutPageState extends State<AboutPage> {
                       .toList(),
                 ),
                 _divider,
-                Text('Passion-meter', style: theme.textTheme.titleMedium),
+                const _SectionTitle('Passion-meter'),
                 const SizedBox(height: 8),
                 FormField<double>(
                   initialValue: builder.passionLevel ?? 0.5,
@@ -167,18 +179,7 @@ class _AboutPageState extends State<AboutPage> {
             ),
           ),
         ),
-
-        // --- Floating 'Next' Button ---
-        Positioned(
-          bottom: 24,
-          right: 24,
-          child: FloatingActionButton(
-            onPressed: _onNext,
-            backgroundColor: colorScheme.primary,
-            child: const Icon(Icons.arrow_forward, color: Colors.white),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -227,7 +228,7 @@ class _AdditionalInfoSection extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
-              Text('Other interests', style: theme.textTheme.titleMedium),
+              const _SectionTitle('Other interests'),
             ],
           ),
         ),
@@ -261,6 +262,23 @@ class _AdditionalInfoSection extends StatelessWidget {
 }
 
 // --- Small helper widgets ---
+
+class _SectionTitle extends StatelessWidget {
+  final String text;
+  const _SectionTitle(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Text(
+      text,
+      style: theme.textTheme.titleLarge?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: theme.colorScheme.primary,
+      ),
+    );
+  }
+}
 
 class _AddChipButton extends StatelessWidget {
   final VoidCallback onPressed;
