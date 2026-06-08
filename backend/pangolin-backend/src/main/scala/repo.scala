@@ -10,7 +10,7 @@ import com.augustnagro.magnum.{
   Spec,
   Table,
   TableInfo,
-  connect,
+  connect, transact,
   sql,
 }
 import io.github.cdimascio.dotenv.Dotenv
@@ -137,6 +137,20 @@ object repo {
     val Table = TableInfo[ProfileCreator, Profile, Int]
   }
 
+  case class AccountCreator(
+      username: String,
+  ) derives DbCodec
+
+  @Table(PostgresDbType)
+  case class Account(
+      @Id id: Int,
+      username: String,
+  ) derives DbCodec
+
+  object Account {
+    val Table = TableInfo[AccountCreator, Account, Int]
+  }
+  
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -151,11 +165,13 @@ object repo {
     ds
   }
 
+
   private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
   private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
+  private val accountRepo = Repo[AccountCreator, Account, Int]
 
   private def profileImagesSpec(profileId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.profileId} = $profileId")
@@ -182,6 +198,17 @@ object repo {
         (profile, images, textboxes, stickers)
       }
       .toRight(())
+  }
+
+  def newUser(username: String): IO[Option[Int]] = inDatabaseWithRollback {
+    try {
+      accountRepo.insertReturning(AccountCreator(
+      username = username
+      )).id.some
+    } catch {
+      case _ => None // I have no idea what sort of error gets thrown
+      // Left("Error inserting username into database. Perhaps it already exists?")
+    }
   }
 
   def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
@@ -236,6 +263,14 @@ object repo {
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
     connect(dataSource) {
       f
+    }
+  }
+
+  private def inDatabaseWithRollback[B](f: DbCon ?=> B): IO[B] = IO.blocking {
+    transact(dataSource) {
+      f
+      // rolls back when f throws an error
+      // oh how I wish we had a nice lil effect system to indicate error thowing
     }
   }
 }

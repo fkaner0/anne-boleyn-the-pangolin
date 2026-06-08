@@ -4,7 +4,7 @@ CREATE DOMAIN uint4 AS int8
 
 CREATE TABLE account (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  username text NOT NULL
+  username text NOT NULL UNIQUE
 );
 
 CREATE TABLE profile (
