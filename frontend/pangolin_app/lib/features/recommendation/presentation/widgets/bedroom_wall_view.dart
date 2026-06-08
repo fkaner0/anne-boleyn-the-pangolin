@@ -5,6 +5,7 @@ import 'package:pangolin_app/features/wall_creation/domain/virtual_canvas.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/pinch_to_zoom.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
 import '../../domain/profile_text.dart';
@@ -73,36 +74,38 @@ class _BedroomWallViewState extends State<BedroomWallView> {
               )
             : constraints.maxWidth / canvasWidth;
 
-        return SizedBox(
-          width: constraints.maxWidth,
-          height: canvasHeight * renderScale,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Positioned.fill(
-                child: ColoredBox(color: context.paletteColors.surfaceMuted),
-              ),
-              for (final (index, image) in profile.images.indexed)
-                BedroomWallImageItem(
-                  image: image,
-                  renderScale: renderScale,
-                  onTap: () => widget.onImageTap(image),
-                  wiggle: _wiggleTarget == index,
+        return PinchToZoom(
+          child: SizedBox(
+            width: constraints.maxWidth,
+            height: canvasHeight * renderScale,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Positioned.fill(
+                  child: ColoredBox(color: context.paletteColors.surfaceMuted),
                 ),
-              for (final (index, textbox) in profile.textboxes.indexed)
-                BedroomWallTextBoxItem(
-                  textbox: textbox,
-                  renderScale: renderScale,
-                  onTap: () => widget.onTextTap(textbox),
-                  wiggle: _wiggleTarget == imageCount + index,
-                ),
-              for (final sticker in profile.stickers)
-                BedroomWallStickerItem(
-                  sticker: sticker,
-                  catalog: widget.stickerCatalog,
-                  renderScale: renderScale,
-                ),
-            ],
+                for (final (index, image) in profile.images.indexed)
+                  BedroomWallImageItem(
+                    image: image,
+                    renderScale: renderScale,
+                    onTap: () => widget.onImageTap(image),
+                    wiggle: _wiggleTarget == index,
+                  ),
+                for (final (index, textbox) in profile.textboxes.indexed)
+                  BedroomWallTextBoxItem(
+                    textbox: textbox,
+                    renderScale: renderScale,
+                    onTap: () => widget.onTextTap(textbox),
+                    wiggle: _wiggleTarget == imageCount + index,
+                  ),
+                for (final sticker in profile.stickers)
+                  BedroomWallStickerItem(
+                    sticker: sticker,
+                    catalog: widget.stickerCatalog,
+                    renderScale: renderScale,
+                  ),
+              ],
+            ),
           ),
         );
       },
