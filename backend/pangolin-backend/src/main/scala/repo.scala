@@ -200,26 +200,14 @@ object repo {
       .toRight(())
   }
 
-  def newUser(username: String): IO[Option[Int]] = inDatabaseWithRollback {
+  def newUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
     try {
       accountRepo.insertReturning(AccountCreator(
       username = username
-      )).id.some
+      )).id.asRight
     } catch {
-      case _ => None // I have no idea what sort of error gets thrown
-      // Left("Error inserting username into database. Perhaps it already exists?")
+      case e => Left(e) // I have no idea what sort of error gets thrown
     }
-  }
-
-  def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
-    profileRepo.insertReturning(ProfileCreator(
-      name = "no name provided",
-      location = "no location provided",
-      bio = "no bio provided",
-      wallBackgroundHexARGB = 0,
-      profileImageUrl = "https://placehold.co/400x400.jpg",
-      age = 0,
-    )).id.asRight
   }
 
   private def removeBySpec[EC, E, I](table: Repo[EC, E, I], spec: Spec[E], getId: E => I)(using DbCon)

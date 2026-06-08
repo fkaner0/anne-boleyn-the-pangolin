@@ -15,6 +15,7 @@ import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.{ReadWriter, macroRW}
 import pangolin.repo.ProfileTextboxCreator
+import com.augustnagro.magnum.SqlException
 
 object api {
   case class Position(
@@ -94,6 +95,12 @@ object api {
     given ReadWriter[UploadResponse] = macroRW
   }
 
+  case class NewUserRequest(
+    username: String
+  ) //derives ReadWriter
+  object NewUserRequest {
+    given ReadWriter[NewUserRequest] = macroRW
+  }
 
   case class NewUserResponse(
     userId: Int
@@ -120,6 +127,8 @@ object api {
 
   private val newUserEndpoint = endpoint.post
     .in("user")
+    .in(jsonBody[NewUserRequest])
+    .errorOut(stringBody)
     .out(jsonBody[NewUserResponse])
 
   private val reccomendationsEndpoint = endpoint.get
@@ -199,9 +208,15 @@ object api {
   )
 
   private val newUserRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    newUserEndpoint.serverLogic { _ =>
-      val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
-      newUserId.map(_.map(NewUserResponse(_)))
+    newUserEndpoint.serverLogic { request =>
+      val newUserId: IO[Either[Throwable, Int]] = repo.newUser(request.username)
+      newUserId.map { _ match {
+          case Left(err: SqlException) => Left(
+            s"Error inserting new user with username ${request.username}. Perhaps this user already exists."
+          )
+          case Left(err) => Left(err.getMessage)
+          case Right(userId) => Right(NewUserResponse(userId))
+      }}
     }
   )
 
