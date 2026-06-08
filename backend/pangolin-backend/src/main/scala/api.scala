@@ -7,14 +7,16 @@ import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.Part
+import sttp.model.sse.ServerSentEvent
 import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
-import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
+import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, serverSentEventsBody}
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.{ReadWriter, macroRW}
 import pangolin.repo.ProfileTextboxCreator
+import scala.concurrent.duration.DurationInt
 
 object api {
   case class Position(
@@ -94,12 +96,16 @@ object api {
     given ReadWriter[UploadResponse] = macroRW
   }
 
-
   case class NewUserResponse(
     userId: Int
   )
   object NewUserResponse {
     given ReadWriter[NewUserResponse] = macroRW
+  }
+
+  case class Message(message: String)
+  object Message {
+    given ReadWriter[Message] = macroRW
   }
 
   private val profileViewEndpoint = endpoint.get
@@ -125,6 +131,14 @@ object api {
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
     .out(jsonBody[Vector[Recommendation]])
+
+  private val messageSendEndpoint = endpoint.post
+    .in("message" / path[Int]("senderId") / path[Int]("receiverId"))
+    .in(jsonBody[Message])
+
+  private val messageListenSseEndpoint = endpoint.get
+    .in("message" / path[Int]("senderId") / path[Int]("receiverId"))
+    .out(serverSentEventsBody[IO])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -202,6 +216,20 @@ object api {
     newUserEndpoint.serverLogic { _ =>
       val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
       newUserId.map(_.map(NewUserResponse(_)))
+    }
+  )
+
+  private val messageSendRoutes = serverInterpreter.toRoutes(
+    messageSendEndpoint.serverLogic { (senderId, receiverId, message) =>
+      // TODO: upload image to database
+      // TODO: trigger SSEs for listener
+      ???
+    }
+  )
+
+  private val messageListenSseRoutes = serverInterpreter.toRoutes(
+    messageListenSseEndpoint.serverLogicSuccess { (senderId, receiverId) =>
+      IO(fs2.Stream.awakeEvery[IO](1.seconds).map(time => ServerSentEvent(Some(time.toString))))
     }
   )
 
@@ -298,6 +326,7 @@ object api {
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,
-    "/" -> api.uploadRoutes
+    "/" -> api.uploadRoutes,
+    "/" -> api.messageListenSseRoutes,
   ).orNotFound
 }
