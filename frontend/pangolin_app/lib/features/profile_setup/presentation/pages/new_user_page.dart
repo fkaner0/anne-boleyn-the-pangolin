@@ -3,7 +3,7 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 
-import 'about_me_page.dart';
+import 'old___about_me_page.dart';
 
 class NewUserPage extends StatefulWidget {
   final UserCreator? userCreator;

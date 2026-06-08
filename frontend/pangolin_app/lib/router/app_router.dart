@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/profile_view/profile_viewer_page.dart';
 import 'tmp_fake_page.dart';
+import '../features/profile_setup/presentation/profile_setup_shell.dart';
 
 /// Named route constants — use these everywhere instead of raw strings.
 class AppRoutes {
@@ -30,7 +31,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Profile Setup section (manages its own internal step state)
       GoRoute(
         path: AppRoutes.signup,
-        builder: (context, state) => const TmpFakePage(pageName: 'ProfileSetupSection()'),
+        // builder: (context, state) => const TmpFakePage(pageName: 'ProfileSetupSection()'),
+        builder: (context, state) => const SignupShell(),
       ),
 
       // Main app shell with bottom nav
