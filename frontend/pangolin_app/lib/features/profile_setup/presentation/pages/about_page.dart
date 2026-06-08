@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// import '../../models/hobby_model.dart';
-// import '../../providers/profile_provider.dart';
-// import '../../widgets/passion_meter.dart';
-// import '../../widgets/interest_chip.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
+
 import '../providers/profile_setup_provider.dart';
 
 class AboutPage extends ConsumerStatefulWidget {
@@ -83,6 +81,15 @@ class _AboutPageState extends ConsumerState<AboutPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 8),
+                Text(
+                  'This information will be used to find compatible people',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text('Hobby', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   // initialValue: (profile?.hobby.isEmpty ?? true) ? null : profile?.hobby, /// TODO
                   initialValue: null,
@@ -107,39 +114,23 @@ class _AboutPageState extends ConsumerState<AboutPage> {
                       .toList(),
                 ),
                 _divider,
-                _divider,
-
-                /// TODO
-                // FormField<double>(
-                //   initialValue: profile?.passionLevel ?? 0.5,
-                //   validator: (val) =>
-                //       val == null ? 'Please set your passion level' : null,
-                //   onSaved: (val) {
-                //     if (val != null) notifier.updatePassionLevel(val);
-                //   },
-                //   builder: (FormFieldState<double> field) {
-                //     /// TODO: check the below is actually true
-                //     // InputDecorator applies errorText styling from the
-                //     // theme automatically — identical to how TextField
-                //     // and DropdownButtonFormField render their errors.
-                //     return InputDecorator(
-                //       decoration: InputDecoration(
-                //         errorText: field.errorText,
-                //         border: InputBorder.none,
-                //         contentPadding: EdgeInsets.zero,
-                //       ),
-                //       child: PassionMeter(
-                //         value: field.value ?? 0.5,
-                //         onChanged: (val) {
-                //           field.didChange(val);
-                //           // Update provider immediately so the rest of
-                //           // the UI stays in sync while the user drags.
-                //           notifier.updatePassionLevel(val);
-                //         },
-                //       ),
-                //     );
-                //   },
-                // ),
+                Text('Passion-meter', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 8),
+                FormField<double>(
+                  initialValue: 0.5,
+                  onSaved: (val) {
+                    if (val != null) notifier.updatePassionLevel(val);
+                  },
+                  builder: (field) {
+                    return PassionMeter(
+                      value: field.value ?? 0.5,
+                      onChanged: (val) {
+                        field.didChange(val);
+                        notifier.updatePassionLevel(val);
+                      },
+                    );
+                  },
+                ),
                 _divider,
 
                 // --- Additional Info (optional, collapsible) ---
@@ -243,6 +234,7 @@ class _AdditionalInfoSection extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
+              Text('Other interests', style: theme.textTheme.titleMedium),
             ],
           ),
         ),
