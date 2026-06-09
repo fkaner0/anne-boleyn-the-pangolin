@@ -94,7 +94,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     // Set the current logged in user id & move to setup page
     ref.read(userIdProvider.notifier).login(userId);
-    context.push(AppRoutes.mainShell);
+    context.push(AppRoutes.recommendations);
   }
 
   @override

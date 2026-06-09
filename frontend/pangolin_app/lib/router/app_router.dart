@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
+import 'package:pangolin_app/features/recommendation/presentation/widgets/recommendation_list_item.dart';
 import 'tmp_fake_page.dart';
 import '../features/profile_view/profile_viewer_page.dart';
 import '../features/profile_setup/presentation/profile_setup_shell.dart';
@@ -38,8 +41,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Main app shell with bottom nav
       ShellRoute(
-        builder: (context, state, child) =>
-            const TmpFakePage(pageName: 'MainScaffold(child: child)'),
+        //// TODO: ADD NAVBAR STUFF HERE I THINK????? INSTEAD OF JUST DELEGATING TO CHILD DIRECTLY
+        builder: (context, state, child) => child,
         routes: [
           GoRoute(
             path: AppRoutes.editProfile,
@@ -48,8 +51,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.recommendations,
-            builder: (context, state) =>
-                const TmpFakePage(pageName: 'RecommendationsPage()'),
+            builder: (context, state) => RecommendationListPage(),
           ),
           GoRoute(
             path: AppRoutes.connections,

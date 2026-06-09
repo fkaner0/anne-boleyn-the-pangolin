@@ -7,12 +7,12 @@ import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
 
 class RecommendationListPage extends StatefulWidget {
-  final RecommendationFetcher recommendationFetcher;
+  final RecommendationFetcher? recommendationFetcher;
   final ProfileFetcher? profileFetcher;
 
   const RecommendationListPage({
     super.key,
-    required this.recommendationFetcher,
+    this.recommendationFetcher,
     this.profileFetcher,
   });
 
@@ -25,6 +25,11 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
 
+  late final RecommendationFetcher _recommendationFetcher =
+      widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
+  late final ProfileFetcher _profileFetcher =
+      widget.profileFetcher ?? getIt<ProfileFetcher>();
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +38,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
 
   Future<void> _loadRecommendations() async {
     try {
-      final recommendations = await widget.recommendationFetcher
+      final recommendations = await _recommendationFetcher
           .fetchRecommendations();
 
       setState(() {
@@ -86,8 +91,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(
-                        profileFetcher:
-                            widget.profileFetcher ?? getIt<ProfileFetcher>(),
+                        profileFetcher: _profileFetcher,
                         userId: recommendation.userId,
                       ),
                     ),
