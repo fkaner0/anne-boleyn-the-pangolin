@@ -15,4 +15,8 @@ class ButtonIds {
       'connections_list'; // Any connection on the connections page
   static const String connectionsPending =
       'connections_pending'; // Pending connections button
+  static const String pendingConnection =
+      'pending_connection'; // Any pending connection card in the popup
+  static const String pendingConnectionsClose =
+      'pending_connections_close'; // Close button on the pending popup
 }

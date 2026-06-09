@@ -13,13 +13,15 @@ import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart
 
 class _FakeFriendsFetcher implements FriendsFetcher {
   final CurrentFriends current;
-  const _FakeFriendsFetcher(this.current);
+  final List<PendingFriend> pending;
+
+  const _FakeFriendsFetcher(this.current, {this.pending = const []});
 
   @override
   Future<CurrentFriends> fetchCurrentFriends(int userId) async => current;
 
   @override
-  Future<List<PendingFriend>> fetchPendingFriends(int userId) async => const [];
+  Future<List<PendingFriend>> fetchPendingFriends(int userId) async => pending;
 }
 
 CurrentFriends _sample() => const CurrentFriends(
@@ -40,12 +42,13 @@ void main() {
     WidgetTester tester,
     CurrentFriends data, {
     MockButtonClickLogger? logger,
+    List<PendingFriend> pending = const [],
   }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: ConnectionsPage(
           userId: 7,
-          friendsFetcher: _FakeFriendsFetcher(data),
+          friendsFetcher: _FakeFriendsFetcher(data, pending: pending),
           logger: logger,
         ),
       ),
@@ -106,6 +109,86 @@ void main() {
     expect(
       logger.clicks.map((click) => click.buttonId),
       contains(ButtonIds.connectionsPending),
+    );
+  });
+
+  testWidgets('the pending popup lists pending friends as cards', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      _sample(),
+      pending: const [
+        PendingFriend(friendUserId: 11, name: 'Jess', mainImage: ''),
+        PendingFriend(friendUserId: 12, name: 'Diego', mainImage: ''),
+      ],
+    );
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pending connections'), findsOneWidget);
+    expect(find.text('Jess'), findsOneWidget);
+    expect(find.text('Diego'), findsOneWidget);
+  });
+
+  testWidgets('tapping a pending friend opens the shared board stub', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      _sample(),
+      pending: const [
+        PendingFriend(friendUserId: 11, name: 'Jess', mainImage: ''),
+      ],
+    );
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Jess'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Shared board with Jess'), findsOneWidget);
+    expect(find.text('Coming soon'), findsOneWidget);
+  });
+
+  testWidgets('tapping a pending friend logs a pending connection click', (
+    tester,
+  ) async {
+    final logger = MockButtonClickLogger();
+    await pumpPage(
+      tester,
+      _sample(),
+      logger: logger,
+      pending: const [
+        PendingFriend(friendUserId: 11, name: 'Jess', mainImage: ''),
+      ],
+    );
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Jess'));
+    await tester.pumpAndSettle();
+
+    expect(
+      logger.clicks.map((click) => click.buttonId),
+      contains(ButtonIds.pendingConnection),
+    );
+  });
+
+  testWidgets('closing the pending popup logs a close click', (tester) async {
+    final logger = MockButtonClickLogger();
+    await pumpPage(tester, _sample(), logger: logger);
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pumpAndSettle();
+
+    expect(
+      logger.clicks.map((click) => click.buttonId),
+      contains(ButtonIds.pendingConnectionsClose),
     );
   });
 }

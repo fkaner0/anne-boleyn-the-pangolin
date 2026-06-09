@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
-import 'package:pangolin_app/features/friends/presentation/pages/pending_connections_page.dart';
+import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
+import 'package:pangolin_app/features/friends/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
+import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
@@ -70,11 +72,24 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
     );
   }
 
-  void _openPending() {
+  Future<void> _openPending() async {
     _log(ButtonIds.connectionsPending);
+
+    final selected = await showDialog<PendingFriend>(
+      context: context,
+      builder: (_) => PendingConnectionsDialog(
+        userId: widget.userId,
+        friendsFetcher: _friendsFetcher,
+        logger: widget.logger,
+      ),
+    );
+
+    if (selected == null || !mounted) return;
+
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PendingConnectionsPage(userId: widget.userId),
+        builder: (_) =>
+            SharedBoardPage(userId: widget.userId, friend: selected),
       ),
     );
   }
