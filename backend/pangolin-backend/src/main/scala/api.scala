@@ -160,7 +160,7 @@ object api {
 
   extension (user: repo.Profile) {
     def toRecommendation = Recommendation(
-      userId = user.id,
+      userId = user.accountId,
       name = user.name,
       location = user.location,
       bio = user.bio,
@@ -193,7 +193,7 @@ object api {
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
-        request.fromApi(userId),
+        request.fromApi(accountId = userId),
         request.wallTextboxes.map(_.fromApi(userId)),
         request.wallImages.map(_.fromApi(userId)),
         request.wallStickers.map(_.fromApi(userId)),
@@ -299,8 +299,8 @@ object api {
   }
 
   extension (profile: FullProfile) {
-    private def fromApi(userId: Int) = repo.Profile(
-      id = userId,
+    private def fromApi(accountId: Int) = repo.ProfileCreator(
+      accountId = accountId,
       name = profile.name,
       location = profile.location,
       bio = profile.bio,

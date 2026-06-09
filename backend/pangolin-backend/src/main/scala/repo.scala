@@ -114,17 +114,30 @@ object repo {
   }
 
   case class ProfileCreator(
+      accountId: Int,
       name: String,
       location: String,
       bio: String,
       wallBackgroundHexARGB: Long,
       profileImageUrl: String,
       age: Int,
-  ) derives DbCodec
+  ) derives DbCodec {
+    def toProfile(profileId: Int): Profile = Profile(
+      id = profileId,
+      accountId = accountId,
+      name = name,
+      location = location,
+      bio = bio,
+      wallBackgroundHexARGB = wallBackgroundHexARGB,
+      profileImageUrl = profileImageUrl,
+      age = age,
+    )
+  }
 
   @Table(PostgresDbType)
   case class Profile(
       @Id id: Int,
+      accountId: Int,
       name: String,
       location: String,
       bio: String,
@@ -173,7 +186,7 @@ object repo {
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
 
-  private def userIdSpec(username: String) = Spec[Account]
+  private def userIdFromUsernameSpec(username: String) = Spec[Account]
     .where(sql"${Account.Table.username} = $username")
 
   private def profileImagesSpec(profileId: Int) = Spec[ProfileImage]
@@ -215,7 +228,7 @@ object repo {
 
   def getUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
     try {
-      accountRepo.findAll(userIdSpec(username)).head.id.asRight
+      accountRepo.findAll(userIdFromUsernameSpec(username)).head.id.asRight
     } catch {
       case e => Left(e) // I have no idea what sort of error gets thrown
     }
@@ -234,28 +247,41 @@ object repo {
   private def addImages(using DbCon) = addAll(profileImageRepo)
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
 
+  private def getProfileIdFromUserId(userId: Int)(using DbCon): Option[Int] = sql"""
+    SELECT ${Profile.Table.id}
+      FROM ${Profile.Table}
+    WHERE ${Profile.Table.accountId} = $userId
+    LIMIT 1
+  """.query[Int].run().headOption
+
+  /// TODO: actually write out the sql for this. will be nicer than the hell below.
+  // def updateProfileByAccountId(accountId: Int)(using DbCon) = sql"""
+  //   UPDATE
+  // """.query[Unit].run()
+
   def updateFullProfile(
-        profile: Profile,
+        profileCreator: ProfileCreator,
         textboxCreators: Iterable[ProfileTextboxCreator],
         imageCreators: Iterable[ProfileImageCreator],
         stickerCreators: Iterable[ProfileStickerCreator],
-  ) = repo.inDatabase {
-    profileRepo.findById(profile.id) match {
-      // Only update profile if the row already exists.
-      case Some(_) => {
-        repo.profileRepo.update(profile)
-        repo.removeTextboxes(profile.id)
+  ) = repo.inDatabaseWithRollback {
+    val profileId: Option[Int] = getProfileIdFromUserId(profileCreator.accountId)
+    profileId match {
+      case Some(pid) => {
+        /// TODO: change this so its plain sql!!
+        repo.profileRepo.update(profileCreator.toProfile(pid))
+        repo.removeTextboxes(pid)
         repo.addTextboxes(textboxCreators)
-        repo.removeImages(profile.id)
+        repo.removeImages(pid)
         repo.addImages(imageCreators)
-        repo.removeStickers(profile.id)
+        repo.removeStickers(pid)
         repo.addStickers(stickerCreators)
         Right(())
         /// TODO: obviously this is the jankiest most disgusting code ever
         /// but apparently it makes the frontend easier so we will leave as-is for now
         /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
       }
-      case None => Left("Provided profileId does not exist. No profile to update.")
+      case None => Left("No profileId matches the given accountId. No profile to update.")
     }
   }
 
