@@ -128,14 +128,12 @@ object api {
     .out(jsonBody[UploadResponse])
 
   private val signUpEndpoint = endpoint.post
-    .in("auth")
-    .in(jsonBody[NewUserRequest])
+    .in("auth" / path[String]("username"))
     .errorOut(stringBody)
     .out(jsonBody[NewUserResponse])
 
   private val loginEndpoint = endpoint.get
-    .in("auth")
-    .in(jsonBody[LoginRequest])
+    .in("auth" / path[String]("username"))
     .errorOut(stringBody)
     .out(jsonBody[LoginResponse])
 
@@ -216,11 +214,11 @@ object api {
   )
 
   private val signUpRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    signUpEndpoint.serverLogic { request =>
-      val newUserId: IO[Either[Throwable, Int]] = repo.newUser(request.username)
+    signUpEndpoint.serverLogic { username =>
+      val newUserId: IO[Either[Throwable, Int]] = repo.newUser(username)
       newUserId.map { _ match {
           case Left(err: SqlException) => Left(
-            s"Error inserting new user with username ${request.username}. Perhaps this user already exists."
+            s"Error inserting new user with username ${username}. Perhaps this user already exists."
           )
           case Left(err) => Left(err.getMessage)
           case Right(userId) => Right(NewUserResponse(userId))
@@ -229,11 +227,11 @@ object api {
   )
 
   private val loginRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    loginEndpoint.serverLogic { request =>
-      val userId: IO[Either[Throwable, Int]] = repo.getUser(request.username)
+    loginEndpoint.serverLogic { username =>
+      val userId: IO[Either[Throwable, Int]] = repo.getUser(username)
       userId.map { _ match {
           case Left(err: SqlException) => Left(
-            s"Error getting userId from username ${request.username}. User might not exist."
+            s"Error getting userId from username ${username}. User might not exist."
           )
           case Left(err) => Left(err.getMessage)
           case Right(userId) => Right(LoginResponse(userId))
