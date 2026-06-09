@@ -260,28 +260,31 @@ object api {
   )
 
   private def messageTextRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageTextEndpoint.serverLogicSuccess { message =>
-      // TODO: Add text message to database
-      publishMessage(topic, message)
+    messageTextEndpoint.serverLogic { message =>
+      repo.sendTextMessage(message).flatMap {
+        case Left(_) => IO.pure(().asLeft)
+        case Right(_) => publishMessage(topic, message)
+      }
     }
   )
 
   private def messageImageRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageImageEndpoint.serverLogicSuccess { message =>
-      // TODO: Add image message to database
-      publishMessage(topic, message)
+    messageImageEndpoint.serverLogic { message =>
+      repo.sendImageMessage(message).flatMap {
+        case Left(_) => IO.pure(().asLeft)
+        case Right(_) => publishMessage(topic, message)
+      }
     }
   )
 
   private def messageReplyRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageReplyEndpoint.serverLogicSuccess { message =>
-      // TODO: add rely message to database
-      publishMessage(topic, message)
+    messageReplyEndpoint.serverLogic { message =>
+      repo.sendReply(message) >> publishMessage(topic, message)
     }
   )
 
   private def publishMessage(topic: Topic[IO, Message], message: Message) = {
-    topic.publish1(message).as(())
+    topic.publish1(message).as(().asRight)
   }
 
   private def messageListenSseRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(

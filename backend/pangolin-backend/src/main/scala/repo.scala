@@ -333,6 +333,41 @@ object repo {
   private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
   private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
 
+  def sendImageMessage(message: api.MessageImage): IO[Either[Unit, Unit]] = sendElement(message, text = None, url = Some(message.url))
+
+  def sendTextMessage(message: api.MessageText): IO[Either[Unit, Unit]] = sendElement(message, text = Some(message.text), url = None)
+
+  private def sendElement(message: api.Message, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+    getBoard(message.senderId, message.receiverId).map { board =>
+      sharedBoardElementsRepo.insert(
+        SharedBoardElementCreator(
+          boardId = board.id,
+          sentTimestamp = message.datetime,
+          url = url,
+          text = text,
+          senderId = message.senderId,
+          readByReceiver = false,
+        )
+      )
+    }.toRight(())
+  }
+
+  def sendReply(message: api.MessageReply) = inDatabase {
+    sharedBoardReplyRepo.insert(
+      SharedBoardReplyCreator(
+        sharedBoardElementId = message.sharedElementId,
+        content = message.text,
+        sentTimestamp = message.datetime,
+        senderId = message.senderId,
+        readByReceiver = false,
+      )
+    )
+  }
+
+  private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
+    sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+  }
+
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
     connect(dataSource)(f)
   }
