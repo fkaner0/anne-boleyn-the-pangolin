@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class ProfileViewerPage extends StatelessWidget {
   final int userId;
@@ -10,7 +11,7 @@ class ProfileViewerPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIconType.back),
           onPressed: () => context.pop(),
         ),
         backgroundColor: Theme.of(context).colorScheme.surface,

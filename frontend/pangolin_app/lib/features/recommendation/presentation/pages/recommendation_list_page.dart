@@ -6,6 +6,7 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
@@ -72,7 +73,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
       appBar: AppBar(
         title: const Text('Your recommendations'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: () {
             _log(ButtonIds.recommendationListBack);

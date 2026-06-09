@@ -8,6 +8,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../data/picker/gallery_image_file_picker.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
@@ -227,8 +228,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
             ? Theme.of(context).colorScheme.errorContainer
             : null,
         title: _interacting
-            ? Icon(
-                Icons.delete,
+            ? AppIcon(
+                AppIconType.delete,
                 size: _dragOverBin ? 32 : 26,
                 color: _dragOverBin
                     ? Theme.of(context).colorScheme.error
@@ -237,18 +238,18 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
             : const Text('Create your wall'),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.preview),
+            icon: const AppIcon(AppIconType.preview),
             tooltip: _preview ? 'Hide Preview' : 'Preview',
             onPressed: _togglePreview,
           ),
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: const AppIcon(AppIconType.save),
             tooltip: 'Save',
             onPressed: _saving ? null : _onSavePressed,
           ),

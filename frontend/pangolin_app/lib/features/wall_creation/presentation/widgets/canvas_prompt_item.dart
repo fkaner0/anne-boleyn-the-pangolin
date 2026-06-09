@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
@@ -70,7 +71,7 @@ class _ImageContent extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(Icons.add, color: color, size: 26),
+        AppIcon(AppIconType.add, color: color, size: 26),
         const SizedBox(height: 6),
         Flexible(
           child: Text(

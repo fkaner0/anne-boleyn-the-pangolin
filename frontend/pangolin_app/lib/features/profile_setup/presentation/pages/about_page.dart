@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class AboutPage extends StatefulWidget {
   final VoidCallback onNext;
@@ -80,7 +81,7 @@ class _AboutPageState extends State<AboutPage> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.save),
+            icon: const AppIcon(AppIconType.save),
             tooltip: 'Save',
             onPressed: _onNext,
           ),
@@ -223,8 +224,8 @@ class _AdditionalInfoSection extends StatelessWidget {
           onTap: onToggle,
           child: Row(
             children: [
-              Icon(
-                expanded ? Icons.expand_less : Icons.expand_more,
+              AppIcon(
+                expanded ? AppIconType.expandLess : AppIconType.expandMore,
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
@@ -297,7 +298,7 @@ class _AddChipButton extends StatelessWidget {
           shape: BoxShape.circle,
           color: colorScheme.surface,
         ),
-        child: Icon(Icons.add, size: 18, color: colorScheme.primary),
+        child: AppIcon(AppIconType.add, size: 18, color: colorScheme.primary),
       ),
     );
   }

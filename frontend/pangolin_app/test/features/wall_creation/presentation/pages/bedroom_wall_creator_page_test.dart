@@ -16,9 +16,21 @@ import 'package:pangolin_app/features/wall_creation/presentation/widgets/creator
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+final _addTextIcon = find.byWidgetPredicate(
+  (w) => w is AppIcon && w.type == AppIconType.addText,
+);
+final _addImageIcon = find.byWidgetPredicate(
+  (w) => w is AppIcon && w.type == AppIconType.addImage,
+);
+final _canvasImage = find.byWidgetPredicate(
+  (w) => w is Image && w.image is MemoryImage,
+  skipOffstage: false,
 );
 
 class _FakeImageFilePicker implements ImageFilePicker {
@@ -257,10 +269,10 @@ void main() {
   testWidgets('cancelling the image picker adds nothing', (tester) async {
     await pumpPage(tester, controller: controllerWith(null));
 
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+    await tester.tap(_addImageIcon);
     await tester.pumpAndSettle();
 
-    expect(find.byType(Image, skipOffstage: false), findsNothing);
+    expect(_canvasImage, findsNothing);
     expect(find.text('Create your wall'), findsOneWidget);
   });
 
@@ -272,16 +284,16 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.add_photo_alternate_outlined));
+    await tester.tap(_addImageIcon);
     await tester.pumpAndSettle();
 
-    expect(find.byType(Image, skipOffstage: false), findsOneWidget);
+    expect(_canvasImage, findsOneWidget);
   });
 
   testWidgets('adding a text box shows placeholder text', (tester) async {
     await pumpPage(tester, controller: controllerWith(null));
 
-    await tester.tap(find.byIcon(Icons.title));
+    await tester.tap(_addTextIcon);
     await tester.pumpAndSettle();
 
     expect(find.text('Your text', skipOffstage: false), findsOneWidget);
@@ -300,7 +312,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byIcon(Icons.check), findsOneWidget);
+    expect(find.byTooltip('Done'), findsOneWidget);
   });
 
   // TODO: find TextField in canvas, not prompt generation one.
@@ -313,7 +325,7 @@ void main() {
   //   final controller = controllerWith(null);
   //   await pumpPage(tester, controller: controller);
 
-  //   await tester.tap(find.byIcon(Icons.title));
+  //   await tester.tap(_addTextIcon);
   //   await tester.pumpAndSettle();
 
   //   await tester.tap(find.text('Your text'));

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
+
+final _refreshIcon = find.byWidgetPredicate(
+  (w) => w is AppIcon && w.type == AppIconType.refresh,
+);
 
 void main() {
   Future<void> pump(
@@ -29,7 +34,7 @@ void main() {
     await pump(tester, onCreate: (_) {});
 
     expect(slideOffset(tester), Offset.zero);
-    expect(find.byIcon(Icons.refresh), findsOneWidget);
+    expect(_refreshIcon, findsOneWidget);
     expect(find.byIcon(Icons.lightbulb_outline), findsNothing);
   });
 
@@ -38,7 +43,7 @@ void main() {
     await useHint(tester);
 
     expect(find.byIcon(Icons.lightbulb_outline), findsOneWidget);
-    expect(find.byIcon(Icons.refresh), findsNothing);
+    expect(_refreshIcon, findsNothing);
     await tester.pumpAndSettle();
   });
 

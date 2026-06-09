@@ -81,9 +81,9 @@ void main() {
   testWidgets('logs a back click with a unique id', (tester) async {
     final logger = MockButtonClickLogger();
     await pumpPage(tester, logger);
-    await _pumpUntilFound(tester, find.byIcon(Icons.arrow_back));
+    await _pumpUntilFound(tester, find.byTooltip('Back'));
 
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.tap(find.byTooltip('Back'));
     await tester.pump();
 
     expect(logger.clicks, hasLength(1));

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/profile_image.dart';
 import '../../domain/profile_text.dart';
 
@@ -30,7 +31,7 @@ class BedroomWallDetailContent extends StatelessWidget {
                 height: 300,
                 color: Theme.of(context).colorScheme.outline,
                 alignment: Alignment.center,
-                child: const Icon(Icons.broken_image, size: 48),
+                child: const AppIcon(AppIconType.brokenImage, size: 48),
               );
             },
           ),
