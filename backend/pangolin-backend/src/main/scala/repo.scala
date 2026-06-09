@@ -173,6 +173,9 @@ object repo {
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
 
+  private def userIdSpec(username: String) = Spec[Account]
+    .where(sql"${Account.Table.username} = $username")
+
   private def profileImagesSpec(profileId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.profileId} = $profileId")
 
@@ -205,6 +208,14 @@ object repo {
       accountRepo.insertReturning(AccountCreator(
       username = username
       )).id.asRight
+    } catch {
+      case e => Left(e) // I have no idea what sort of error gets thrown
+    }
+  }
+
+  def getUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
+    try {
+      accountRepo.findAll(userIdSpec(username)).head.id.asRight
     } catch {
       case e => Left(e) // I have no idea what sort of error gets thrown
     }

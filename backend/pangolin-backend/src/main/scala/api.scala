@@ -97,17 +97,19 @@ object api {
 
   case class NewUserRequest(
     username: String
-  ) //derives ReadWriter
-  object NewUserRequest {
-    given ReadWriter[NewUserRequest] = macroRW
-  }
+  ) derives ReadWriter
 
   case class NewUserResponse(
     userId: Int
-  )
-  object NewUserResponse {
-    given ReadWriter[NewUserResponse] = macroRW
-  }
+  ) derives ReadWriter
+
+  case class LoginRequest(
+    username: String
+  ) derives ReadWriter
+
+  case class LoginResponse(
+    userId: Int
+  ) derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
@@ -125,11 +127,17 @@ object api {
     .errorOut(stringBody)
     .out(jsonBody[UploadResponse])
 
-  private val newUserEndpoint = endpoint.post
-    .in("user")
+  private val signUpEndpoint = endpoint.post
+    .in("auth")
     .in(jsonBody[NewUserRequest])
     .errorOut(stringBody)
     .out(jsonBody[NewUserResponse])
+
+  private val loginEndpoint = endpoint.get
+    .in("auth")
+    .in(jsonBody[LoginRequest])
+    .errorOut(stringBody)
+    .out(jsonBody[LoginResponse])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -207,8 +215,8 @@ object api {
     }
   )
 
-  private val newUserRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    newUserEndpoint.serverLogic { request =>
+  private val signUpRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    signUpEndpoint.serverLogic { request =>
       val newUserId: IO[Either[Throwable, Int]] = repo.newUser(request.username)
       newUserId.map { _ match {
           case Left(err: SqlException) => Left(
@@ -216,6 +224,19 @@ object api {
           )
           case Left(err) => Left(err.getMessage)
           case Right(userId) => Right(NewUserResponse(userId))
+      }}
+    }
+  )
+
+  private val loginRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    loginEndpoint.serverLogic { request =>
+      val userId: IO[Either[Throwable, Int]] = repo.getUser(request.username)
+      userId.map { _ match {
+          case Left(err: SqlException) => Left(
+            s"Error getting userId from username ${request.username}. User might not exist."
+          )
+          case Left(err) => Left(err.getMessage)
+          case Right(userId) => Right(LoginResponse(userId))
       }}
     }
   )
@@ -309,7 +330,8 @@ object api {
   }
 
   val router = Router(
-    "/" -> api.newUserRoutes,
+    "/" -> api.loginRoutes,
+    "/" -> api.signUpRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,
