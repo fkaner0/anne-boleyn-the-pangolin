@@ -137,6 +137,68 @@ object repo {
     val Table = TableInfo[ProfileCreator, Profile, Int]
   }
 
+  case class SharedBoardCreator(
+    user1Id: Int,
+    user2Id: Int,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoard(
+    @Id id: Int,
+    user1Id: Int,
+    user2Id: Int,
+  ) derives DbCodec
+
+  object SharedBoard {
+    val Table = TableInfo[SharedBoardCreator, SharedBoard, Int]
+  }
+
+  case class SharedBoardElementCreator(
+    boardId: Int,
+    sentTimestamp: Long,
+    url: Option[String],
+    text: Option[String],
+    senderId: Int,
+    readByReceiver: Boolean,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoardElement(
+    @Id id: Int,
+    boardId: Int,
+    url: Option[String],
+    text: Option[String],
+    sentTimestamp: Long,
+    senderId: Int,
+    readByReceiver: Boolean,
+  ) derives DbCodec
+
+  object SharedBoardElement {
+    val Table = TableInfo[SharedBoardElementCreator, SharedBoardElement, Int]
+  }
+
+  case class SharedBoardReplyCreator(
+    sharedBoardElementId: Int,
+    content: String,
+    sentTimestamp: Long,
+    senderId: Int,
+    readByReceiver: Boolean,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoardReply(
+    @Id id: Int,
+    sharedBoardElementId: Int,
+    content: String,
+    sentTimestamp: Long,
+    senderId: Int,
+    readByReceiver: Boolean,
+  )
+
+  object SharedBoardReply {
+    val Table = TableInfo[SharedBoardReplyCreator, SharedBoardReply, Int]
+  }
+
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -156,6 +218,8 @@ object repo {
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
+
+  private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
@@ -234,11 +298,18 @@ object repo {
     }
   }
 
-  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
-    connect(dataSource) {
-      f
+  def newSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
+  }
+
+  def getSharedBoard(user1Id: Int, user2Id: Int) = {
+    val spec = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+    inDatabase {
+      sharedBoardRepo.findAll(spec).headOption
     }
   }
+
+  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
+    connect(dataSource)(f)
+  }
 }
-
-
