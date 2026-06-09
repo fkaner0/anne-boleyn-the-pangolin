@@ -48,7 +48,13 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
   @override
   void initState() {
     super.initState();
-    _subscription = _service.listen(widget.userId).listen(_onElement);
+    _subscription = _service
+        .listen(widget.userId)
+        .listen(_onElement, onError: _onStreamError);
+  }
+
+  void _onStreamError(Object error) {
+    if (mounted) _showMessage('Connection lost. Trying to reconnect…');
   }
 
   @override

@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
 import '../domain/shared_element.dart';
 import 'shared_board_service.dart';
+import 'sse/sse_source.dart';
 
 class ApiSharedBoardService implements SharedBoardService {
   final String host;
@@ -24,32 +26,26 @@ class ApiSharedBoardService implements SharedBoardService {
   }
 
   @override
-  Stream<SharedElement> listen(int userId) async* {
-    final request = http.Request('GET', _uri('/message/listen/$userId'));
-    request.headers['Accept'] = 'text/event-stream';
-
-    final response = await _client.send(request);
-    final lines = response.stream
-        .transform(utf8.decoder)
-        .transform(const LineSplitter());
-
-    final buffer = StringBuffer();
-    await for (final line in lines) {
-      if (line.isEmpty) {
-        final element = _parse(buffer.toString());
-        buffer.clear();
-        if (element != null) yield element;
-      } else if (line.startsWith('data:')) {
-        buffer.write(line.substring(5).trimLeft());
-      }
-    }
+  Stream<SharedElement> listen(int userId) {
+    return sseDataStream(_uri('/message/listen/$userId')).transform(
+      StreamTransformer<String, SharedElement>.fromHandlers(
+        handleData: (data, sink) {
+          final element = _tryParse(data);
+          if (element != null) sink.add(element);
+        },
+      ),
+    );
   }
 
-  SharedElement? _parse(String data) {
+  SharedElement? _tryParse(String data) {
     if (data.isEmpty) return null;
-    final decoded = jsonDecode(data);
-    if (decoded is! Map<String, dynamic>) return null;
-    return SharedElement.fromJson(decoded);
+    try {
+      final decoded = jsonDecode(data);
+      if (decoded is! Map<String, dynamic>) return null;
+      return SharedElement.fromJson(decoded);
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _post(String path, Map<String, dynamic> body) async {
