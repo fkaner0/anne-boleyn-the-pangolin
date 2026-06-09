@@ -105,7 +105,7 @@ object api {
   case class ButtonLog(
     userId: Int,
     buttonId: String,
-    datetime: Int,
+    datetime: Long,
   )
   object ButtonLog {
     given ReadWriter[ButtonLog] = macroRW
