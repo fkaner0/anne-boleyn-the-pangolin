@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+
+Finder iconOfType(AppIconType type) =>
+    find.byWidgetPredicate((w) => w is AppIcon && w.type == type);
 
 void main() {
   Future<void> pumpBar(
@@ -46,7 +50,7 @@ void main() {
       onRecommendations: () => recommendationsTapped = true,
     );
 
-    await tester.tap(find.byIcon(Icons.style_outlined));
+    await tester.tap(iconOfType(AppIconType.findUnfilled));
     expect(recommendationsTapped, isTrue);
   });
 
@@ -59,7 +63,7 @@ void main() {
       onRecommendations: () {},
     );
 
-    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.tap(iconOfType(AppIconType.meFilled));
     expect(editProfileTapped, isFalse);
   });
 
@@ -71,7 +75,7 @@ void main() {
       onRecommendations: () {},
     );
 
-    await tester.tap(find.byIcon(Icons.group_outlined));
+    await tester.tap(iconOfType(AppIconType.palsUnfilled));
     expect(tester.takeException(), isNull);
   });
 }

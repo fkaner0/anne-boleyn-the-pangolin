@@ -12,9 +12,14 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_imag
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+);
+
+final _addIcon = find.byWidgetPredicate(
+  (w) => w is AppIcon && w.type == AppIconType.add,
 );
 
 class _FakeImageFilePicker implements ImageFilePicker {
@@ -112,12 +117,15 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.byIcon(Icons.add));
+    await tester.ensureVisible(_addIcon);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_addIcon);
     await tester.pumpAndSettle();
 
-    expect(find.byType(Image), findsNWidgets(2));
+    expect(
+      find.byWidgetPredicate((w) => w is Image && w.image is MemoryImage),
+      findsNWidgets(2),
+    );
     expect(builder.build().profileImageUrl, isNotEmpty);
   });
 
@@ -174,9 +182,9 @@ void main() {
       find.widgetWithText(TextField, 'Summarise your vibe!'),
       'painter',
     );
-    await tester.ensureVisible(find.byIcon(Icons.add));
+    await tester.ensureVisible(_addIcon);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(_addIcon);
     await tester.pumpAndSettle();
   }
 

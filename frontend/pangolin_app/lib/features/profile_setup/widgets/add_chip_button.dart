@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/app_icon.dart';
+
 class AddChipButton extends StatelessWidget {
   final VoidCallback onPressed;
 
@@ -18,7 +20,7 @@ class AddChipButton extends StatelessWidget {
           shape: BoxShape.circle,
           color: colorScheme.surface,
         ),
-        child: Icon(Icons.add, size: 18, color: colorScheme.primary),
+        child: const Center(child: AppIcon(AppIconType.add, size: 18)),
       ),
     );
   }

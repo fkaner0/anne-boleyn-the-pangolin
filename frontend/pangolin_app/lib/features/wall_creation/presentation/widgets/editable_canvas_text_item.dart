@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import '../../domain/canvas_transform.dart';
 
@@ -303,7 +303,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
                           ),
                           IconButton(
                             onPressed: _stopEditing,
-                            icon: const Icon(Icons.check),
+                            icon: const AppIcon(AppIconType.check),
                             tooltip: 'Done',
                           ),
                         ],
@@ -433,7 +433,7 @@ class _TextColorSwatchButton extends StatelessWidget {
     // Use a contrasting background so the colour change is visible on any background.
     final Color bgCol = _getContrastColorWithAlpha(color);
 
-    return _buttonFromIcon(Icons.format_color_text, bgCol, color, onTap);
+    return _buttonFromIcon(AppIconType.textColour, bgCol, color, onTap);
   }
 }
 
@@ -451,7 +451,7 @@ class _TextBackgroundColorSwatchButton extends StatelessWidget {
     // Use a contrasting background so the colour change is visible on any background.
     final Color fgCol = _getContrastColorWithAlpha(color);
 
-    return _buttonFromIcon(Icons.text_fields, color, fgCol, onTap);
+    return _buttonFromIcon(AppIconType.textBackground, color, fgCol, onTap);
   }
 }
 
@@ -464,7 +464,7 @@ class _TextFontCycleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _buttonFromIcon(
-      Symbols.brand_family_rounded,
+      AppIconType.fontCycle,
       colorScheme.surface.withAlpha(20),
       colorScheme.onSurface,
       onTap,
@@ -481,7 +481,7 @@ Color _getContrastColorWithAlpha(Color color) {
 }
 
 GestureDetector _buttonFromIcon(
-  IconData icon,
+  AppIconType icon,
   Color backgroundCol,
   Color foregroundCol,
   VoidCallback onTap,
@@ -496,7 +496,7 @@ GestureDetector _buttonFromIcon(
         shape: BoxShape.circle,
         border: Border.all(color: foregroundCol, width: 2),
       ),
-      child: Center(child: Icon(icon, color: foregroundCol, size: 30)),
+      child: Center(child: AppIcon(icon, color: foregroundCol, size: 30)),
     ),
   );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 /// Bottom toolbar of circular creation tools for the bedroom-wall creator.
 ///
@@ -24,17 +25,17 @@ class CreatorToolBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _CircularToolButton(
-            icon: Icons.title,
+            icon: AppIconType.addText,
             label: 'Text box',
             onPressed: onAddTextBox,
           ),
           _CircularToolButton(
-            icon: Icons.add_photo_alternate_outlined,
+            icon: AppIconType.addImage,
             label: 'Image',
             onPressed: onAddImage,
           ),
           _CircularToolButton(
-            icon: Icons.emoji_emotions_outlined,
+            icon: AppIconType.sticker,
             label: 'Sticker',
             onPressed: onAddSticker,
           ),
@@ -45,7 +46,7 @@ class CreatorToolBar extends StatelessWidget {
 }
 
 class _CircularToolButton extends StatelessWidget {
-  final IconData icon;
+  final AppIconType icon;
   final String label;
   final VoidCallback onPressed;
 
@@ -71,9 +72,9 @@ class _CircularToolButton extends StatelessWidget {
             child: SizedBox(
               width: 64,
               height: 64,
-              child: Icon(
+              child: AppIcon(
                 icon,
-                size: 28,
+                size: 20,
                 color: colorScheme.onPrimaryContainer,
               ),
             ),

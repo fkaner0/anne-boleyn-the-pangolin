@@ -13,6 +13,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/controllers/bed
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class AboutMePage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
@@ -164,7 +165,7 @@ class _AboutMePageState extends State<AboutMePage> {
         centerTitle: true,
         title: const Text('About me'),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () {},
         ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_image.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class StickerPicker extends StatelessWidget {
   final StickerCatalog catalog;
@@ -27,7 +28,7 @@ class StickerPicker extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close),
+                  icon: const AppIcon(AppIconType.close),
                   tooltip: 'Close',
                   onPressed: () => Navigator.of(context).pop(),
                 ),
