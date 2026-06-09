@@ -17,7 +17,7 @@ import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, s
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.ReadWriter
-import pangolin.repo.ProfileTextboxCreator
+import pangolin.repo.WallTextboxCreator
 import com.augustnagro.magnum.SqlException //oops
 import scala.concurrent.duration.DurationInt
 
@@ -40,12 +40,12 @@ object api {
       rejected: Boolean,
   ) derives ReadWriter
 
-  case class ProfileImage(
+  case class WallImage(
       url: String,
       position: Position,
   ) derives ReadWriter
 
-  case class ProfileTextbox(
+  case class WallTextbox(
       title: String,
       body: String,
       font: Option[String],
@@ -54,7 +54,7 @@ object api {
       position: Position,
   ) derives ReadWriter
 
-  case class ProfileSticker(
+  case class WallSticker(
       name: String, // plain name. no extension
       position: Position,
   ) derives ReadWriter
@@ -66,9 +66,9 @@ object api {
       bio: String,
       age: Int,
       wallBackgroundHexARGB: Long,
-      wallImages: Vector[ProfileImage],
-      wallTextboxes: Vector[ProfileTextbox],
-      wallStickers: Vector[ProfileSticker],
+      wallImages: Vector[WallImage],
+      wallTextboxes: Vector[WallTextbox],
+      wallStickers: Vector[WallSticker],
   ) derives ReadWriter
 
   case class UploadRequest(
@@ -340,15 +340,15 @@ object api {
     }
   )
 
-  extension (image: repo.ProfileImage) {
-    private def toApi = ProfileImage(
+  extension (image: repo.WallImage) {
+    private def toApi = WallImage(
       url = image.url,
       position = image.position,
     )
   }
 
-  extension (textbox: repo.ProfileTextbox) {
-    private def toApi = ProfileTextbox(
+  extension (textbox: repo.WallTextbox) {
+    private def toApi = WallTextbox(
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,
@@ -359,8 +359,8 @@ object api {
   }
 
 
-  extension (sticker: ProfileSticker) {
-    private def fromApi = repo.ProfileStickerCreatorBuilder(
+  extension (sticker: WallSticker) {
+    private def fromApi = repo.WallStickerCreatorBuilder(
       name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
@@ -370,8 +370,8 @@ object api {
     )
   }
 
-  extension (image: ProfileImage) {
-    private def fromApi = repo.ProfileImageCreatorBuilder(
+  extension (image: WallImage) {
+    private def fromApi = repo.WallImageCreatorBuilder(
       url = image.url,
       x = image.position.x,
       y = image.position.y,
@@ -381,8 +381,8 @@ object api {
     )
   }
   
-  extension (textbox: ProfileTextbox) {
-    private def fromApi = repo.ProfileTextboxCreatorBuilder(
+  extension (textbox: WallTextbox) {
+    private def fromApi = repo.WallTextboxCreatorBuilder(
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,
@@ -408,8 +408,8 @@ object api {
     )
   }
 
-  extension (sticker: repo.ProfileSticker) {
-    private def toApi = ProfileSticker(
+  extension (sticker: repo.WallSticker) {
+    private def toApi = WallSticker(
       name = sticker.name,
       position = sticker.position,
     )

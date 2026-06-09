@@ -27,7 +27,7 @@ object repo {
     val scale: Double
   }
 
-  case class ProfileImageCreator(
+  case class WallImageCreator(
       profileId: Int,
       url: String,
       x: Int,
@@ -38,7 +38,7 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileImage(
+  case class WallImage(
       @Id id: Int,
       profileId: Int,
       url: String,
@@ -49,11 +49,11 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileImage {
-    val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
+  object WallImage {
+    val Table = TableInfo[WallImageCreator, WallImage, Int]
   }
 
-  case class ProfileTextboxCreator(
+  case class WallTextboxCreator(
       profileId: Int,
       title: String,
       body: String,
@@ -68,7 +68,7 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileTextbox(
+  case class WallTextbox(
       @Id id: Int,
       profileId: Int,
       title: String,
@@ -83,11 +83,11 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileTextbox {
-    val Table = TableInfo[ProfileTextboxCreator, ProfileTextbox, Int]
+  object WallTextbox {
+    val Table = TableInfo[WallTextboxCreator, WallTextbox, Int]
   }
 
-  case class ProfileStickerCreator(
+  case class WallStickerCreator(
       profileId: Int,
       name: String,
       x: Int,
@@ -98,7 +98,7 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileSticker(
+  case class WallSticker(
       @Id id: Int,
       profileId: Int,
       name: String,
@@ -109,13 +109,13 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileSticker {
-    val Table = TableInfo[ProfileStickerCreator, ProfileSticker, Int]
+  object WallSticker {
+    val Table = TableInfo[WallStickerCreator, WallSticker, Int]
   }
 
   /// We should really just make this a deriving type.
   /// god I hate my code.
-  case class ProfileImageCreatorBuilder (
+  case class WallImageCreatorBuilder (
     url: String,
     x: Int,
     y: Int,
@@ -123,7 +123,7 @@ object repo {
     aspectRatio: Double,
     scale: Double,
   ) {
-    def build(profileId: Int) = ProfileImageCreator(
+    def build(profileId: Int) = WallImageCreator(
       profileId = profileId,
       url = url,
       x = x,
@@ -133,7 +133,7 @@ object repo {
       scale = scale,
     )
   }
-  case class ProfileTextboxCreatorBuilder(
+  case class WallTextboxCreatorBuilder(
     title: String,
     body: String,
     font: Option[String],
@@ -145,7 +145,7 @@ object repo {
     aspectRatio: Double,
     scale: Double,
   ) {
-    def build(profileId: Int) = ProfileTextboxCreator(
+    def build(profileId: Int) = WallTextboxCreator(
       profileId = profileId,
       title = title,
       body = body,
@@ -159,7 +159,7 @@ object repo {
       scale = scale,
     )
   }
-  case class ProfileStickerCreatorBuilder (
+  case class WallStickerCreatorBuilder (
     name: String,
     x: Int,
     y: Int,
@@ -167,7 +167,7 @@ object repo {
     aspectRatio: Double,
     scale: Double,
   ) {
-    def build(profileId: Int) = ProfileStickerCreator(
+    def build(profileId: Int) = WallStickerCreator(
       profileId = profileId,
       name = name,
       x = x,
@@ -325,9 +325,9 @@ object repo {
   }
 
 
-  private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
-  private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
+  private val profileImageRepo = Repo[WallImageCreator, WallImage, Int]
+  private val profileTextboxRepo = Repo[WallTextboxCreator, WallTextbox, Int]
+  private val profileStickerRepo = Repo[WallStickerCreator, WallSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
@@ -341,14 +341,14 @@ object repo {
   private def userIdFromUsernameSpec(username: String) = Spec[Account]
     .where(sql"${Account.Table.username} = $username")
 
-  private def profileImagesSpec(profileId: Int) = Spec[ProfileImage]
-    .where(sql"${ProfileImage.Table.profileId} = $profileId")
+  private def profileImagesSpec(profileId: Int) = Spec[WallImage]
+    .where(sql"${WallImage.Table.profileId} = $profileId")
 
-  private def profileTextboxesSpec(profileId: Int) = Spec[ProfileTextbox]
-    .where(sql"${ProfileTextbox.Table.profileId} = $profileId")
+  private def profileTextboxesSpec(profileId: Int) = Spec[WallTextbox]
+    .where(sql"${WallTextbox.Table.profileId} = $profileId")
 
-  private def profileStickersSpec(profileId: Int) = Spec[ProfileSticker]
-    .where(sql"${ProfileSticker.Table.profileId} = $profileId")
+  private def profileStickersSpec(profileId: Int) = Spec[WallSticker]
+    .where(sql"${WallSticker.Table.profileId} = $profileId")
 
   val getRecommendations = inDatabase {
     profileRepo.findAll.asRight
@@ -417,9 +417,9 @@ object repo {
 
   def updateFullProfile(
         profileCreator: ProfileCreator,
-        textboxCreators: Iterable[ProfileTextboxCreatorBuilder],
-        imageCreators: Iterable[ProfileImageCreatorBuilder],
-        stickerCreators: Iterable[ProfileStickerCreatorBuilder],
+        textboxCreators: Iterable[WallTextboxCreatorBuilder],
+        imageCreators: Iterable[WallImageCreatorBuilder],
+        stickerCreators: Iterable[WallStickerCreatorBuilder],
   ) = repo.inDatabaseWithRollback {
     val profileId: Option[Int] = getProfileIdFromUserId(profileCreator.accountId)
     profileId match {
