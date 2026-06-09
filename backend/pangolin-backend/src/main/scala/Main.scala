@@ -11,7 +11,7 @@ object PangolinHttp4sServer extends IOApp {
   private val ec = scala.concurrent.ExecutionContext.Implicits.global
 
   override def run(args: List[String]): IO[ExitCode] = {
-    Topic[IO, api.Message].flatMap { topic => 
+    Topic[IO, (Int, Int)].flatMap { topic => 
       BlazeServerBuilder[IO]
         .withExecutionContext(ec)
         .bindHttp(8080, "0.0.0.0")

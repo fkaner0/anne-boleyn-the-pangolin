@@ -100,25 +100,19 @@ object api {
     text: String,
   ) derives ReadWriter
 
-  sealed trait Message {
-    val senderId: Int
-    val receiverId: Int
-    val datetime: Long
-  }
-
   case class MessageImage(
     senderId: Int,
     receiverId: Int,
     url: String,
     datetime: Long,
-  ) extends Message derives ReadWriter
+  ) derives ReadWriter
 
   case class MessageText(
     senderId: Int,
     receiverId: Int,
     text: String,
     datetime: Long,
-  ) extends Message derives ReadWriter
+  ) derives ReadWriter
 
   case class MessageReply(
     sharedElementId: Int,
@@ -126,7 +120,7 @@ object api {
     receiverId: Int,
     text: String,
     datetime: Long,
-  ) extends Message derives ReadWriter
+  )  derives ReadWriter
 
   case class ButtonLog(
     userId: Int,
@@ -269,47 +263,41 @@ object api {
     }
   )
 
-  private def messageTextRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageTextEndpoint.serverLogic { message =>
-      repo.sendTextMessage(message).flatMap {
-        case Left(_) => IO.pure(().asLeft)
-        case Right(_) => publishMessage(topic, message)
-      }
+  private def messageTextRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageTextEndpoint.serverLogicSuccess { message =>
+      repo.sendTextMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
     }
   )
 
-  private def messageImageRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageImageEndpoint.serverLogic { message =>
-      repo.sendImageMessage(message).flatMap {
-        case Left(_) => IO.pure(().asLeft)
-        case Right(_) => publishMessage(topic, message)
-      }
+  private def messageImageRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageImageEndpoint.serverLogicSuccess { message =>
+      repo.sendImageMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
     }
   )
 
-  private def messageReplyRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageReplyEndpoint.serverLogic { message =>
-      repo.sendReply(message) >> publishMessage(topic, message)
+  private def messageReplyRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageReplyEndpoint.serverLogicSuccess { message =>
+      repo.sendReply(message) >> publishMessage(topic, message.senderId, message.receiverId)
     }
   )
 
-  private def publishMessage(topic: Topic[IO, Message], message: Message) = {
-    topic.publish1(message).as(().asRight)
+  private def publishMessage(topic: Topic[IO, (Int, Int)], senderId: Int, receiverId: Int) = {
+    topic.publish1((senderId, receiverId)).as(())
   }
 
-  private def messageListenSseRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
+  private def messageListenSseRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
     messageListenSseEndpoint.serverLogicSuccess { receiverId =>
       IO.pure {
         topic.subscribeUnbounded
-          .filter(ids => ids.receiverId == receiverId || ids.senderId == receiverId)
+          .filter((id1, id2) => id1 == receiverId || id2 == receiverId)
           .map(_ => ServerSentEvent())
       }
     }
   )
 
   private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, timestamp) => 
-      repo.logButtonPress(userId, buttonId, timestamp)
+    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
+      repo.logButtonPress(userId, buttonId, datetime)
     }
   )
 
@@ -401,7 +389,7 @@ object api {
     )
   }
 
-  def router(topic: Topic[IO, Message]) = Router(
+  def router(topic: Topic[IO, (Int, Int)]) = Router(
     "/" -> newUserRoutes,
     "/" -> recommendationsRoutes,
     "/" -> profileViewRoutes,

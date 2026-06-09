@@ -353,23 +353,34 @@ object repo {
   private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
   private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
 
-  def sendImageMessage(message: api.MessageImage): IO[Either[Unit, Unit]] = sendElement(message, text = None, url = Some(message.url))
+  def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = None,
+    url = Some(message.url)
+  )
 
-  def sendTextMessage(message: api.MessageText): IO[Either[Unit, Unit]] = sendElement(message, text = Some(message.text), url = None)
+  def sendTextMessage(message: api.MessageText): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = Some(message.text),
+    url = None
+  )
 
-  private def sendElement(message: api.Message, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
-    getBoard(message.senderId, message.receiverId).map { board =>
-      sharedBoardElementsRepo.insert(
-        SharedBoardElementCreator(
-          boardId = board.id,
-          timestamp = message.datetime,
-          url = url,
-          text = text,
-          senderId = message.senderId,
-          read = false,
-        )
+  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
+    sharedBoardElementsRepo.insert(
+      SharedBoardElementCreator(
+        boardId = board.id,
+        timestamp = timestamp,
+        url = url,
+        text = text,
+        senderId = senderId,
+        read = false,
       )
-    }.toRight(())
+    )
   }
 
   def sendReply(message: api.MessageReply) = inDatabase {
@@ -386,6 +397,10 @@ object repo {
 
   private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
     sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+  }
+
+  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
+    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
