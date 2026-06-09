@@ -113,6 +113,7 @@ object api {
 
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
+    .errorOut(stringBody)
     .out(jsonBody[FullProfile])
 
   private val profileEditEndpoint = endpoint.put
@@ -194,9 +195,9 @@ object api {
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
         request.fromApi(accountId = userId),
-        request.wallTextboxes.map(_.fromApi(userId)),
-        request.wallImages.map(_.fromApi(userId)),
-        request.wallStickers.map(_.fromApi(userId)),
+        request.wallTextboxes.map(_.fromApi),
+        request.wallImages.map(_.fromApi),
+        request.wallStickers.map(_.fromApi),
       )
     }
   )
@@ -259,8 +260,7 @@ object api {
 
 
   extension (sticker: ProfileSticker) {
-    private def fromApi(profileId: Int) = repo.ProfileStickerCreator(
-      profileId = profileId,
+    private def fromApi = repo.ProfileStickerCreatorBuilder(
       name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
@@ -271,8 +271,7 @@ object api {
   }
 
   extension (image: ProfileImage) {
-    private def fromApi(profileId: Int) = repo.ProfileImageCreator(
-      profileId = profileId,
+    private def fromApi = repo.ProfileImageCreatorBuilder(
       url = image.url,
       x = image.position.x,
       y = image.position.y,
@@ -283,8 +282,7 @@ object api {
   }
   
   extension (textbox: ProfileTextbox) {
-    private def fromApi(profileId: Int) = repo.ProfileTextboxCreator(
-      profileId = profileId,
+    private def fromApi = repo.ProfileTextboxCreatorBuilder(
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,

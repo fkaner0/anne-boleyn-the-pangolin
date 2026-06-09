@@ -113,6 +113,72 @@ object repo {
     val Table = TableInfo[ProfileStickerCreator, ProfileSticker, Int]
   }
 
+  /// We should really just make this a deriving type.
+  /// god I hate my code.
+  case class ProfileImageCreatorBuilder (
+    url: String,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = ProfileImageCreator(
+      profileId = profileId,
+      url = url,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+  case class ProfileTextboxCreatorBuilder(
+    title: String,
+    body: String,
+    font: Option[String],
+    fontARGB: Long,
+    backgroundARGB: Long,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = ProfileTextboxCreator(
+      profileId = profileId,
+      title = title,
+      body = body,
+      font = font,
+      fontARGB = fontARGB,
+      backgroundARGB = backgroundARGB,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+  case class ProfileStickerCreatorBuilder (
+    name: String,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = ProfileStickerCreator(
+      profileId = profileId,
+      name = name,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+
+
   case class ProfileCreator(
       accountId: Int,
       name: String,
@@ -202,18 +268,22 @@ object repo {
     profileRepo.findAll.asRight
   }
 
-  def getProfile(profileId: Int) = inDatabase {
-    profileRepo
-      .findById(profileId)
-      .map { profile =>
-        val images = profileImageRepo.findAll(profileImagesSpec(profileId))
-        val textboxes =
-          profileTextboxRepo.findAll(profileTextboxesSpec(profileId))
-        val stickers =
-          profileStickerRepo.findAll(profileStickersSpec(profileId))
-        (profile, images, textboxes, stickers)
-      }
-      .toRight(())
+  /// Yes, this should be a much better query. Believe in the power of query optimisation!
+  def getProfile(accountId: Int) = inDatabaseWithRollback {
+    getProfileIdFromUserId(accountId) match {
+      case None => Left("Could not find a profile for the given accoundId")
+      case Some(profileId) => profileRepo
+        .findById(profileId)
+        .map { profile =>
+          val images = profileImageRepo.findAll(profileImagesSpec(profileId))
+          val textboxes =
+            profileTextboxRepo.findAll(profileTextboxesSpec(profileId))
+          val stickers =
+            profileStickerRepo.findAll(profileStickersSpec(profileId))
+          (profile, images, textboxes, stickers)
+        }
+        .toRight(s"error getting profile information from profileId $profileId")
+    }
   }
 
   def newUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
@@ -247,10 +317,10 @@ object repo {
   private def addImages(using DbCon) = addAll(profileImageRepo)
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
 
-  private def getProfileIdFromUserId(userId: Int)(using DbCon): Option[Int] = sql"""
+  private def getProfileIdFromUserId(accountId: Int)(using DbCon): Option[Int] = sql"""
     SELECT ${Profile.Table.id}
       FROM ${Profile.Table}
-    WHERE ${Profile.Table.accountId} = $userId
+    WHERE ${Profile.Table.accountId} = $accountId
     LIMIT 1
   """.query[Int].run().headOption
 
@@ -261,9 +331,9 @@ object repo {
 
   def updateFullProfile(
         profileCreator: ProfileCreator,
-        textboxCreators: Iterable[ProfileTextboxCreator],
-        imageCreators: Iterable[ProfileImageCreator],
-        stickerCreators: Iterable[ProfileStickerCreator],
+        textboxCreators: Iterable[ProfileTextboxCreatorBuilder],
+        imageCreators: Iterable[ProfileImageCreatorBuilder],
+        stickerCreators: Iterable[ProfileStickerCreatorBuilder],
   ) = repo.inDatabaseWithRollback {
     val profileId: Option[Int] = getProfileIdFromUserId(profileCreator.accountId)
     profileId match {
@@ -271,11 +341,11 @@ object repo {
         /// TODO: change this so its plain sql!!
         repo.profileRepo.update(profileCreator.toProfile(pid))
         repo.removeTextboxes(pid)
-        repo.addTextboxes(textboxCreators)
+        repo.addTextboxes(textboxCreators.map(_.build(pid)))
         repo.removeImages(pid)
-        repo.addImages(imageCreators)
+        repo.addImages(imageCreators.map(_.build(pid)))
         repo.removeStickers(pid)
-        repo.addStickers(stickerCreators)
+        repo.addStickers(stickerCreators.map(_.build(pid)))
         Right(())
         /// TODO: obviously this is the jankiest most disgusting code ever
         /// but apparently it makes the frontend easier so we will leave as-is for now
