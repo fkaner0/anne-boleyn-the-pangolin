@@ -10,7 +10,7 @@ import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.Part
 import sttp.model.sse.ServerSentEvent
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput}
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput, query}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, serverSentEventsBody}
@@ -105,13 +105,66 @@ object api {
     given ReadWriter[NewUserResponse] = macroRW
   }
 
-  case class Message(
+  case class SharedBoard(
+    elems: List[SharedBoardElement]
+  )
+  object SharedBoard {
+    given ReadWriter[SharedBoard] = macroRW
+  }
+
+  case class SharedBoardElement(
+    sharedElemId: Int,
+    datetime: Long,
+    messages: List[SharedBoardReply],
+    url: Option[String],
+    text: Option[String],
+    read: Boolean,
+  )
+  object SharedBoardElement {
+    given ReadWriter[SharedBoardElement] = macroRW
+  }
+
+  case class SharedBoardReply(
+    datetime: Long,
+    senderId: Int,
+    text: String,
+  ) derives ReadWriter
+
+  sealed trait Message {
+    val senderId: Int
+    val receiverId: Int
+    val datetime: Long
+  }
+
+  case class MessageImage(
     senderId: Int,
     receiverId: Int,
-    message: String,
-  )
-  object Message {
-    given ReadWriter[Message] = macroRW
+    url: String,
+    datetime: Long,
+  ) extends Message
+  object MessageImage {
+    given ReadWriter[MessageImage] = macroRW
+  }
+
+  case class MessageText(
+    senderId: Int,
+    receiverId: Int,
+    text: String,
+    datetime: Long,
+  ) extends Message
+  object MessageText {
+    given ReadWriter[MessageText] = macroRW
+  }
+
+  case class MessageReply(
+    sharedElementId: Int,
+    senderId: Int,
+    receiverId: Int,
+    text: String,
+    datetime: Long,
+  ) extends Message
+  object MessageReply {
+    given ReadWriter[MessageReply] = macroRW
   }
 
   private val profileViewEndpoint = endpoint.get
@@ -138,9 +191,23 @@ object api {
     .in("recommendations")
     .out(jsonBody[Vector[Recommendation]])
 
-  private val messageSendEndpoint = endpoint.post
-    .in("message" / "send")
-    .in(jsonBody[Message])
+  private val sharedBoardEndpoint = endpoint.get
+    .in("message" / "board")
+    .in(query[Int]("user1Id"))
+    .in(query[Int]("user2Id"))
+    .out(jsonBody[SharedBoard])
+
+  private val messageImageEndpoint = endpoint.post
+    .in("message" / "send" / "image")
+    .in(jsonBody[MessageImage])
+
+  private val messageTextEndpoint = endpoint.post
+    .in("message" / "send" / "text")
+    .in(jsonBody[MessageText])
+
+  private val messageReplyEndpoint = endpoint.post
+    .in("message" / "send" / "reply")
+    .in(jsonBody[MessageReply])
 
   private val messageListenSseEndpoint = endpoint.get
     .in("message" / "listen" / path[Int]("receiverId"))
@@ -225,15 +292,45 @@ object api {
     }
   )
 
-  private def messageSendRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageSendEndpoint.serverLogicSuccess { message =>
-      // TODO: add message to database
-      topic.publish1(message).as(())
+  private val sharedBoardRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    sharedBoardEndpoint.serverLogic { (user1Id, user2Id) =>
+      ???
     }
   )
 
+  private def messageTextRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
+    messageTextEndpoint.serverLogicSuccess { message =>
+      // TODO: Add text message to database
+      publishMessage(topic, message)
+    }
+  )
+
+  private def messageImageRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
+    messageImageEndpoint.serverLogicSuccess { message =>
+      // TODO: Add image message to database
+      publishMessage(topic, message)
+    }
+  )
+
+  private def messageReplyRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
+    messageReplyEndpoint.serverLogicSuccess { message =>
+      // TODO: add rely message to database
+      publishMessage(topic, message)
+    }
+  )
+
+  private def publishMessage(topic: Topic[IO, Message], message: Message) = {
+    topic.publish1(message).as(())
+  }
+
   private def messageListenSseRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
-    messageListenSseEndpoint.serverLogicSuccess { receiverId => IO.pure(topic.subscribeUnbounded.filter(_.receiverId == receiverId).map(msg => ServerSentEvent(Some(msg.message)))) }
+    messageListenSseEndpoint.serverLogicSuccess { receiverId =>
+      IO.pure {
+        topic.subscribeUnbounded
+          .filter(ids => ids.receiverId == receiverId || ids.senderId == receiverId)
+          .map(_ => ServerSentEvent())
+      }
+    }
   )
 
   extension (image: repo.ProfileImage) {
@@ -325,12 +422,15 @@ object api {
   }
 
   def router(topic: Topic[IO, Message]) = Router(
-    "/" -> api.newUserRoutes,
-    "/" -> api.recommendationsRoutes,
-    "/" -> api.profileViewRoutes,
-    "/" -> api.profileEditRoutes,
-    "/" -> api.uploadRoutes,
-    "/" -> api.messageSendRoutes(topic),
-    "/" -> api.messageListenSseRoutes(topic),
+    "/" -> newUserRoutes,
+    "/" -> recommendationsRoutes,
+    "/" -> profileViewRoutes,
+    "/" -> profileEditRoutes,
+    "/" -> uploadRoutes,
+    "/" -> sharedBoardRoutes,
+    "/" -> messageTextRoutes(topic),
+    "/" -> messageImageRoutes(topic),
+    "/" -> messageReplyRoutes(topic),
+    "/" -> messageListenSseRoutes(topic),
   ).orNotFound
 }
