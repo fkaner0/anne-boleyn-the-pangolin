@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
@@ -8,15 +13,19 @@ import '../widgets/message_composer.dart';
 import '../widgets/profile_header_bar.dart';
 
 class BedroomWallDetailPage extends StatefulWidget {
+  final int viewerUserId;
   final Profile profile;
   final ProfileImage? image;
   final ProfileText? textbox;
+  final ButtonClickLogger? logger;
 
   const BedroomWallDetailPage({
     super.key,
+    required this.viewerUserId,
     required this.profile,
     this.image,
     this.textbox,
+    this.logger,
   }) : assert(
          image != null || textbox != null,
          'Either image or textbox must be provided.',
@@ -41,6 +50,15 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
     super.dispose();
   }
 
+  void _log(String buttonId) {
+    unawaited(
+      (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
+        userId: widget.viewerUserId,
+        buttonId: buttonId,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final prompt = 'Talk to ${widget.profile.name} about this...';
@@ -53,7 +71,10 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
             ProfileHeaderBar(
               name: widget.profile.name,
               location: widget.profile.location,
-              onBackPressed: () => Navigator.of(context).pop(),
+              onBackPressed: () {
+                _log(ButtonIds.wallDetailBack);
+                Navigator.of(context).pop();
+              },
             ),
             Expanded(
               child: SingleChildScrollView(

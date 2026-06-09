@@ -199,6 +199,24 @@ object repo {
     val Table = TableInfo[SharedBoardReplyCreator, SharedBoardReply, Int]
   }
 
+  case class ButtonLogCreator(
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  @Table(PostgresDbType)
+  case class ButtonLog(
+    @Id id: Int,
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  object ButtonLog {
+    val table = TableInfo[ButtonLogCreator, ButtonLog, Int]
+  }
+
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -222,6 +240,8 @@ object repo {
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
   private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
   private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
+
+  private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
@@ -370,5 +390,19 @@ object repo {
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
     connect(dataSource)(f)
+  }
+
+  def logButtonPress(
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  ) = inDatabase {
+    buttonLogRepo.insert(
+      ButtonLogCreator(
+        userId = userId,
+        buttonId = buttonId,
+        pressTimestamp = pressTimestamp,
+      )
+    ).asRight
   }
 }

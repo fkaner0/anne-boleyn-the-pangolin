@@ -11,6 +11,10 @@ class ProfileBuilder {
   String? _bio;
   String? _profileImageUrl;
   int? _wallBackgroundHexARGB;
+  String? _hobby;
+  double? _passionLevel;
+  final List<String> _subInterests = [];
+  final List<String> _otherInterests = [];
   final List<ProfileImage> _images = [];
   final List<ProfileText> _textboxes = [];
   final List<ProfileSticker> _stickers = [];
@@ -25,7 +29,11 @@ class ProfileBuilder {
       _location = profile.location,
       _bio = profile.bio,
       _profileImageUrl = profile.profileImageUrl,
-      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB {
+      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
+      _hobby = profile.hobby,
+      _passionLevel = profile.passionLevel {
+    _subInterests.addAll(profile.subInterests);
+    _otherInterests.addAll(profile.otherInterests);
     _images.addAll(profile.images);
     _textboxes.addAll(profile.textboxes);
     _stickers.addAll(profile.stickers);
@@ -40,11 +48,56 @@ class ProfileBuilder {
       .._location = _location
       .._bio = _bio
       .._profileImageUrl = _profileImageUrl
-      .._wallBackgroundHexARGB = _wallBackgroundHexARGB;
+      .._wallBackgroundHexARGB = _wallBackgroundHexARGB
+      .._hobby = _hobby
+      .._passionLevel = _passionLevel;
+    clone._subInterests.addAll(_subInterests);
+    clone._otherInterests.addAll(_otherInterests);
     clone._images.addAll(_images);
     clone._textboxes.addAll(_textboxes);
     clone._stickers.addAll(_stickers);
     return clone;
+  }
+
+  int? get userId => _userId;
+  String? get name => _name;
+  int? get age => _age;
+  String? get location => _location;
+  String? get bio => _bio;
+  String? get profileImageUrl => _profileImageUrl;
+  String? get hobby => _hobby;
+  double? get passionLevel => _passionLevel;
+  List<String> get subInterests => List.unmodifiable(_subInterests);
+  List<String> get otherInterests => List.unmodifiable(_otherInterests);
+
+  ProfileBuilder setHobby(String hobby) {
+    _hobby = hobby;
+    return this;
+  }
+
+  ProfileBuilder setPassionLevel(double passionLevel) {
+    _passionLevel = passionLevel;
+    return this;
+  }
+
+  ProfileBuilder addSubInterest(String interest) {
+    _subInterests.add(interest);
+    return this;
+  }
+
+  ProfileBuilder removeSubInterest(String interest) {
+    _subInterests.remove(interest);
+    return this;
+  }
+
+  ProfileBuilder addOtherInterest(String interest) {
+    _otherInterests.add(interest);
+    return this;
+  }
+
+  ProfileBuilder removeOtherInterest(String interest) {
+    _otherInterests.remove(interest);
+    return this;
   }
 
   ProfileBuilder setUserId(int userId) {
@@ -79,6 +132,13 @@ class ProfileBuilder {
 
   ProfileBuilder setWallBackgroundHexARGB(int wallBackgroundHexARGB) {
     _wallBackgroundHexARGB = wallBackgroundHexARGB;
+    return this;
+  }
+
+  ProfileBuilder clearWall() {
+    _images.clear();
+    _textboxes.clear();
+    _stickers.clear();
     return this;
   }
 
@@ -145,6 +205,10 @@ class ProfileBuilder {
       profileImageUrl: _profileImageUrl ?? Profile.defaultProfileImageUrl,
       wallBackgroundHexARGB:
           _wallBackgroundHexARGB ?? Profile.defaultWallBackgroundHexARGB,
+      hobby: _hobby,
+      passionLevel: _passionLevel,
+      subInterests: List.unmodifiable(_subInterests),
+      otherInterests: List.unmodifiable(_otherInterests),
       images: List.unmodifiable(_images),
       textboxes: List.unmodifiable(_textboxes),
       stickers: List.unmodifiable(_stickers),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
-import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 
-import 'about_me_page.dart';
+import '../profile_setup_shell.dart';
 
 class NewUserPage extends StatefulWidget {
   final UserCreator? userCreator;
@@ -41,11 +40,8 @@ class _NewUserPageState extends State<NewUserPage> {
     if (!mounted) return;
     setState(() => _creating = false);
 
-    final builder = ProfileBuilder()..setUserId(userId);
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AboutMePage(profileBuilder: builder),
-      ),
+      MaterialPageRoute(builder: (context) => SignupShell(userId: userId)),
     );
   }
 

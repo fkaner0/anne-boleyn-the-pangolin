@@ -38,15 +38,32 @@ class BedroomWallDetailContent extends StatelessWidget {
       );
     }
 
+    final onSurface = Theme.of(context).colorScheme.onSurface;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
           textbox!.title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            inherit: false,
+            fontFamily: textbox!.font,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: onSurface,
+          ),
         ),
         const SizedBox(height: 16),
-        Text(textbox!.body, style: const TextStyle(fontSize: 18, height: 1.4)),
+        Text(
+          textbox!.body,
+          style: TextStyle(
+            inherit: false,
+            fontFamily: textbox!.font,
+            fontSize: 18,
+            height: 1.4,
+            color: onSurface,
+          ),
+        ),
       ],
     );
   }

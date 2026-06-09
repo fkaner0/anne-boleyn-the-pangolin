@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
@@ -8,8 +9,8 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'dart:typed_data';
 
-import '../../data/image_file_picker.dart';
-import '../../data/wall_image_uploader.dart';
+import '../../data/picker/image_file_picker.dart';
+import '../../data/uploader/wall_image_uploader.dart';
 import '../../domain/canvas_item.dart';
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
@@ -18,7 +19,7 @@ import '../../domain/virtual_canvas.dart';
 class BedroomWallCreatorController {
   final VirtualCanvas canvas;
   final ImageFilePicker imagePicker;
-  final WallImageUploader wallImageUploader;
+  final ImageUploader imageUploader;
   final StickerCatalog stickerCatalog;
   final FontCatalog fontCatalog;
   final List<CanvasItem> _items = [];
@@ -27,7 +28,7 @@ class BedroomWallCreatorController {
 
   BedroomWallCreatorController({
     required this.imagePicker,
-    required this.wallImageUploader,
+    required this.imageUploader,
     required this.stickerCatalog,
     required this.fontCatalog,
     VirtualCanvas? canvas,
@@ -48,14 +49,71 @@ class BedroomWallCreatorController {
     return CanvasTransform(center: Offset(canvas.width / 2, canvas.height / 2));
   }
 
-  Future<void> addImage() async {
+  CanvasTransform _transformAt(Offset? center) {
+    return center != null
+        ? CanvasTransform(center: center)
+        : _centeredTransform();
+  }
+
+  CanvasTransform _transformFor(Position position) {
+    return CanvasTransform(
+      center: Offset(position.x.toDouble(), position.y.toDouble()),
+      scale: position.scale,
+      rotation: position.rotation,
+    );
+  }
+
+  void loadFrom(Profile profile) {
+    _items.clear();
+    _prompts.clear();
+
+    for (final image in profile.images) {
+      _items.add(
+        CanvasImageItem(
+          id: _nextId++,
+          transform: _transformFor(image.position),
+          aspectRatio: image.position.aspectRatio,
+          url: image.url,
+        ),
+      );
+    }
+
+    for (final textbox in profile.textboxes) {
+      _items.add(
+        CanvasTextItem(
+          id: _nextId++,
+          transform: _transformFor(textbox.position),
+          text: textbox.body,
+          font: textbox.font,
+          textColor: textbox.fontHexARGB != null
+              ? Color(textbox.fontHexARGB!)
+              : null,
+          backgroundColor: textbox.backgroundHexARGB != null
+              ? Color(textbox.backgroundHexARGB!)
+              : null,
+        ),
+      );
+    }
+
+    for (final sticker in profile.stickers) {
+      _items.add(
+        CanvasStickerItem(
+          id: _nextId++,
+          transform: _transformFor(sticker.position),
+          stickerName: sticker.name,
+        ),
+      );
+    }
+  }
+
+  Future<void> addImage({Offset? center}) async {
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
 
     _items.add(
       CanvasImageItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: _transformAt(center),
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
         url: await _uploadImage(picked.bytes),
@@ -67,9 +125,7 @@ class BedroomWallCreatorController {
     _items.add(
       CanvasTextItem(
         id: _nextId++,
-        transform: center != null
-            ? CanvasTransform(center: center)
-            : _centeredTransform(),
+        transform: _transformAt(center),
         text: text,
       ),
     );
@@ -79,13 +135,13 @@ class BedroomWallCreatorController {
     addTextBoxWithText('', center: center);
   }
 
-  void addSticker(String stickerName) {
+  void addSticker(String stickerName, {Offset? center}) {
     if (stickerCatalog.assetForName(stickerName) == null) return;
 
     _items.add(
       CanvasStickerItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: _transformAt(center),
         stickerName: stickerName,
       ),
     );
@@ -113,7 +169,7 @@ class BedroomWallCreatorController {
 
   Future<String?> _uploadImage(Uint8List bytes) async {
     try {
-      return await wallImageUploader.uploadImage(bytes);
+      return await imageUploader.uploadImage(bytes);
     } catch (_) {
       return null;
     }

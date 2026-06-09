@@ -128,6 +128,12 @@ object api {
     datetime: Long,
   ) extends Message derives ReadWriter
 
+  case class ButtonLog(
+    userId: Int,
+    buttonId: String,
+    datetime: Long,
+  ) derives ReadWriter
+
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
     .out(jsonBody[FullProfile])
@@ -138,8 +144,8 @@ object api {
     .errorOut(stringBody)
     .out(emptyOutput) /// TODO: or do we want something?
 
-  private val uploadWallImageEndpoint = endpoint.post
-    .in("wallImage")
+  private val imageUploadEndpoint = endpoint.post
+    .in("image" / "upload")
     .in(multipartBody[UploadRequest])
     .errorOut(stringBody)
     .out(jsonBody[UploadResponse])
@@ -147,6 +153,10 @@ object api {
   private val newUserEndpoint = endpoint.post
     .in("user")
     .out(jsonBody[NewUserResponse])
+
+  private val buttonLogEndpoint = endpoint.post
+    .in("debug" / "button-click")
+    .in(jsonBody[ButtonLog])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -234,10 +244,10 @@ object api {
     }
   )
 
-  private val uploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    uploadWallImageEndpoint.serverLogic { request =>
+  private val imageUploadRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    imageUploadEndpoint.serverLogic { request =>
       IO.blocking {
-        imageservice.uploadBedroomWallImage(request.image.body)
+        imageservice.uploadImage(request.image.body)
       }.attempt.map {
         case Right(Some(imageUploaderAPI.ImageURL(url))) => Right(UploadResponse(url))
         case Right(None) => Left("Error in image upload")
@@ -294,6 +304,12 @@ object api {
           .filter(ids => ids.receiverId == receiverId || ids.senderId == receiverId)
           .map(_ => ServerSentEvent())
       }
+    }
+  )
+
+  private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, timestamp) => 
+      repo.logButtonPress(userId, buttonId, timestamp)
     }
   )
 
@@ -390,11 +406,12 @@ object api {
     "/" -> recommendationsRoutes,
     "/" -> profileViewRoutes,
     "/" -> profileEditRoutes,
-    "/" -> uploadRoutes,
+    "/" -> imageUploadRoutes,
     "/" -> sharedBoardRoutes,
     "/" -> messageTextRoutes(topic),
     "/" -> messageImageRoutes(topic),
     "/" -> messageReplyRoutes(topic),
     "/" -> messageListenSseRoutes(topic),
+    "/" -> buttonLogRoutes,
   ).orNotFound
 }
