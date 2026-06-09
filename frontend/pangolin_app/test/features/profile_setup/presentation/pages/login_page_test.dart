@@ -1,122 +1,166 @@
-// import 'dart:async';
+import 'dart:async';
 
-// import 'package:flutter/material.dart';
-// import 'package:flutter_riverpod/flutter_riverpod.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:pangolin_app/config/env.dart';
-// import 'package:pangolin_app/config/service_locator.dart';
-// import 'package:pangolin_app/features/auth/auth_provider.dart';
-// import 'package:pangolin_app/features/auth/data/authoriser.dart';
-// import 'package:pangolin_app/features/profile_setup/presentation/pages/login_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
+import 'package:pangolin_app/features/auth/data/authoriser.dart';
+import 'package:pangolin_app/features/profile_setup/presentation/pages/login_page.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
-// class _FakeAuthoriser implements Authoriser {
-//   final int id;
-//   final bool fail;
-//   final Completer<void>? gate;
-//   String? lastUsername;
-//   int callCount = 0;
+class _FakeAuthoriser implements Authoriser {
+  final int newId;
+  final int existingId;
+  final bool failNew;
+  final bool failExisting;
+  final Completer<void>? gate;
 
-//   _FakeAuthoriser({this.id = 42, this.fail = false, this.gate});
+  String? lastNewUsername;
+  String? lastExistingUsername;
 
-//   @override
-//   Future<int> getNewUserId(String username) async {
-//     callCount++;
-//     lastUsername = username;
-//     if (gate != null) await gate!.future;
-//     if (fail) throw Exception('username taken');
-//     return id;
-//   }
+  _FakeAuthoriser({
+    this.newId = 7,
+    this.existingId = 3,
+    this.failNew = false,
+    this.failExisting = false,
+    this.gate,
+  });
 
-//   @override
-//   Future<int> getExistingUserId(String username) async {
-//     if (gate != null) await gate!.future;
-//     if (fail) throw Exception('no user');
-//     return 1;
-//   }
-// }
+  @override
+  Future<int> getNewUserId(String username) async {
+    lastNewUsername = username;
+    if (gate != null) await gate!.future;
+    if (failNew) throw Exception('username taken');
+    return newId;
+  }
 
-// void main() {
-//   setUp(() async {
-//     await getIt.reset();
-//     configureDependencies(BackendMode.mock);
-//   });
+  @override
+  Future<int> getExistingUserId(String username) async {
+    lastExistingUsername = username;
+    if (gate != null) await gate!.future;
+    if (failExisting) throw Exception('no such user');
+    return existingId;
+  }
+}
 
-//   Future<void> pumpPage(WidgetTester tester, Authoriser authoriser) =>
-//       tester.pumpWidget(
-//         ProviderScope(
-//           overrides: [
-//             // Seed a userId so initState doesn't throw
-//             userIdProvider.overrideWith(() => UserIdNotifier()..login(42)),
-//           ],
-//           child: MaterialApp(home: LoginPage(authoriser: authoriser)),
-//         ),
-//       );
+Widget _userIdProbe(String prefix) => Consumer(
+  builder: (context, ref, _) => Text('$prefix ${ref.watch(userIdProvider)}'),
+);
 
-//   testWidgets('creating a user navigates into the signup flow', (tester) async {
-//     final authoriser = _FakeAuthoriser(id: 7);
-//     await pumpPage(tester, authoriser);
-//   });
+Future<void> pumpLogin(WidgetTester tester, Authoriser authoriser) {
+  final router = GoRouter(
+    initialLocation: AppRoutes.login,
+    routes: [
+      GoRoute(
+        path: AppRoutes.login,
+        builder: (_, _) => LoginPage(authoriser: authoriser),
+      ),
+      GoRoute(
+        path: AppRoutes.signup,
+        builder: (_, _) => _userIdProbe('SIGNUP'),
+      ),
+      GoRoute(
+        path: AppRoutes.recommendations,
+        builder: (_, _) => _userIdProbe('RECS'),
+      ),
+    ],
+  );
 
-//   FilledButton continueButton(WidgetTester tester) =>
-//       tester.widget<FilledButton>(find.byType(FilledButton));
+  return tester.pumpWidget(
+    ProviderScope(child: MaterialApp.router(routerConfig: router)),
+  );
+}
 
-//   testWidgets('continue is disabled until a username is entered', (
-//     tester,
-//   ) async {
-//     await pumpPage(tester, _FakeAuthoriser());
+FilledButton _button(WidgetTester tester, String label) =>
+    tester.widget<FilledButton>(find.widgetWithText(FilledButton, label));
 
-//     expect(continueButton(tester).onPressed, isNull);
+void main() {
+  testWidgets('buttons are disabled until a username is entered', (
+    tester,
+  ) async {
+    await pumpLogin(tester, _FakeAuthoriser());
 
-//     await tester.enterText(find.byType(TextField), 'anne');
-//     await tester.pump();
+    expect(_button(tester, 'Login').onPressed, isNull);
+    expect(_button(tester, 'Sign up').onPressed, isNull);
 
-//     expect(continueButton(tester).onPressed, isNotNull);
-//   });
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
 
-//   testWidgets('submitting a username creates the user and enters signup', (
-//     tester,
-//   ) async {
-//     final authoriser = _FakeAuthoriser(id: 7);
-//     await pumpPage(tester, authoriser);
+    expect(_button(tester, 'Login').onPressed, isNotNull);
+    expect(_button(tester, 'Sign up').onPressed, isNotNull);
+  });
 
-//     await tester.enterText(find.byType(TextField), '  anne  ');
-//     await tester.pump();
-//     await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-//     await tester.pumpAndSettle();
+  testWidgets('signing up creates the user, stores the id and enters setup', (
+    tester,
+  ) async {
+    final authoriser = _FakeAuthoriser(newId: 7);
+    await pumpLogin(tester, authoriser);
 
-//     expect(authoriser.callCount, 1);
-//     expect(authoriser.lastUsername, 'anne');
-//     expect(find.text('About your craft'), findsOneWidget);
-//   });
+    await tester.enterText(find.byType(TextField), '  anne  ');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pumpAndSettle();
 
-//   testWidgets('shows a spinner while creating', (tester) async {
-//     final gate = Completer<void>();
-//     await pumpPage(tester, _FakeAuthoriser(gate: gate));
+    expect(authoriser.lastNewUsername, 'anne');
+    expect(find.text('SIGNUP 7'), findsOneWidget);
+  });
 
-//     await tester.enterText(find.byType(TextField), 'anne');
-//     await tester.pump();
-//     await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-//     await tester.pump();
+  testWidgets('logging in stores the id and goes to recommendations', (
+    tester,
+  ) async {
+    final authoriser = _FakeAuthoriser(existingId: 3);
+    await pumpLogin(tester, authoriser);
 
-//     expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
 
-//     gate.complete();
-//     await tester.pumpAndSettle();
-//   });
+    expect(authoriser.lastExistingUsername, 'anne');
+    expect(find.text('RECS 3'), findsOneWidget);
+  });
 
-//   testWidgets('a taken username shows a message and stays on the page', (
-//     tester,
-//   ) async {
-//     await pumpPage(tester, _FakeAuthoriser(fail: true));
+  testWidgets('a taken username keeps you on login with a message', (
+    tester,
+  ) async {
+    await pumpLogin(tester, _FakeAuthoriser(failNew: true));
 
-//     await tester.enterText(find.byType(TextField), 'anne');
-//     await tester.pump();
-//     await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
-//     await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pumpAndSettle();
 
-//     expect(find.textContaining('coming soon'), findsOneWidget);
-//     expect(find.text('Welcome to PangoPal'), findsOneWidget);
-//   });
-// }
+    expect(find.textContaining('username is taken'), findsOneWidget);
+    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+  });
 
-void main() {}
+  testWidgets('an unknown username keeps you on login with a message', (
+    tester,
+  ) async {
+    await pumpLogin(tester, _FakeAuthoriser(failExisting: true));
+
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Login'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining("don't have anyone"), findsOneWidget);
+    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+  });
+
+  testWidgets('shows a spinner while submitting', (tester) async {
+    final gate = Completer<void>();
+    await pumpLogin(tester, _FakeAuthoriser(gate: gate));
+
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsWidgets);
+
+    gate.complete();
+    await tester.pumpAndSettle();
+  });
+}

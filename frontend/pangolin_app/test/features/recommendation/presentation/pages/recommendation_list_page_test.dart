@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pangolin_app/config/env.dart';
@@ -10,6 +11,8 @@ import 'package:pangolin_app/features/recommendation/domain/recommendation.dart'
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/recommendation_list_item.dart';
 
+import '../../../../support/auth_test_support.dart';
+
 class MockRecommendationFetcher extends Mock implements RecommendationFetcher {}
 
 void main() {
@@ -18,6 +21,25 @@ void main() {
   setUp(() {
     mockFetcher = MockRecommendationFetcher();
   });
+
+  Future<void> pumpList(
+    WidgetTester tester, {
+    required RecommendationFetcher fetcher,
+    MockButtonClickLogger? logger,
+    int loggedInId = 1,
+  }) {
+    return tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(loggedInId)],
+        child: MaterialApp(
+          home: RecommendationListPage(
+            recommendationFetcher: fetcher,
+            logger: logger,
+          ),
+        ),
+      ),
+    );
+  }
 
   testWidgets('shows fetched recommendations', (tester) async {
     when(() => mockFetcher.fetchRecommendations()).thenAnswer(
@@ -33,15 +55,7 @@ void main() {
       ],
     );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
-        ),
-      ),
-    );
-
+    await pumpList(tester, fetcher: mockFetcher);
     await tester.pumpAndSettle();
 
     expect(find.text('Alice (30)'), findsOneWidget);
@@ -52,15 +66,7 @@ void main() {
   testWidgets('shows empty state', (tester) async {
     when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
-        ),
-      ),
-    );
-
+    await pumpList(tester, fetcher: mockFetcher);
     await tester.pumpAndSettle();
 
     expect(find.text('No recommendations available'), findsOneWidget);
@@ -71,15 +77,7 @@ void main() {
       () => mockFetcher.fetchRecommendations(),
     ).thenAnswer((_) async => throw Exception('Fetch failed'));
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
-        ),
-      ),
-    );
-
+    await pumpList(tester, fetcher: mockFetcher);
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Error:'), findsOneWidget);
@@ -105,15 +103,7 @@ void main() {
       ],
     );
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 7,
-          recommendationFetcher: mockFetcher,
-          logger: logger,
-        ),
-      ),
-    );
+    await pumpList(tester, fetcher: mockFetcher, logger: logger, loggedInId: 7);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(RecommendationListItem));
@@ -129,15 +119,7 @@ void main() {
 
     when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 7,
-          recommendationFetcher: mockFetcher,
-          logger: logger,
-        ),
-      ),
-    );
+    await pumpList(tester, fetcher: mockFetcher, logger: logger, loggedInId: 7);
     await tester.pumpAndSettle();
 
     await tester.tap(find.byTooltip('Back'));

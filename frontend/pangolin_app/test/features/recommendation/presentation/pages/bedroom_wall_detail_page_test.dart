@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
@@ -6,6 +7,8 @@ import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/bedroom_wall_detail_page.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 void main() {
   const profile = Profile(
@@ -26,12 +29,14 @@ void main() {
     final logger = MockButtonClickLogger();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: BedroomWallDetailPage(
-          viewerUserId: 7,
-          profile: profile,
-          textbox: textbox,
-          logger: logger,
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp(
+          home: BedroomWallDetailPage(
+            profile: profile,
+            textbox: textbox,
+            logger: logger,
+          ),
         ),
       ),
     );
