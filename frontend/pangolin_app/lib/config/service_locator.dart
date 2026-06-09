@@ -1,5 +1,6 @@
 import 'package:get_it/get_it.dart';
 import 'package:pangolin_app/config/env.dart';
+import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
@@ -10,12 +11,14 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
+import 'package:pangolin_app/features/friends/data/mock_friends_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/mock_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 
+import 'package:pangolin_app/features/friends/data/render_friends_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/render_profile_updater.dart';
@@ -57,6 +60,7 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => MockButtonClickLogger(),
       );
+      getIt.registerLazySingleton<FriendsFetcher>(() => MockFriendsFetcher());
       break;
     case BackendMode.local:
       final hostLocal = Env.localHost;
@@ -106,6 +110,13 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
+      getIt.registerLazySingleton<FriendsFetcher>(
+        () => RenderFriendsFetcher(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
       break;
     case BackendMode.render:
       final host = Env.renderHost;
@@ -129,6 +140,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => RenderButtonClickLogger(host: host),
+      );
+      getIt.registerLazySingleton<FriendsFetcher>(
+        () => RenderFriendsFetcher(host: host),
       );
       break;
   }
