@@ -214,6 +214,7 @@ object repo {
         imageCreators: Iterable[ProfileImageCreator],
         stickerCreators: Iterable[ProfileStickerCreator],
   ) = repo.inDatabase {
+    // TODO: Transaction
     profileRepo.findById(profile.id) match {
       // Only update profile if the row already exists.
       case Some(_) => {

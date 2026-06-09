@@ -16,7 +16,7 @@ import sttp.tapir.json.upickle.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, serverSentEventsBody}
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
-import upickle.default.{ReadWriter, macroRW}
+import upickle.default.ReadWriter
 import pangolin.repo.ProfileTextboxCreator
 import scala.concurrent.duration.DurationInt
 
@@ -27,10 +27,7 @@ object api {
       rotation: Double,
       aspectRatio: Double,
       scale: Double,
-  )
-  object Position {
-    given ReadWriter[Position] = macroRW
-  }
+  ) derives ReadWriter
 
   case class Recommendation(
       userId: Int,
@@ -40,18 +37,12 @@ object api {
       age: Int,
       profileImageUrl: String,
       rejected: Boolean,
-  )
-  object Recommendation {
-    given ReadWriter[Recommendation] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileImage(
       url: String,
       position: Position,
-  )
-  object ProfileImage {
-    given ReadWriter[ProfileImage] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileTextbox(
       title: String,
@@ -60,18 +51,12 @@ object api {
       fontHexARGB: Long,
       backgroundHexARGB: Long,
       position: Position,
-  )
-  object ProfileTextbox {
-    given ReadWriter[ProfileTextbox] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileSticker(
       name: String, // plain name. no extension
       position: Position,
-  )
-  object ProfileSticker {
-    given ReadWriter[ProfileSticker] = macroRW
-  }
+  ) derives ReadWriter
 
   case class FullProfile(
       name: String,
@@ -83,34 +68,20 @@ object api {
       wallImages: Vector[ProfileImage],
       wallTextboxes: Vector[ProfileTextbox],
       wallStickers: Vector[ProfileSticker],
-  )
-  object FullProfile {
-    given ReadWriter[FullProfile] = macroRW
-  }
+  ) derives ReadWriter
 
   case class UploadRequest(
     image: Part[Array[Byte]]
   )
   case class UploadResponse(
     url: String
-  )
-  object UploadResponse {
-    given ReadWriter[UploadResponse] = macroRW
-  }
-
+  ) derives ReadWriter
   case class NewUserResponse(
     userId: Int
-  )
-  object NewUserResponse {
-    given ReadWriter[NewUserResponse] = macroRW
-  }
-
+  ) derives ReadWriter
   case class SharedBoard(
     elems: List[SharedBoardElement]
-  )
-  object SharedBoard {
-    given ReadWriter[SharedBoard] = macroRW
-  }
+  ) derives ReadWriter
 
   case class SharedBoardElement(
     sharedElemId: Int,
@@ -119,10 +90,7 @@ object api {
     url: Option[String],
     text: Option[String],
     read: Boolean,
-  )
-  object SharedBoardElement {
-    given ReadWriter[SharedBoardElement] = macroRW
-  }
+  ) derives ReadWriter
 
   case class SharedBoardReply(
     datetime: Long,
@@ -141,20 +109,14 @@ object api {
     receiverId: Int,
     url: String,
     datetime: Long,
-  ) extends Message
-  object MessageImage {
-    given ReadWriter[MessageImage] = macroRW
-  }
+  ) extends Message derives ReadWriter
 
   case class MessageText(
     senderId: Int,
     receiverId: Int,
     text: String,
     datetime: Long,
-  ) extends Message
-  object MessageText {
-    given ReadWriter[MessageText] = macroRW
-  }
+  ) extends Message derives ReadWriter
 
   case class MessageReply(
     sharedElementId: Int,
@@ -162,10 +124,7 @@ object api {
     receiverId: Int,
     text: String,
     datetime: Long,
-  ) extends Message
-  object MessageReply {
-    given ReadWriter[MessageReply] = macroRW
-  }
+  ) extends Message derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
