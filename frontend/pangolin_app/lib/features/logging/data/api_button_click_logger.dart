@@ -26,8 +26,8 @@ class ApiButtonClickLogger implements ButtonClickLogger {
         : Uri.http(authority, '/debug/button-click');
 
     final body = jsonEncode({
-      'userid': userId,
-      'buttonid': buttonId,
+      'userId': userId,
+      'buttonId': buttonId,
       'datetime': DateTime.now().millisecondsSinceEpoch,
     });
 
