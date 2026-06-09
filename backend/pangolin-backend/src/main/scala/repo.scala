@@ -140,7 +140,7 @@ object repo {
   case class ButtonLogCreator(
     userId: Int,
     buttonId: String,
-    timestamp: Int,
+    pressTimestamp: Int,
   )
 
   @Table(PostgresDbType)
@@ -148,7 +148,7 @@ object repo {
     @Id id: Int,
     userId: Int,
     buttonId: String,
-    timestamp: Int,
+    pressTimestamp: Int,
   )
 
   object ButtonLog {
@@ -262,8 +262,14 @@ object repo {
   def logButtonPress(
     userId: Int,
     buttonId: String,
-    timestamp: Int,
+    pressTimestamp: Int,
   ) = inDatabase {
-    buttonLogRepo.insert(ButtonLogCreator(userId = userId, buttonId = buttonId, timestamp = timestamp)).asRight
+    buttonLogRepo.insert(
+      ButtonLogCreator(
+        userId = userId,
+        buttonId = buttonId,
+        pressTimestamp = pressTimestamp,
+      )
+    ).asRight
   }
 }
