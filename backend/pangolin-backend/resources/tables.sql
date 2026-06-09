@@ -14,7 +14,8 @@ CREATE TABLE profile (
   location text NOT NULL,
   bio text NOT NULL,
   wallBackgroundHexARGB uint4 NOT NULL,
-  profileImageUrl text NOT NULL
+  profileImageUrl text NOT NULL,
+  age integer NOT NULL
 );
 
 CREATE TABLE wallImage (
@@ -63,8 +64,8 @@ CREATE TABLE buttonLog (
 
 CREATE TABLE sharedBoard (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  user1Id integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
-  user2Id integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  user1Id integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+  user2Id integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   CONSTRAINT different_users CHECK (user1Id <> user2Id)
 );
 
@@ -74,7 +75,7 @@ CREATE TABLE sharedBoardElement (
   url text,
   text text,
   timestamp bigint NOT NULL,
-  senderId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  senderId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   read boolean NOT NULL,
   CONSTRAINT image_xor_text CHECK ((url IS NULL AND text IS NOT NULL) OR (url IS NOT NULL and text IS NULL))
 );
@@ -84,6 +85,6 @@ CREATE TABLE sharedBoardReply (
   sharedBoardElementId integer NOT NULL REFERENCES sharedBoardElement (id) ON DELETE CASCADE,
   text text NOT NULL,
   timestamp bigint NOT NULL,
-  senderId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  senderId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   read boolean
 );

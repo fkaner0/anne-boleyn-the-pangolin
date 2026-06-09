@@ -1,6 +1,6 @@
 \copy account (id, username) FROM 'account.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
 
-\copy profile (id, accountid, name, location, bio, wallbackgroundhexargb, profileimageurl) FROM 'profile.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
+\copy profile (id, accountid, name, location, bio, wallbackgroundhexargb, profileimageurl, age) FROM 'profile.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
 
 \copy wallImage (id, profileid, url, x, y, rotation, aspectratio, scale) FROM 'wallImage.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
 
