@@ -51,9 +51,7 @@ void configureDependencies(BackendMode backend) {
         () => MockRecommendationFetcher(),
       );
       getIt.registerLazySingleton<ProfileFetcher>(() => MockProfileFetcher());
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => MockWallImageUploader(),
-      );
+      getIt.registerLazySingleton<ImageUploader>(() => MockImageUploader());
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
       getIt.registerLazySingleton<ButtonClickLogger>(
@@ -77,9 +75,9 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => CompressingWallImageUploader(
-          RenderWallImageUploader(
+      getIt.registerLazySingleton<ImageUploader>(
+        () => CompressingImageUploader(
+          RenderImageUploader(
             host: hostLocal,
             port: portLocal,
             useHttps: false,
@@ -117,9 +115,9 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ProfileFetcher>(
         () => RenderProfileFetcher(host: host),
       );
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => CompressingWallImageUploader(
-          RenderWallImageUploader(host: host),
+      getIt.registerLazySingleton<ImageUploader>(
+        () => CompressingImageUploader(
+          RenderImageUploader(host: host),
           const DefaultImageCompressor(),
         ),
       );

@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'wall_image_uploader.dart';
 
-class MockWallImageUploader implements WallImageUploader {
+class MockImageUploader implements ImageUploader {
   final List<Uint8List> uploaded = [];
   int _counter = 0;
 

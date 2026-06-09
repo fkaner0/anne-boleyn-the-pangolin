@@ -38,7 +38,7 @@ class _SignupShellState extends State<SignupShell> {
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(
         imagePicker: GalleryImageFilePicker(),
-        wallImageUploader: getIt<WallImageUploader>(),
+        imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
       );

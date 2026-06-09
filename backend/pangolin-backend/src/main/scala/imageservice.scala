@@ -17,11 +17,11 @@ object imageservice {
 
     private final val BedroomWallUploader = CloudinaryImageUploader(API_KEY, API_SECRET, CLOUD_ID, "user_wall_default")
 
-    def uploadBedroomWallImage(inputFile: ImageUploadType) = {
+    def uploadImage(inputFile: ImageUploadType) = {
         BedroomWallUploader.upload(inputFile)
     }
 
-    def deleteBedroomWallImage(url: String) = {
+    def deleteImage(url: String) = {
         BedroomWallUploader.delete(ImageURL(url))
     }
 }

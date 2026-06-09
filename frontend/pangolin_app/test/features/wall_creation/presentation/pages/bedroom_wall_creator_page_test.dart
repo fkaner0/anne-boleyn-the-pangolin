@@ -69,7 +69,7 @@ void main() {
   BedroomWallCreatorController controllerWith(PickedImage? picked) {
     return BedroomWallCreatorController(
       imagePicker: _FakeImageFilePicker(picked),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
       fontCatalog: getIt<FontCatalog>(),
     );
@@ -119,7 +119,7 @@ void main() {
   test('exportInto maps canvas items onto the profile builder', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -145,7 +145,7 @@ void main() {
   test('addSticker adds known stickers and ignores unknown names', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -164,7 +164,7 @@ void main() {
       imagePicker: _FakeImageFilePicker(
         PickedImage(bytes: _onePixelPng, aspectRatio: 1),
       ),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
       fontCatalog: const FontCatalog(),
     );
@@ -186,7 +186,7 @@ void main() {
   test('addSticker places the sticker at the given center', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),
@@ -206,7 +206,7 @@ void main() {
       imagePicker: _FakeImageFilePicker(
         PickedImage(bytes: _onePixelPng, aspectRatio: 1),
       ),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: getIt<StickerCatalog>(),
       fontCatalog: const FontCatalog(),
     );
@@ -222,7 +222,7 @@ void main() {
   test('adding without a center defaults to the canvas center', () {
     final controller = BedroomWallCreatorController(
       imagePicker: const _FakeImageFilePicker(null),
-      wallImageUploader: MockWallImageUploader(),
+      imageUploader: MockImageUploader(),
       stickerCatalog: StickerCatalog.fromAssetKeys(const [
         'assets/stickers/pangolin.png',
       ]),

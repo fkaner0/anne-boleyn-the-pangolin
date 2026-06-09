@@ -14,7 +14,7 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 class AboutMePage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
   final ImageFilePicker? imagePicker;
-  final WallImageUploader? wallImageUploader;
+  final ImageUploader? imageUploader;
   final BedroomWallCreatorController? wallController;
   final VoidCallback? onNext;
   final VoidCallback? onBack;
@@ -23,7 +23,7 @@ class AboutMePage extends StatefulWidget {
     super.key,
     required this.profileBuilder,
     this.imagePicker,
-    this.wallImageUploader,
+    this.imageUploader,
     this.wallController,
     this.onNext,
     this.onBack,
@@ -36,14 +36,14 @@ class AboutMePage extends StatefulWidget {
 class _AboutMePageState extends State<AboutMePage> {
   late final ImageFilePicker _imagePicker =
       widget.imagePicker ?? GalleryImageFilePicker();
-  late final WallImageUploader _wallImageUploader =
-      widget.wallImageUploader ?? getIt<WallImageUploader>();
+  late final ImageUploader _imageUploader =
+      widget.imageUploader ?? getIt<ImageUploader>();
 
   late final BedroomWallCreatorController _wallController =
       widget.wallController ??
       BedroomWallCreatorController(
         imagePicker: _imagePicker,
-        wallImageUploader: _wallImageUploader,
+        imageUploader: _imageUploader,
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
       );
@@ -116,7 +116,7 @@ class _AboutMePageState extends State<AboutMePage> {
     });
 
     try {
-      final url = await _wallImageUploader.uploadImage(picked.bytes);
+      final url = await _imageUploader.uploadImage(picked.bytes);
       _builder.setProfileImageUrl(url);
       if (mounted) {
         setState(() {

@@ -18,7 +18,7 @@ import '../../domain/virtual_canvas.dart';
 class BedroomWallCreatorController {
   final VirtualCanvas canvas;
   final ImageFilePicker imagePicker;
-  final WallImageUploader wallImageUploader;
+  final ImageUploader imageUploader;
   final StickerCatalog stickerCatalog;
   final FontCatalog fontCatalog;
   final List<CanvasItem> _items = [];
@@ -27,7 +27,7 @@ class BedroomWallCreatorController {
 
   BedroomWallCreatorController({
     required this.imagePicker,
-    required this.wallImageUploader,
+    required this.imageUploader,
     required this.stickerCatalog,
     required this.fontCatalog,
     VirtualCanvas? canvas,
@@ -117,7 +117,7 @@ class BedroomWallCreatorController {
 
   Future<String?> _uploadImage(Uint8List bytes) async {
     try {
-      return await wallImageUploader.uploadImage(bytes);
+      return await imageUploader.uploadImage(bytes);
     } catch (_) {
       return null;
     }
