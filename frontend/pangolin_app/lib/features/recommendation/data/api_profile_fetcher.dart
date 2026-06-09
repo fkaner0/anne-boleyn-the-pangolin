@@ -31,7 +31,7 @@ class ApiProfileFetcher implements ProfileFetcher {
 
     if (response.statusCode != 200) {
       throw Exception(
-        'Failed to fetch recommendations: ${response.statusCode}',
+        'Failed to fetch profile for user $userId: ${response.statusCode}',
       );
     }
 
