@@ -155,11 +155,11 @@ object repo {
 
   case class SharedBoardElementCreator(
     boardId: Int,
-    sentTimestamp: Long,
+    timestamp: Long,
     url: Option[String],
     text: Option[String],
     senderId: Int,
-    readByReceiver: Boolean,
+    read: Boolean,
   )
 
   @Table(PostgresDbType)
@@ -168,9 +168,9 @@ object repo {
     boardId: Int,
     url: Option[String],
     text: Option[String],
-    sentTimestamp: Long,
+    timestamp: Long,
     senderId: Int,
-    readByReceiver: Boolean,
+    read: Boolean,
   ) derives DbCodec
 
   object SharedBoardElement {
@@ -179,20 +179,20 @@ object repo {
 
   case class SharedBoardReplyCreator(
     sharedBoardElementId: Int,
-    content: String,
-    sentTimestamp: Long,
+    text: String,
+    timestamp: Long,
     senderId: Int,
-    readByReceiver: Boolean,
+    read: Boolean,
   )
 
   @Table(PostgresDbType)
   case class SharedBoardReply(
     @Id id: Int,
     sharedBoardElementId: Int,
-    content: String,
-    sentTimestamp: Long,
+    text: String,
+    timestamp: Long,
     senderId: Int,
-    readByReceiver: Boolean,
+    read: Boolean,
   )
 
   object SharedBoardReply {
@@ -330,18 +330,18 @@ object repo {
         sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
           val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
             api.SharedBoardReply(
-              datetime = reply.sentTimestamp,
+              datetime = reply.timestamp,
               senderId = reply.senderId,
-              text = reply.content,
+              text = reply.text,
             )
           }
           api.SharedBoardElement(
             sharedElemId = element.id,
-            datetime = element.sentTimestamp,
+            datetime = element.timestamp,
             messages = replies,
             url = element.url,
             text = element.text,
-            read = element.readByReceiver,
+            read = element.read,
           )
         }
       }
@@ -362,11 +362,11 @@ object repo {
       sharedBoardElementsRepo.insert(
         SharedBoardElementCreator(
           boardId = board.id,
-          sentTimestamp = message.datetime,
+          timestamp = message.datetime,
           url = url,
           text = text,
           senderId = message.senderId,
-          readByReceiver = false,
+          read = false,
         )
       )
     }.toRight(())
@@ -376,10 +376,10 @@ object repo {
     sharedBoardReplyRepo.insert(
       SharedBoardReplyCreator(
         sharedBoardElementId = message.sharedElementId,
-        content = message.text,
-        sentTimestamp = message.datetime,
+        text = message.text,
+        timestamp = message.datetime,
         senderId = message.senderId,
-        readByReceiver = false,
+        read = false,
       )
     )
   }
