@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
@@ -5,6 +7,8 @@ import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/presentation/pages/pending_connections_page.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
@@ -12,8 +16,14 @@ import 'package:pangolin_app/widgets/splodge.dart';
 class ConnectionsPage extends StatefulWidget {
   final int userId;
   final FriendsFetcher? friendsFetcher;
+  final ButtonClickLogger? logger;
 
-  const ConnectionsPage({super.key, required this.userId, this.friendsFetcher});
+  const ConnectionsPage({
+    super.key,
+    required this.userId,
+    this.friendsFetcher,
+    this.logger,
+  });
 
   @override
   State<ConnectionsPage> createState() => _ConnectionsPageState();
@@ -51,7 +61,17 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
     }
   }
 
+  void _log(String buttonId) {
+    unawaited(
+      (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
+        userId: widget.userId,
+        buttonId: buttonId,
+      ),
+    );
+  }
+
   void _openPending() {
+    _log(ButtonIds.connectionsPending);
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => PendingConnectionsPage(userId: widget.userId),
@@ -109,6 +129,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                       ConnectionCard(
                         friend: friend,
                         variant: index % SplodgeClipper.variantCount,
+                        onTap: () => _log(ButtonIds.connectionsList),
                       ),
                   ],
                 ),

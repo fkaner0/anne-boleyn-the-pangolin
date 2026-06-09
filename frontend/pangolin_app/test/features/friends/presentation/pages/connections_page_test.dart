@@ -7,6 +7,9 @@ import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/domain/friend.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/friends/presentation/pages/connections_page.dart';
+import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
   final CurrentFriends current;
@@ -33,12 +36,17 @@ void main() {
     configureDependencies(BackendMode.mock);
   });
 
-  Future<void> pumpPage(WidgetTester tester, CurrentFriends data) async {
+  Future<void> pumpPage(
+    WidgetTester tester,
+    CurrentFriends data, {
+    MockButtonClickLogger? logger,
+  }) async {
     await tester.pumpWidget(
       MaterialApp(
         home: ConnectionsPage(
           userId: 7,
           friendsFetcher: _FakeFriendsFetcher(data),
+          logger: logger,
         ),
       ),
     );
@@ -70,5 +78,34 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Pending connections'), findsOneWidget);
+  });
+
+  testWidgets('tapping any connection logs a connections click', (
+    tester,
+  ) async {
+    final logger = MockButtonClickLogger();
+    await pumpPage(tester, _sample(), logger: logger);
+
+    await tester.tap(find.byType(ConnectionCard).first);
+    await tester.pump();
+
+    expect(logger.clicks, hasLength(1));
+    expect(logger.clicks.single.userId, 7);
+    expect(logger.clicks.single.buttonId, ButtonIds.connectionsList);
+  });
+
+  testWidgets('tapping the pending button logs a pending click', (
+    tester,
+  ) async {
+    final logger = MockButtonClickLogger();
+    await pumpPage(tester, _sample(), logger: logger);
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+
+    expect(
+      logger.clicks.map((click) => click.buttonId),
+      contains(ButtonIds.connectionsPending),
+    );
   });
 }
