@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
@@ -17,23 +19,30 @@ import 'package:pangolin_app/theme/palette_colors.dart';
 import 'pages/about_page.dart';
 import 'pages/old___about_me_page.dart';
 
-class SignupShell extends StatefulWidget {
-  final int userId;
+class SignupShell extends ConsumerStatefulWidget {
+  // final int userId;
 
-  const SignupShell({super.key, required this.userId});
+  const SignupShell({super.key});
 
   @override
-  State<SignupShell> createState() => _SignupShellState();
+  ConsumerState<SignupShell> createState() => _SignupShellState();
 }
 
-class _SignupShellState extends State<SignupShell> {
+class _SignupShellState extends ConsumerState<SignupShell> {
   static const _steps = ['About', 'Wall', 'Intro'];
 
   int _step = 0;
   bool _submitting = false;
 
-  late final ProfileBuilder _profileBuilder = ProfileBuilder()
-    ..setUserId(widget.userId);
+  late ProfileBuilder _profileBuilder = ProfileBuilder();
+
+  @override
+  void initState() {
+    super.initState();
+    final int? userId = ref.read(userIdProvider);
+    assert(userId != null, 'Profile setup up requires a valid logged-in user');
+    _profileBuilder = ProfileBuilder()..setUserId(userId!);
+  }
 
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(

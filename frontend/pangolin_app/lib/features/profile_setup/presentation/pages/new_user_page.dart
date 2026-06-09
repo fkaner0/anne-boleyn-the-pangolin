@@ -1,23 +1,24 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
+import 'package:pangolin_app/features/auth/data/authoriser.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
-import '../profile_setup_shell.dart';
+class LoginPage extends ConsumerStatefulWidget {
+  final Authoriser? authoriser;
 
-class NewUserPage extends StatefulWidget {
-  final UserCreator? userCreator;
-
-  const NewUserPage({super.key, this.userCreator});
+  const LoginPage({super.key, this.authoriser});
 
   @override
-  State<NewUserPage> createState() => _NewUserPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _NewUserPageState extends State<NewUserPage> {
-  late final UserCreator _userCreator =
-      widget.userCreator ?? getIt<UserCreator>();
+class _LoginPageState extends ConsumerState<LoginPage> {
+  late final Authoriser _authoriser = widget.authoriser ?? getIt<Authoriser>();
 
   bool _creating = false;
 
@@ -30,24 +31,24 @@ class _NewUserPageState extends State<NewUserPage> {
     /// TMP: for before we have a login/signup sorted out
     final username = "newuser::${Random().nextDouble()}";
     try {
-      userId = await _userCreator.createUser(username);
-    } catch (_) {
+      userId = await _authoriser.getNewUserId(username);
+    } catch (e) {
       if (!mounted) return;
       setState(() => _creating = false);
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
-        ..showSnackBar(
-          const SnackBar(content: Text('Could not create a new user.')),
-        );
+        // ..showSnackBar(
+        //   const SnackBar(content: Text('Could not create a new user.')),
+        // );
+        ..showSnackBar(SnackBar(content: Text(e.toString())));
       return;
     }
 
     if (!mounted) return;
     setState(() => _creating = false);
 
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => SignupShell(userId: userId)),
-    );
+    ref.read(userIdProvider.notifier).login(userId);
+    context.push(AppRoutes.signup);
   }
 
   @override
@@ -58,7 +59,7 @@ class _NewUserPageState extends State<NewUserPage> {
             ? const CircularProgressIndicator()
             : FilledButton(
                 onPressed: _makeNewUser,
-                child: const Text('Make a new user'),
+                child: const Text('Sign up'),
               ),
       ),
     );

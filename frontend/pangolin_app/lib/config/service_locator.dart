@@ -1,5 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:pangolin_app/config/env.dart';
+import 'package:pangolin_app/features/auth/data/authoriser.dart';
+import 'package:pangolin_app/features/auth/data/mock_authoriser.dart';
+import 'package:pangolin_app/features/auth/data/render_authoriser.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
@@ -52,6 +55,7 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
+      getIt.registerLazySingleton<Authoriser>(() => MockAuthoriser());
       break;
     case BackendMode.local:
       final hostLocal = Env.localHost;
@@ -94,6 +98,10 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
+      getIt.registerLazySingleton<Authoriser>(
+        () =>
+            RenderAuthoriser(host: hostLocal, port: portLocal, useHttps: false),
+      );
       break;
     case BackendMode.render:
       final host = Env.renderHost;
@@ -114,6 +122,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<UserCreator>(
         () => RenderUserCreator(host: host),
+      );
+      getIt.registerLazySingleton<Authoriser>(
+        () => RenderAuthoriser(host: host),
       );
       break;
   }
