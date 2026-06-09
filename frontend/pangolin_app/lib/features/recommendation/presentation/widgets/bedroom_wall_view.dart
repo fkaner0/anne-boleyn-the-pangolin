@@ -19,6 +19,7 @@ class BedroomWallView extends StatefulWidget {
   final FontCatalog fontCatalog;
   final void Function(ProfileImage) onImageTap;
   final void Function(ProfileText) onTextTap;
+  final bool enableWiggle;
 
   const BedroomWallView({
     super.key,
@@ -27,6 +28,7 @@ class BedroomWallView extends StatefulWidget {
     required this.fontCatalog,
     required this.onImageTap,
     required this.onTextTap,
+    this.enableWiggle = true,
   });
 
   @override
@@ -51,6 +53,7 @@ class _BedroomWallViewState extends State<BedroomWallView> {
   }
 
   int? _pickWiggleTarget() {
+    if (!widget.enableWiggle) return null;
     final interactableCount =
         widget.profile.images.length + widget.profile.textboxes.length;
     if (interactableCount == 0) return null;

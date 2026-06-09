@@ -137,6 +137,24 @@ object repo {
     val Table = TableInfo[ProfileCreator, Profile, Int]
   }
 
+  case class ButtonLogCreator(
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  @Table(PostgresDbType)
+  case class ButtonLog(
+    @Id id: Int,
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  object ButtonLog {
+    val table = TableInfo[ButtonLogCreator, ButtonLog, Int]
+  }
+
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -156,6 +174,8 @@ object repo {
   private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
+
+  private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
@@ -238,6 +258,18 @@ object repo {
       f
     }
   }
+
+  def logButtonPress(
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  ) = inDatabase {
+    buttonLogRepo.insert(
+      ButtonLogCreator(
+        userId = userId,
+        buttonId = buttonId,
+        pressTimestamp = pressTimestamp,
+      )
+    ).asRight
+  }
 }
-
-

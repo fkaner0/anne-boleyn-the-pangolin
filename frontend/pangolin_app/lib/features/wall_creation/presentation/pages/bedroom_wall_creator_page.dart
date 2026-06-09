@@ -21,6 +21,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final ProfileBuilder? profileBuilder;
   final ProfileUpdater? profileUpdater;
   final VoidCallback? onSave;
+  final VoidCallback? onSaved;
   final VoidCallback? onBack;
 
   const BedroomWallCreatorPage({
@@ -29,6 +30,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.profileBuilder,
     this.profileUpdater,
     this.onSave,
+    this.onSaved,
     this.onBack,
   });
 
@@ -41,7 +43,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
       widget.controller ??
       BedroomWallCreatorController(
         imagePicker: GalleryImageFilePicker(),
-        wallImageUploader: getIt<WallImageUploader>(),
+        imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
       );
@@ -194,6 +196,12 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     if (!mounted) return;
     setState(() => _saving = false);
     _showMessage('Profile saved');
+
+    final onSaved = widget.onSaved;
+    if (onSaved != null) {
+      onSaved();
+      return;
+    }
     _openRecommendations();
   }
 
