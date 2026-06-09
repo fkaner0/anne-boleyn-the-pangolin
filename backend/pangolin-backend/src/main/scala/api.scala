@@ -1,20 +1,24 @@
 package pangolin
 
 import cats.effect.IO
+import cats.syntax.all.*
 import fs2.Stream
+import fs2.concurrent.Topic
 import fs2.io.toInputStreamResource
 import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
 import org.http4s.server.Router
 import sttp.model.Part
-import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput}
+import sttp.model.sse.ServerSentEvent
+import sttp.tapir.{Endpoint, endpoint, path, stringToPath, multipartBody, stringBody, emptyOutput, query}
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.upickle.jsonBody
-import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter}
+import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, serverSentEventsBody}
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
-import upickle.default.{ReadWriter, macroRW}
+import upickle.default.ReadWriter
 import pangolin.repo.ProfileTextboxCreator
+import scala.concurrent.duration.DurationInt
 
 object api {
   case class Position(
@@ -23,10 +27,7 @@ object api {
       rotation: Double,
       aspectRatio: Double,
       scale: Double,
-  )
-  object Position {
-    given ReadWriter[Position] = macroRW
-  }
+  ) derives ReadWriter
 
   case class Recommendation(
       userId: Int,
@@ -36,18 +37,12 @@ object api {
       age: Int,
       profileImageUrl: String,
       rejected: Boolean,
-  )
-  object Recommendation {
-    given ReadWriter[Recommendation] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileImage(
       url: String,
       position: Position,
-  )
-  object ProfileImage {
-    given ReadWriter[ProfileImage] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileTextbox(
       title: String,
@@ -56,18 +51,12 @@ object api {
       fontHexARGB: Long,
       backgroundHexARGB: Long,
       position: Position,
-  )
-  object ProfileTextbox {
-    given ReadWriter[ProfileTextbox] = macroRW
-  }
+  ) derives ReadWriter
 
   case class ProfileSticker(
       name: String, // plain name. no extension
       position: Position,
-  )
-  object ProfileSticker {
-    given ReadWriter[ProfileSticker] = macroRW
-  }
+  ) derives ReadWriter
 
   case class FullProfile(
       name: String,
@@ -79,37 +68,65 @@ object api {
       wallImages: Vector[ProfileImage],
       wallTextboxes: Vector[ProfileTextbox],
       wallStickers: Vector[ProfileSticker],
-  )
-  object FullProfile {
-    given ReadWriter[FullProfile] = macroRW
-  }
+  ) derives ReadWriter
 
   case class UploadRequest(
     image: Part[Array[Byte]]
   )
   case class UploadResponse(
     url: String
-  )
-  object UploadResponse {
-    given ReadWriter[UploadResponse] = macroRW
-  }
-
+  ) derives ReadWriter
 
   case class NewUserResponse(
     userId: Int
-  )
-  object NewUserResponse {
-    given ReadWriter[NewUserResponse] = macroRW
-  }
+  ) derives ReadWriter
+
+  case class SharedBoard(
+    elems: Vector[SharedBoardElement]
+  ) derives ReadWriter
+
+  case class SharedBoardElement(
+    sharedElemId: Int,
+    datetime: Long,
+    messages: Vector[SharedBoardReply],
+    url: Option[String],
+    text: Option[String],
+    read: Boolean,
+  ) derives ReadWriter
+
+  case class SharedBoardReply(
+    datetime: Long,
+    senderId: Int,
+    text: String,
+  ) derives ReadWriter
+
+  case class MessageImage(
+    senderId: Int,
+    receiverId: Int,
+    url: String,
+    datetime: Long,
+  ) derives ReadWriter
+
+  case class MessageText(
+    senderId: Int,
+    receiverId: Int,
+    text: String,
+    datetime: Long,
+  ) derives ReadWriter
+
+  case class MessageReply(
+    sharedElementId: Int,
+    senderId: Int,
+    receiverId: Int,
+    text: String,
+    datetime: Long,
+  )  derives ReadWriter
 
   case class ButtonLog(
     userId: Int,
     buttonId: String,
     datetime: Long,
-  )
-  object ButtonLog {
-    given ReadWriter[ButtonLog] = macroRW
-  }
+  ) derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
@@ -138,6 +155,28 @@ object api {
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
     .out(jsonBody[Vector[Recommendation]])
+
+  private val sharedBoardEndpoint = endpoint.get
+    .in("message" / "board")
+    .in(query[Int]("user1Id"))
+    .in(query[Int]("user2Id"))
+    .out(jsonBody[SharedBoard])
+
+  private val messageImageEndpoint = endpoint.post
+    .in("message" / "send" / "image")
+    .in(jsonBody[MessageImage])
+
+  private val messageTextEndpoint = endpoint.post
+    .in("message" / "send" / "text")
+    .in(jsonBody[MessageText])
+
+  private val messageReplyEndpoint = endpoint.post
+    .in("message" / "send" / "reply")
+    .in(jsonBody[MessageReply])
+
+  private val messageListenSseEndpoint = endpoint.get
+    .in("message" / "listen" / path[Int]("receiverId"))
+    .out(serverSentEventsBody[IO])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -218,9 +257,47 @@ object api {
     }
   )
 
+  private val sharedBoardRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    sharedBoardEndpoint.serverLogic { (user1Id, user2Id) =>
+      repo.getSharedBoard(user1Id, user2Id).map(_.toRight(()))
+    }
+  )
+
+  private def messageTextRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageTextEndpoint.serverLogicSuccess { message =>
+      repo.sendTextMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    }
+  )
+
+  private def messageImageRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageImageEndpoint.serverLogicSuccess { message =>
+      repo.sendImageMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    }
+  )
+
+  private def messageReplyRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageReplyEndpoint.serverLogicSuccess { message =>
+      repo.sendReply(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    }
+  )
+
+  private def publishMessage(topic: Topic[IO, (Int, Int)], senderId: Int, receiverId: Int) = {
+    topic.publish1((senderId, receiverId)).as(())
+  }
+
+  private def messageListenSseRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
+    messageListenSseEndpoint.serverLogicSuccess { receiverId =>
+      IO.pure {
+        topic.subscribeUnbounded
+          .filter((id1, id2) => id1 == receiverId || id2 == receiverId)
+          .map(_ => ServerSentEvent())
+      }
+    }
+  )
+
   private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, timestamp) => 
-      repo.logButtonPress(userId, buttonId, timestamp)
+    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
+      repo.logButtonPress(userId, buttonId, datetime)
     }
   )
 
@@ -312,12 +389,17 @@ object api {
     )
   }
 
-  val router = Router(
+  def router(topic: Topic[IO, (Int, Int)]) = Router(
     "/" -> newUserRoutes,
     "/" -> recommendationsRoutes,
     "/" -> profileViewRoutes,
     "/" -> profileEditRoutes,
     "/" -> imageUploadRoutes,
+    "/" -> sharedBoardRoutes,
+    "/" -> messageTextRoutes(topic),
+    "/" -> messageImageRoutes(topic),
+    "/" -> messageReplyRoutes(topic),
+    "/" -> messageListenSseRoutes(topic),
     "/" -> buttonLogRoutes,
   ).orNotFound
 }

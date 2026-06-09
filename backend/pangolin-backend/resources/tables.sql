@@ -54,3 +54,30 @@ CREATE TABLE buttonLog (
   buttonId text NOT NULL,
   pressTimestamp bigint NOT NULL
 );
+
+CREATE TABLE sharedBoard (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  user1Id integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  user2Id integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  CONSTRAINT different_users CHECK (user1Id <> user2Id)
+);
+
+CREATE TABLE sharedBoardElement (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  boardId integer NOT NULL REFERENCES sharedBoard (id) ON DELETE CASCADE,
+  url text,
+  text text,
+  timestamp bigint NOT NULL,
+  senderId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  read boolean NOT NULL,
+  CONSTRAINT image_xor_text CHECK ((url IS NULL AND text IS NOT NULL) OR (url IS NOT NULL and text IS NULL))
+);
+
+CREATE TABLE sharedBoardReply (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  sharedBoardElementId integer NOT NULL REFERENCES sharedBoardElement (id) ON DELETE CASCADE,
+  text text NOT NULL,
+  timestamp bigint NOT NULL,
+  senderId integer NOT NULL REFERENCES profile (id) ON DELETE CASCADE,
+  read boolean
+);
