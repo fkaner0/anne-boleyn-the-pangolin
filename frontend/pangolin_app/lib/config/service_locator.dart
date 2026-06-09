@@ -22,6 +22,10 @@ import 'package:pangolin_app/features/recommendation/data/render_profile_updater
 import 'package:pangolin_app/features/profile_setup/data/render_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/render_wall_image_uploader.dart';
 
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
+import 'package:pangolin_app/features/logging/data/render_button_click_logger.dart';
+
 final GetIt getIt = GetIt.instance;
 
 void configureDependencies(BackendMode backend) {
@@ -52,6 +56,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => MockButtonClickLogger(),
+      );
       break;
     case BackendMode.local:
       final hostLocal = Env.localHost;
@@ -94,6 +101,13 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => RenderButtonClickLogger(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
       break;
     case BackendMode.render:
       final host = Env.renderHost;
@@ -114,6 +128,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<UserCreator>(
         () => RenderUserCreator(host: host),
+      );
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => RenderButtonClickLogger(host: host),
       );
       break;
   }
