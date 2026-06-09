@@ -6,6 +6,9 @@ import 'package:pangolin_app/widgets/app_icon.dart';
 final _refreshIcon = find.byWidgetPredicate(
   (w) => w is AppIcon && w.type == AppIconType.refresh,
 );
+final _lightbulbIcon = find.byWidgetPredicate(
+  (w) => w is AppIcon && w.type == AppIconType.lightbulb,
+);
 
 void main() {
   Future<void> pump(
@@ -35,14 +38,14 @@ void main() {
 
     expect(slideOffset(tester), Offset.zero);
     expect(_refreshIcon, findsOneWidget);
-    expect(find.byIcon(Icons.lightbulb_outline), findsNothing);
+    expect(_lightbulbIcon, findsNothing);
   });
 
   testWidgets('shows the lightbulb once collapsed', (tester) async {
     await pump(tester, onCreate: (_) {});
     await useHint(tester);
 
-    expect(find.byIcon(Icons.lightbulb_outline), findsOneWidget);
+    expect(_lightbulbIcon, findsOneWidget);
     expect(_refreshIcon, findsNothing);
     await tester.pumpAndSettle();
   });
@@ -77,7 +80,7 @@ void main() {
     await useHint(tester);
     expect(slideOffset(tester), isNot(Offset.zero));
 
-    await tester.tap(find.byIcon(Icons.lightbulb_outline));
+    await tester.tap(_lightbulbIcon);
     await tester.pump();
 
     expect(slideOffset(tester), Offset.zero);
@@ -92,7 +95,7 @@ void main() {
     await pump(tester, onCreate: (_) {});
     await useHint(tester);
 
-    await tester.tap(find.byIcon(Icons.lightbulb_outline));
+    await tester.tap(_lightbulbIcon);
     await tester.pump();
     expect(slideOffset(tester), Offset.zero);
 
