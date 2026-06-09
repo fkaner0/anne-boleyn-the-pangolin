@@ -8,8 +8,8 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'dart:typed_data';
 
-import '../../data/image_file_picker.dart';
-import '../../data/wall_image_uploader.dart';
+import '../../data/picker/image_file_picker.dart';
+import '../../data/uploader/wall_image_uploader.dart';
 import '../../domain/canvas_item.dart';
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
@@ -48,14 +48,20 @@ class BedroomWallCreatorController {
     return CanvasTransform(center: Offset(canvas.width / 2, canvas.height / 2));
   }
 
-  Future<void> addImage() async {
+  CanvasTransform _transformAt(Offset? center) {
+    return center != null
+        ? CanvasTransform(center: center)
+        : _centeredTransform();
+  }
+
+  Future<void> addImage({Offset? center}) async {
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
 
     _items.add(
       CanvasImageItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: _transformAt(center),
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
         url: await _uploadImage(picked.bytes),
@@ -67,9 +73,7 @@ class BedroomWallCreatorController {
     _items.add(
       CanvasTextItem(
         id: _nextId++,
-        transform: center != null
-            ? CanvasTransform(center: center)
-            : _centeredTransform(),
+        transform: _transformAt(center),
         text: text,
       ),
     );
@@ -79,13 +83,13 @@ class BedroomWallCreatorController {
     addTextBoxWithText('', center: center);
   }
 
-  void addSticker(String stickerName) {
+  void addSticker(String stickerName, {Offset? center}) {
     if (stickerCatalog.assetForName(stickerName) == null) return;
 
     _items.add(
       CanvasStickerItem(
         id: _nextId++,
-        transform: _centeredTransform(),
+        transform: _transformAt(center),
         stickerName: stickerName,
       ),
     );

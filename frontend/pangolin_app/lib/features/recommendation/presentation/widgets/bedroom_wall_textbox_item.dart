@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/profile_text.dart';
-import 'message_send_badge.dart';
+import 'wiggle_hint.dart';
 
 class BedroomWallTextBoxItem extends StatelessWidget {
   static const double _baseFontSize = 16;
@@ -10,12 +10,14 @@ class BedroomWallTextBoxItem extends StatelessWidget {
   final ProfileText textbox;
   final double renderScale;
   final VoidCallback onTap;
+  final bool wiggle;
 
   const BedroomWallTextBoxItem({
     super.key,
     required this.textbox,
     required this.renderScale,
     required this.onTap,
+    this.wiggle = false,
   });
 
   @override
@@ -36,41 +38,37 @@ class BedroomWallTextBoxItem extends StatelessWidget {
         translation: const Offset(-0.5, -0.5),
         child: Transform.rotate(
           angle: position.rotation,
-          child: GestureDetector(
-            onTap: onTap,
-            behavior: HitTestBehavior.opaque,
-            child: Stack(
-              children: [
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: _minWidth * renderScale * scale,
-                    maxWidth: _maxWidth * renderScale * scale,
-                  ),
-                  child: IntrinsicWidth(
-                    child: Container(
-                      padding: EdgeInsets.all(8 * scale),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        border: Border.all(color: colorScheme.outline),
-                        borderRadius: BorderRadius.circular(8 * scale),
-                      ),
-                      child: Text(
-                        text,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: _baseFontSize * renderScale * scale,
-                          color: colorScheme.onSurface,
-                        ),
+          child: WiggleHint(
+            enabled: wiggle,
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: HitTestBehavior.opaque,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: _minWidth * renderScale * scale,
+                  maxWidth: _maxWidth * renderScale * scale,
+                ),
+                child: IntrinsicWidth(
+                  child: Container(
+                    padding: EdgeInsets.all(8 * scale),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      border: Border.all(color: colorScheme.outline),
+                      borderRadius: BorderRadius.circular(8 * scale),
+                    ),
+                    child: Text(
+                      text,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        inherit: false,
+                        fontSize: _baseFontSize * renderScale * scale,
+                        fontFamily: textbox.font,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
                 ),
-                const Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: MessageSendBadge(),
-                ),
-              ],
+              ),
             ),
           ),
         ),
