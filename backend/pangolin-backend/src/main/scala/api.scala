@@ -3,7 +3,7 @@ package pangolin
 import cats.effect.IO
 import cats.syntax.all.*
 import fs2.Stream
-import fs2.concurrent.Channel
+import fs2.concurrent.Topic
 import fs2.io.toInputStreamResource
 import fs2.io.file.{Files, Path}
 import org.http4s.HttpRoutes
@@ -225,15 +225,15 @@ object api {
     }
   )
 
-  private def messageSendRoutes(channel: Channel[IO, Message]) = serverInterpreter.toRoutes(
+  private def messageSendRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
     messageSendEndpoint.serverLogicSuccess { message =>
       // TODO: add message to database
-      channel.send(message).as(())
+      topic.publish1(message).as(())
     }
   )
 
-  private def messageListenSseRoutes(channel: Channel[IO, Message]) = serverInterpreter.toRoutes(
-    messageListenSseEndpoint.serverLogicSuccess { receiverId => IO.pure(channel.stream.filter(_.receiverId == receiverId).map(msg => ServerSentEvent(Some(msg.message)))) }
+  private def messageListenSseRoutes(topic: Topic[IO, Message]) = serverInterpreter.toRoutes(
+    messageListenSseEndpoint.serverLogicSuccess { receiverId => IO.pure(topic.subscribeUnbounded.filter(_.receiverId == receiverId).map(msg => ServerSentEvent(Some(msg.message)))) }
   )
 
   extension (image: repo.ProfileImage) {
@@ -324,13 +324,13 @@ object api {
     )
   }
 
-  def router(channel: Channel[IO, Message]) = Router(
+  def router(topic: Topic[IO, Message]) = Router(
     "/" -> api.newUserRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
     "/" -> api.profileEditRoutes,
     "/" -> api.uploadRoutes,
-    "/" -> api.messageSendRoutes(channel),
-    "/" -> api.messageListenSseRoutes(channel),
+    "/" -> api.messageSendRoutes(topic),
+    "/" -> api.messageListenSseRoutes(topic),
   ).orNotFound
 }
