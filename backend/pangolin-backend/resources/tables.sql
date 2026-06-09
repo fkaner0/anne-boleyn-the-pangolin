@@ -47,3 +47,10 @@ CREATE TABLE profileSticker (
   aspectRatio double precision NOT NULL,
   scale double precision NOT NULL
 );
+
+CREATE TABLE buttonLog (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  userId integer NOT NULL,
+  buttonId text NOT NULL,
+  pressTimestamp integer NOT NULL
+);
