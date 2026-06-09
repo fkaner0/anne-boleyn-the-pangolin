@@ -33,7 +33,7 @@ class _IconSource {
 }
 
 const Map<AppIconType, _IconSource> _sources = {
-  AppIconType.back: _IconSource(svgAsset: 'assets/icons/icons/backarrow.svg'),
+  AppIconType.back: _IconSource(svgAsset: 'assets/icons/icons/back.svg'),
   AppIconType.add: _IconSource(svgAsset: 'assets/icons/icons/add.svg'),
   AppIconType.save: _IconSource(svgAsset: 'assets/icons/icons/save.svg'),
   AppIconType.send: _IconSource(svgAsset: 'assets/icons/icons/send.svg'),
@@ -45,28 +45,30 @@ const Map<AppIconType, _IconSource> _sources = {
   ),
   AppIconType.refresh: _IconSource(svgAsset: 'assets/icons/icons/refresh.svg'),
   AppIconType.addText: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/text.png',
+    pngAsset: 'assets/icons/wall_addition_icons/addtext.svg',
   ),
   AppIconType.addImage: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/image.png',
+    pngAsset: 'assets/icons/wall_addition_icons/addimage.svg',
   ),
   AppIconType.textColour: _IconSource(
-    svgAsset: 'assets/icons/text_customisation_icons/A.svg',
+    svgAsset: 'assets/icons/text_customisation_icons/textcolour.svg',
   ),
   AppIconType.textBackground: _IconSource(
     svgAsset: 'assets/icons/text_customisation_icons/palette.svg',
   ),
   AppIconType.fontCycle: _IconSource(
-    svgAsset: 'assets/icons/text_customisation_icons/AaAa.svg',
+    svgAsset: 'assets/icons/text_customisation_icons/fonts.svg',
   ),
   AppIconType.person: _IconSource(materialIcon: Icons.person),
   AppIconType.expandLess: _IconSource(materialIcon: Icons.expand_less),
   AppIconType.expandMore: _IconSource(materialIcon: Icons.expand_more),
   AppIconType.delete: _IconSource(materialIcon: Icons.delete),
   AppIconType.sticker: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/sticker.png',
+    pngAsset: 'assets/icons/wall_addition_icons/addsticker.svg',
   ),
-  AppIconType.lightbulb: _IconSource(materialIcon: Icons.lightbulb_outline),
+  AppIconType.lightbulb: _IconSource(
+    pngAsset: 'assets/icons/icons/lightbulb.svg',
+  ),
 };
 
 class AppIcon extends StatelessWidget {
