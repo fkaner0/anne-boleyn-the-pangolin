@@ -15,7 +15,6 @@ import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.{ReadWriter, macroRW}
 import pangolin.repo.ProfileTextboxCreator
-import pangolin.repo.logButtonPress
 
 object api {
   case class Position(
