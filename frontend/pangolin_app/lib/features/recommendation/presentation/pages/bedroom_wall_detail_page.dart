@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
@@ -12,8 +14,7 @@ import '../widgets/bedroom_wall_detail_content.dart';
 import '../widgets/message_composer.dart';
 import '../widgets/profile_header_bar.dart';
 
-class BedroomWallDetailPage extends StatefulWidget {
-  final int viewerUserId;
+class BedroomWallDetailPage extends ConsumerStatefulWidget {
   final Profile profile;
   final ProfileImage? image;
   final ProfileText? textbox;
@@ -21,7 +22,6 @@ class BedroomWallDetailPage extends StatefulWidget {
 
   const BedroomWallDetailPage({
     super.key,
-    required this.viewerUserId,
     required this.profile,
     this.image,
     this.textbox,
@@ -32,10 +32,11 @@ class BedroomWallDetailPage extends StatefulWidget {
        );
 
   @override
-  State<BedroomWallDetailPage> createState() => _BedroomWallDetailPageState();
+  ConsumerState<BedroomWallDetailPage> createState() =>
+      _BedroomWallDetailPageState();
 }
 
-class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
+class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
   late final TextEditingController _controller;
 
   @override
@@ -53,7 +54,7 @@ class _BedroomWallDetailPageState extends State<BedroomWallDetailPage> {
   void _log(String buttonId) {
     unawaited(
       (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: widget.viewerUserId,
+        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
         buttonId: buttonId,
       ),
     );

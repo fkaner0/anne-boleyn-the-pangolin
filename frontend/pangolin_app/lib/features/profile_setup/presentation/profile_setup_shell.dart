@@ -39,7 +39,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
   @override
   void initState() {
     super.initState();
-    final int? userId = ref.read(userIdProvider);
+    final int? userId = ref.read(userIdProvider.notifier).currentUserId();
     assert(userId != null, 'Profile setup up requires a valid logged-in user');
     _profileBuilder = ProfileBuilder()..setUserId(userId!);
   }
@@ -92,7 +92,6 @@ class _SignupShellState extends ConsumerState<SignupShell> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RecommendationListPage(
-          userId: widget.userId,
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),

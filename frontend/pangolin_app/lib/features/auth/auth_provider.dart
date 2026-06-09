@@ -11,4 +11,9 @@ class UserIdNotifier extends Notifier<int?> {
   void login(int userId) => state = userId;
 
   int? currentUserId() => state;
+
+  int currentUserIdThrow() {
+    assert(state != null, 'No logged-in user found');
+    return state!;
+  }
 }

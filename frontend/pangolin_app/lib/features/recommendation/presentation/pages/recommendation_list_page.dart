@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
@@ -12,7 +14,7 @@ import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
 
-class RecommendationListPage extends StatefulWidget {
+class RecommendationListPage extends ConsumerStatefulWidget {
   final RecommendationFetcher? recommendationFetcher;
   final ProfileFetcher? profileFetcher;
   final ButtonClickLogger? logger;
@@ -25,10 +27,12 @@ class RecommendationListPage extends StatefulWidget {
   });
 
   @override
-  State<RecommendationListPage> createState() => _RecommendationListPageState();
+  ConsumerState<RecommendationListPage> createState() =>
+      _RecommendationListPageState();
 }
 
-class _RecommendationListPageState extends State<RecommendationListPage> {
+class _RecommendationListPageState
+    extends ConsumerState<RecommendationListPage> {
   bool _isLoading = true;
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
@@ -47,7 +51,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
   void _log(String buttonId) {
     unawaited(
       (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: widget.userId,
+        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
         buttonId: buttonId,
       ),
     );
@@ -87,8 +91,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
       ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.recommendations,
-        onEditProfile: () =>
-            MainTabNavigation.goToEditProfile(context, widget.userId),
+        onEditProfile: () => MainTabNavigation.goToEditProfile(context),
         onRecommendations: () {},
       ),
       body: Builder(

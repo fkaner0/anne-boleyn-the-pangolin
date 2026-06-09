@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
@@ -12,24 +14,22 @@ import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
 import '../widgets/profile_header_bar.dart';
 
-class RecommendationProfilePage extends StatelessWidget {
-  final int viewerUserId;
+class RecommendationProfilePage extends ConsumerWidget {
   final ProfileFetcher profileFetcher;
   final int userId;
   final ButtonClickLogger? logger;
 
   const RecommendationProfilePage({
     super.key,
-    required this.viewerUserId,
     required this.profileFetcher,
     required this.userId,
     this.logger,
   });
 
-  void _log(String buttonId) {
+  void _log(String buttonId, WidgetRef ref) {
     unawaited(
       (logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: viewerUserId,
+        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
         buttonId: buttonId,
       ),
     );
@@ -45,7 +45,7 @@ class RecommendationProfilePage extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return FutureBuilder<(Profile, StickerCatalog, FontCatalog)>(
       future: _load(),
       builder: (context, snapshot) {
@@ -64,7 +64,7 @@ class RecommendationProfilePage extends StatelessWidget {
                     name: 'Profile',
                     location: 'Error',
                     onBackPressed: () {
-                      _log(ButtonIds.bedroomWallBack);
+                      _log(ButtonIds.bedroomWallBack, ref);
                       Navigator.of(context).pop();
                     },
                   ),
@@ -87,7 +87,7 @@ class RecommendationProfilePage extends StatelessWidget {
                   name: profile.name,
                   location: profile.location,
                   onBackPressed: () {
-                    _log(ButtonIds.bedroomWallBack);
+                    _log(ButtonIds.bedroomWallBack, ref);
                     Navigator.of(context).pop();
                   },
                 ),
@@ -99,11 +99,10 @@ class RecommendationProfilePage extends StatelessWidget {
                       stickerCatalog: stickerCatalog,
                       fontCatalog: fontCatalog,
                       onImageTap: (image) {
-                        _log(ButtonIds.bedroomWall);
+                        _log(ButtonIds.bedroomWall, ref);
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => BedroomWallDetailPage(
-                              viewerUserId: viewerUserId,
                               logger: logger,
                               profile: profile,
                               image: image,
@@ -112,11 +111,10 @@ class RecommendationProfilePage extends StatelessWidget {
                         );
                       },
                       onTextTap: (textbox) {
-                        _log(ButtonIds.bedroomWall);
+                        _log(ButtonIds.bedroomWall, ref);
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => BedroomWallDetailPage(
-                              viewerUserId: viewerUserId,
                               logger: logger,
                               profile: profile,
                               textbox: textbox,

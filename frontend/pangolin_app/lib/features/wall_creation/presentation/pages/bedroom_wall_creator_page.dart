@@ -214,7 +214,6 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RecommendationListPage(
-          userId: _profileBuilder.userId ?? 0,
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),
