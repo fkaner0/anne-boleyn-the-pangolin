@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
@@ -26,12 +28,17 @@ void main() {
     final logger = MockButtonClickLogger();
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: BedroomWallDetailPage(
-          viewerUserId: 7,
-          profile: profile,
-          textbox: textbox,
-          logger: logger,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(4)),
+        ],
+        child: MaterialApp(
+          home: BedroomWallDetailPage(
+            profile: profile,
+            textbox: textbox,
+            logger: logger,
+          ),
         ),
       ),
     );

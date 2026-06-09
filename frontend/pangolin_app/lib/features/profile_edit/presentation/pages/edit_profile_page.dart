@@ -82,7 +82,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _load();
+    final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
+    _load(userId);
   }
 
   @override
@@ -94,9 +95,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load(int userId) async {
     try {
-      final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
       final profile = await _profileFetcher.fetchProfile(userId);
 
       final stickerCatalog = widget.stickerCatalog ?? getIt<StickerCatalog>();

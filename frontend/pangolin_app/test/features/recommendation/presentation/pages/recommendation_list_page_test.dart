@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
@@ -34,10 +36,13 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(1)),
+        ],
+        child: MaterialApp(
+          home: RecommendationListPage(recommendationFetcher: mockFetcher),
         ),
       ),
     );
@@ -53,10 +58,13 @@ void main() {
     when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(1)),
+        ],
+        child: MaterialApp(
+          home: RecommendationListPage(recommendationFetcher: mockFetcher),
         ),
       ),
     );
@@ -72,10 +80,13 @@ void main() {
     ).thenAnswer((_) async => throw Exception('Fetch failed'));
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 1,
-          recommendationFetcher: mockFetcher,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(1)),
+        ],
+        child: MaterialApp(
+          home: RecommendationListPage(recommendationFetcher: mockFetcher),
         ),
       ),
     );
@@ -106,11 +117,16 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 7,
-          recommendationFetcher: mockFetcher,
-          logger: logger,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(7)),
+        ],
+        child: MaterialApp(
+          home: RecommendationListPage(
+            recommendationFetcher: mockFetcher,
+            logger: logger,
+          ),
         ),
       ),
     );
@@ -130,11 +146,16 @@ void main() {
     when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationListPage(
-          userId: 7,
-          recommendationFetcher: mockFetcher,
-          logger: logger,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(7)),
+        ],
+        child: MaterialApp(
+          home: RecommendationListPage(
+            recommendationFetcher: mockFetcher,
+            logger: logger,
+          ),
         ),
       ),
     );

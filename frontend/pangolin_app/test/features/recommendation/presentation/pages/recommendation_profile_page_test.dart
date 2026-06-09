@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -53,12 +55,17 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationProfilePage(
-          viewerUserId: 7,
-          profileFetcher: const _FakeProfileFetcher(profile),
-          userId: 5,
-          logger: logger,
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(7)),
+        ],
+        child: MaterialApp(
+          home: RecommendationProfilePage(
+            profileFetcher: const _FakeProfileFetcher(profile),
+            userId: 5,
+            logger: logger,
+          ),
         ),
       ),
     );

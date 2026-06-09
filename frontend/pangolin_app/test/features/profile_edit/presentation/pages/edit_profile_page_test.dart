@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/profile_edit/presentation/pages/edit_profile_page.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
@@ -22,7 +24,7 @@ class _FakeProfileFetcher implements ProfileFetcher {
   const _FakeProfileFetcher(this.profile);
 
   @override
-  Future<Profile> fetchProfile(int userId) async => profile;
+  Future<Profile> fetchProfile(int userId) => Future.value(profile);
 }
 
 class _CapturingProfileUpdater implements ProfileUpdater {
@@ -67,15 +69,20 @@ void main() {
     required ProfileUpdater updater,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: EditProfilePage(
-          userId: 7,
-          profileFetcher: fetcher,
-          profileUpdater: updater,
-          imagePicker: _FakeImageFilePicker(),
-          imageUploader: MockImageUploader(),
-          stickerCatalog: StickerCatalog.fromAssetKeys(const <String>[]),
-          fontCatalog: const FontCatalog(),
+      ProviderScope(
+        overrides: [
+          // Seed a userId so initState doesn't throw
+          userIdProvider.overrideWith(() => UserIdNotifier()..login(7)),
+        ],
+        child: MaterialApp(
+          home: EditProfilePage(
+            profileFetcher: fetcher,
+            profileUpdater: updater,
+            imagePicker: _FakeImageFilePicker(),
+            imageUploader: MockImageUploader(),
+            stickerCatalog: StickerCatalog.fromAssetKeys(const <String>[]),
+            fontCatalog: const FontCatalog(),
+          ),
         ),
       ),
     );
