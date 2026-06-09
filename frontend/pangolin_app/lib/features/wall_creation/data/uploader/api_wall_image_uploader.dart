@@ -5,12 +5,12 @@ import 'package:http/http.dart' as http;
 
 import 'wall_image_uploader.dart';
 
-class ApiWallImageUploader implements WallImageUploader {
+class ApiImageUploader implements ImageUploader {
   final String host;
   final int? port;
   final bool useHttps;
 
-  const ApiWallImageUploader({
+  const ApiImageUploader({
     this.host = 'localhost',
     this.port,
     this.useHttps = false,
@@ -20,8 +20,8 @@ class ApiWallImageUploader implements WallImageUploader {
   Future<String> uploadImage(Uint8List bytes) async {
     final authority = port == null ? host : '$host:$port';
     final uri = useHttps
-        ? Uri.https(authority, '/wallImage')
-        : Uri.http(authority, '/wallImage');
+        ? Uri.https(authority, '/image/upload')
+        : Uri.http(authority, '/image/upload');
 
     final request = http.MultipartRequest('POST', uri)
       ..files.add(

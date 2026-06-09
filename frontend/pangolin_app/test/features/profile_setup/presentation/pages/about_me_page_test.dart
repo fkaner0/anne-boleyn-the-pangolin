@@ -45,7 +45,7 @@ void main() {
         home: AboutMePage(
           profileBuilder: builder,
           imagePicker: imagePicker ?? const _FakeImageFilePicker(null),
-          wallImageUploader: MockWallImageUploader(),
+          imageUploader: MockImageUploader(),
           wallController: wallController,
         ),
       ),
@@ -54,7 +54,7 @@ void main() {
 
   BedroomWallCreatorController makeController() => BedroomWallCreatorController(
     imagePicker: const _FakeImageFilePicker(null),
-    wallImageUploader: MockWallImageUploader(),
+    imageUploader: MockImageUploader(),
     stickerCatalog: getIt<StickerCatalog>(),
     fontCatalog: const FontCatalog(),
   );

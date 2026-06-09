@@ -230,6 +230,86 @@ object repo {
     val Table = TableInfo[AccountCreator, Account, Int]
   }
   
+  case class SharedBoardCreator(
+    user1Id: Int,
+    user2Id: Int,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoard(
+    @Id id: Int,
+    user1Id: Int,
+    user2Id: Int,
+  ) derives DbCodec
+
+  object SharedBoard {
+    val Table = TableInfo[SharedBoardCreator, SharedBoard, Int]
+  }
+
+  case class SharedBoardElementCreator(
+    boardId: Int,
+    timestamp: Long,
+    url: Option[String],
+    text: Option[String],
+    senderId: Int,
+    read: Boolean,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoardElement(
+    @Id id: Int,
+    boardId: Int,
+    url: Option[String],
+    text: Option[String],
+    timestamp: Long,
+    senderId: Int,
+    read: Boolean,
+  ) derives DbCodec
+
+  object SharedBoardElement {
+    val Table = TableInfo[SharedBoardElementCreator, SharedBoardElement, Int]
+  }
+
+  case class SharedBoardReplyCreator(
+    sharedBoardElementId: Int,
+    text: String,
+    timestamp: Long,
+    senderId: Int,
+    read: Boolean,
+  )
+
+  @Table(PostgresDbType)
+  case class SharedBoardReply(
+    @Id id: Int,
+    sharedBoardElementId: Int,
+    text: String,
+    timestamp: Long,
+    senderId: Int,
+    read: Boolean,
+  )
+
+  object SharedBoardReply {
+    val Table = TableInfo[SharedBoardReplyCreator, SharedBoardReply, Int]
+  }
+
+  case class ButtonLogCreator(
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  @Table(PostgresDbType)
+  case class ButtonLog(
+    @Id id: Int,
+    userId: Int,
+    buttonId: String,
+    pressTimestamp: Long,
+  )
+
+  object ButtonLog {
+    val table = TableInfo[ButtonLogCreator, ButtonLog, Int]
+  }
+
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -251,6 +331,12 @@ object repo {
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
+
+  private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
+  private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
+  private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
+
+  private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
   private def userIdFromUsernameSpec(username: String) = Spec[Account]
     .where(sql"${Account.Table.username} = $username")
@@ -353,6 +439,172 @@ object repo {
       }
       case None => Left("No profileId matches the given accountId. No profile to update.")
     }
+  }
+
+  def newSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
+  }
+
+  def getSharedBoard(user1Id: Int, user2Id: Int) = {
+    inDatabase {
+      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+            api.SharedBoardReply(
+              datetime = reply.timestamp,
+              senderId = reply.senderId,
+              text = reply.text,
+            )
+          }
+          api.SharedBoardElement(
+            sharedElemId = element.id,
+            datetime = element.timestamp,
+            messages = replies,
+            url = element.url,
+            text = element.text,
+            read = element.read,
+          )
+        }
+      }
+      elements.map(api.SharedBoard(_))
+    }
+  }
+
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+
+  def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = None,
+    url = Some(message.url)
+  )
+
+  def sendTextMessage(message: api.MessageText): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = Some(message.text),
+    url = None
+  )
+
+  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
+    sharedBoardElementsRepo.insert(
+      SharedBoardElementCreator(
+        boardId = board.id,
+        timestamp = timestamp,
+        url = url,
+        text = text,
+        senderId = senderId,
+        read = false,
+      )
+    )
+  }
+
+  def sendReply(message: api.MessageReply) = inDatabase {
+    sharedBoardReplyRepo.insert(
+      SharedBoardReplyCreator(
+        sharedBoardElementId = message.sharedElementId,
+        text = message.text,
+        timestamp = message.datetime,
+        senderId = message.senderId,
+        read = false,
+      )
+    )
+  }
+
+  private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
+    sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+  }
+
+  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
+    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
+  }
+
+  def newSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
+  }
+
+  def getSharedBoard(user1Id: Int, user2Id: Int) = {
+    inDatabase {
+      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+            api.SharedBoardReply(
+              datetime = reply.timestamp,
+              senderId = reply.senderId,
+              text = reply.text,
+            )
+          }
+          api.SharedBoardElement(
+            sharedElemId = element.id,
+            datetime = element.timestamp,
+            messages = replies,
+            url = element.url,
+            text = element.text,
+            read = element.read,
+          )
+        }
+      }
+      elements.map(api.SharedBoard(_))
+    }
+  }
+
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+
+  def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = None,
+    url = Some(message.url)
+  )
+
+  def sendTextMessage(message: api.MessageText): IO[Unit] = sendElement(
+    senderId = message.senderId,
+    receiverId = message.receiverId,
+    timestamp = message.datetime,
+    text = Some(message.text),
+    url = None
+  )
+
+  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
+    sharedBoardElementsRepo.insert(
+      SharedBoardElementCreator(
+        boardId = board.id,
+        timestamp = timestamp,
+        url = url,
+        text = text,
+        senderId = senderId,
+        read = false,
+      )
+    )
+  }
+
+  def sendReply(message: api.MessageReply) = inDatabase {
+    sharedBoardReplyRepo.insert(
+      SharedBoardReplyCreator(
+        sharedBoardElementId = message.sharedElementId,
+        text = message.text,
+        timestamp = message.datetime,
+        senderId = message.senderId,
+        read = false,
+      )
+    )
+  }
+
+  private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
+    sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+  }
+
+  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
+    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {

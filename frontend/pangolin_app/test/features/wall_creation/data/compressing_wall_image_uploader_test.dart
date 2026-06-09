@@ -5,7 +5,7 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/compressing_wa
 import 'package:pangolin_app/features/wall_creation/data/compressor/image_compressor.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 
-class _RecordingUploader implements WallImageUploader {
+class _RecordingUploader implements ImageUploader {
   Uint8List? received;
 
   @override
@@ -37,7 +37,7 @@ void main() {
       final inner = _RecordingUploader();
       final compressor = _StubCompressor(compressed);
 
-      final uploader = CompressingWallImageUploader(inner, compressor);
+      final uploader = CompressingImageUploader(inner, compressor);
       final url = await uploader.uploadImage(original);
 
       expect(compressor.received, original);

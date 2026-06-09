@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/features/profile_setup/widgets/add_chip_button.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/section_title.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 
 class AboutPage extends StatefulWidget {
@@ -102,7 +104,7 @@ class _AboutPageState extends State<AboutPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const _SectionTitle('Hobby'),
+                const SectionTitle('Hobby'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   initialValue: builder.hobby,
@@ -121,7 +123,7 @@ class _AboutPageState extends State<AboutPage> {
                       .toList(),
                 ),
                 _divider,
-                const _SectionTitle('Passion-meter'),
+                const SectionTitle('Passion-meter'),
                 const SizedBox(height: 8),
                 FormField<double>(
                   initialValue: builder.passionLevel ?? 0.5,
@@ -228,7 +230,7 @@ class _AdditionalInfoSection extends StatelessWidget {
                 color: colorScheme.primary,
               ),
               const SizedBox(width: 6),
-              const _SectionTitle('Other interests'),
+              const SectionTitle('Other interests'),
             ],
           ),
         ),
@@ -243,7 +245,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [_AddChipButton(onPressed: onAddSubInterest)],
+            children: [AddChipButton(onPressed: onAddSubInterest)],
           ),
           const SizedBox(height: 20),
 
@@ -253,52 +255,10 @@ class _AdditionalInfoSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [_AddChipButton(onPressed: onAddOtherInterest)],
+            children: [AddChipButton(onPressed: onAddOtherInterest)],
           ),
         ],
       ],
-    );
-  }
-}
-
-// --- Small helper widgets ---
-
-class _SectionTitle extends StatelessWidget {
-  final String text;
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Text(
-      text,
-      style: theme.textTheme.titleLarge?.copyWith(
-        fontWeight: FontWeight.bold,
-        color: theme.colorScheme.primary,
-      ),
-    );
-  }
-}
-
-class _AddChipButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  const _AddChipButton({required this.onPressed});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: colorScheme.surface,
-        ),
-        child: Icon(Icons.add, size: 18, color: colorScheme.primary),
-      ),
     );
   }
 }

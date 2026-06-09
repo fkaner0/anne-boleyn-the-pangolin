@@ -25,6 +25,10 @@ import 'package:pangolin_app/features/recommendation/data/render_profile_updater
 import 'package:pangolin_app/features/profile_setup/data/render_user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/render_wall_image_uploader.dart';
 
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
+import 'package:pangolin_app/features/logging/data/render_button_click_logger.dart';
+
 final GetIt getIt = GetIt.instance;
 
 void configureDependencies(BackendMode backend) {
@@ -50,12 +54,13 @@ void configureDependencies(BackendMode backend) {
         () => MockRecommendationFetcher(),
       );
       getIt.registerLazySingleton<ProfileFetcher>(() => MockProfileFetcher());
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => MockWallImageUploader(),
-      );
+      getIt.registerLazySingleton<ImageUploader>(() => MockImageUploader());
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
       getIt.registerLazySingleton<Authoriser>(() => MockAuthoriser());
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => MockButtonClickLogger(),
+      );
       break;
     case BackendMode.local:
       final hostLocal = Env.localHost;
@@ -74,9 +79,9 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => CompressingWallImageUploader(
-          RenderWallImageUploader(
+      getIt.registerLazySingleton<ImageUploader>(
+        () => CompressingImageUploader(
+          RenderImageUploader(
             host: hostLocal,
             port: portLocal,
             useHttps: false,
@@ -102,6 +107,13 @@ void configureDependencies(BackendMode backend) {
         () =>
             RenderAuthoriser(host: hostLocal, port: portLocal, useHttps: false),
       );
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => RenderButtonClickLogger(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
       break;
     case BackendMode.render:
       final host = Env.renderHost;
@@ -111,9 +123,9 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ProfileFetcher>(
         () => RenderProfileFetcher(host: host),
       );
-      getIt.registerLazySingleton<WallImageUploader>(
-        () => CompressingWallImageUploader(
-          RenderWallImageUploader(host: host),
+      getIt.registerLazySingleton<ImageUploader>(
+        () => CompressingImageUploader(
+          RenderImageUploader(host: host),
           const DefaultImageCompressor(),
         ),
       );
@@ -125,6 +137,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<Authoriser>(
         () => RenderAuthoriser(host: host),
+      );
+      getIt.registerLazySingleton<ButtonClickLogger>(
+        () => RenderButtonClickLogger(host: host),
       );
       break;
   }

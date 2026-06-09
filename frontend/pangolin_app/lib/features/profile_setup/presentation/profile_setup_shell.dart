@@ -47,7 +47,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(
         imagePicker: GalleryImageFilePicker(),
-        wallImageUploader: getIt<WallImageUploader>(),
+        imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
       );
@@ -92,6 +92,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => RecommendationListPage(
+          userId: widget.userId,
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),
