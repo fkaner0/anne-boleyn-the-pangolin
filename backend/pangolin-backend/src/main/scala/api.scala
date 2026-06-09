@@ -340,50 +340,6 @@ object api {
     }
   )
 
-  private val sharedBoardRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    sharedBoardEndpoint.serverLogic { (user1Id, user2Id) =>
-      repo.getSharedBoard(user1Id, user2Id).map(_.toRight(()))
-    }
-  )
-
-  private def messageTextRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageTextEndpoint.serverLogicSuccess { message =>
-      repo.sendTextMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
-    }
-  )
-
-  private def messageImageRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageImageEndpoint.serverLogicSuccess { message =>
-      repo.sendImageMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
-    }
-  )
-
-  private def messageReplyRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageReplyEndpoint.serverLogicSuccess { message =>
-      repo.sendReply(message) >> publishMessage(topic, message.senderId, message.receiverId)
-    }
-  )
-
-  private def publishMessage(topic: Topic[IO, (Int, Int)], senderId: Int, receiverId: Int) = {
-    topic.publish1((senderId, receiverId)).as(())
-  }
-
-  private def messageListenSseRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageListenSseEndpoint.serverLogicSuccess { receiverId =>
-      IO.pure {
-        topic.subscribeUnbounded
-          .filter((id1, id2) => id1 == receiverId || id2 == receiverId)
-          .map(_ => ServerSentEvent())
-      }
-    }
-  )
-
-  private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
-      repo.logButtonPress(userId, buttonId, datetime)
-    }
-  )
-
   extension (image: repo.ProfileImage) {
     private def toApi = ProfileImage(
       url = image.url,
