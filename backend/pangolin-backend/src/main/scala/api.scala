@@ -102,6 +102,15 @@ object api {
     given ReadWriter[NewUserResponse] = macroRW
   }
 
+  case class ButtonLog(
+    userId: Int,
+    buttonId: String,
+    datetime: Int,
+  )
+  object ButtonLog {
+    given ReadWriter[ButtonLog] = macroRW
+  }
+
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
     .out(jsonBody[FullProfile])
@@ -121,6 +130,10 @@ object api {
   private val newUserEndpoint = endpoint.post
     .in("user")
     .out(jsonBody[NewUserResponse])
+
+  private val buttonLogEndpoint = endpoint.post
+    .in("debug" / "button-click")
+    .in(jsonBody[ButtonLog])
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -202,6 +215,12 @@ object api {
     newUserEndpoint.serverLogic { _ =>
       val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
       newUserId.map(_.map(NewUserResponse(_)))
+    }
+  )
+
+  private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, timestamp) => 
+      repo.logButtonPress(userId, buttonId, timestamp)
     }
   )
 
@@ -294,10 +313,11 @@ object api {
   }
 
   val router = Router(
-    "/" -> api.newUserRoutes,
-    "/" -> api.recommendationsRoutes,
-    "/" -> api.profileViewRoutes,
-    "/" -> api.profileEditRoutes,
-    "/" -> api.uploadRoutes
+    "/" -> newUserRoutes,
+    "/" -> recommendationsRoutes,
+    "/" -> profileViewRoutes,
+    "/" -> profileEditRoutes,
+    "/" -> uploadRoutes,
+    "/" -> buttonLogRoutes,
   ).orNotFound
 }
