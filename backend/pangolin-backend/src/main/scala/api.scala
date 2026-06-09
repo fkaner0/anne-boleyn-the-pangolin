@@ -105,7 +105,11 @@ object api {
     given ReadWriter[NewUserResponse] = macroRW
   }
 
-  case class Message(message: String)
+  case class Message(
+    senderId: Int,
+    receiverId: Int,
+    message: String,
+  )
   object Message {
     given ReadWriter[Message] = macroRW
   }
@@ -135,7 +139,7 @@ object api {
     .out(jsonBody[Vector[Recommendation]])
 
   private val messageSendEndpoint = endpoint.post
-    .in("message" / "send" / path[Int]("senderId") / path[Int]("receiverId"))
+    .in("message" / "send")
     .in(jsonBody[Message])
 
   private val messageListenSseEndpoint = endpoint.get
@@ -221,15 +225,15 @@ object api {
     }
   )
 
-  private def messageSendRoutes(channel: Channel[IO, ServerSentEvent]) = serverInterpreter.toRoutes(
-    messageSendEndpoint.serverLogicSuccess { (senderId, receiverId, message) =>
+  private def messageSendRoutes(channel: Channel[IO, Message]) = serverInterpreter.toRoutes(
+    messageSendEndpoint.serverLogicSuccess { message =>
       // TODO: add message to database
-      channel.send(ServerSentEvent(Some(message.message))).as(())
+      channel.send(message).as(())
     }
   )
 
-  private def messageListenSseRoutes(channel: Channel[IO, ServerSentEvent]) = serverInterpreter.toRoutes(
-    messageListenSseEndpoint.serverLogicSuccess { _ => IO.pure(channel.stream) }
+  private def messageListenSseRoutes(channel: Channel[IO, Message]) = serverInterpreter.toRoutes(
+    messageListenSseEndpoint.serverLogicSuccess { receiverId => IO.pure(channel.stream.filter(_.receiverId == receiverId).map(msg => ServerSentEvent(Some(msg.message)))) }
   )
 
   extension (image: repo.ProfileImage) {
@@ -320,7 +324,7 @@ object api {
     )
   }
 
-  def router(channel: Channel[IO, ServerSentEvent]) = Router(
+  def router(channel: Channel[IO, Message]) = Router(
     "/" -> api.newUserRoutes,
     "/" -> api.recommendationsRoutes,
     "/" -> api.profileViewRoutes,
