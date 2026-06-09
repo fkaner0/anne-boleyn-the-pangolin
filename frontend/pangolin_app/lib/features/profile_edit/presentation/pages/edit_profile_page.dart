@@ -20,8 +20,10 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/island_nav_bar.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
 
@@ -238,7 +240,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (!mounted) return;
     setState(() => _saving = false);
     _showMessage('Profile saved');
-    Navigator.of(context).maybePop();
+    MainTabNavigation.goToRecommendations(context, widget.userId);
   }
 
   void _showMessage(String message) {
@@ -268,6 +270,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
             : null,
       ),
       body: SafeArea(child: _buildBody()),
+      bottomNavigationBar: IslandNavBar(
+        current: IslandNavTab.editProfile,
+        onEditProfile: () {},
+        onRecommendations: () =>
+            MainTabNavigation.goToRecommendations(context, widget.userId),
+      ),
     );
   }
 

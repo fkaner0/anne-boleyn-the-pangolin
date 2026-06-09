@@ -129,4 +129,19 @@ void main() {
 
     expect(find.text('Create your wall'), findsOneWidget);
   });
+
+  testWidgets('the recommendations tab routes to the recommendations page', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      fetcher: _FakeProfileFetcher(_profile()),
+      updater: _CapturingProfileUpdater(),
+    );
+
+    await tester.tap(find.byIcon(Icons.style_outlined));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Your recommendations'), findsOneWidget);
+  });
 }
