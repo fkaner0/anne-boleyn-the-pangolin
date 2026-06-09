@@ -6,9 +6,9 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
-import 'package:pangolin_app/features/friends/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
+import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
@@ -86,10 +86,17 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
 
     if (selected == null || !mounted) return;
 
+    _openBoard(selected.friendUserId, selected.name);
+  }
+
+  void _openBoard(int friendUserId, String friendName) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) =>
-            SharedBoardPage(userId: widget.userId, friend: selected),
+        builder: (_) => SharedBoardPage(
+          userId: widget.userId,
+          friendUserId: friendUserId,
+          friendName: friendName,
+        ),
       ),
     );
   }
@@ -144,7 +151,10 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
                       ConnectionCard(
                         friend: friend,
                         variant: index % SplodgeClipper.variantCount,
-                        onTap: () => _log(ButtonIds.connectionsList),
+                        onTap: () {
+                          _log(ButtonIds.connectionsList);
+                          _openBoard(friend.friendUserId, friend.name);
+                        },
                       ),
                   ],
                 ),

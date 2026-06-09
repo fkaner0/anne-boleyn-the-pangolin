@@ -132,7 +132,7 @@ void main() {
     expect(find.text('Diego'), findsOneWidget);
   });
 
-  testWidgets('tapping a pending friend opens the shared board stub', (
+  testWidgets('tapping a pending friend opens the shared board', (
     tester,
   ) async {
     await pumpPage(
@@ -149,8 +149,17 @@ void main() {
     await tester.tap(find.text('Jess'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Shared board with Jess'), findsOneWidget);
-    expect(find.text('Coming soon'), findsOneWidget);
+    expect(find.text('Upload image'), findsOneWidget);
+    expect(find.text('Grab from their wall'), findsOneWidget);
+  });
+
+  testWidgets('tapping a connection opens the shared board', (tester) async {
+    await pumpPage(tester, _sample());
+
+    await tester.tap(find.byType(ConnectionCard).first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Upload image'), findsOneWidget);
   });
 
   testWidgets('tapping a pending friend logs a pending connection click', (
