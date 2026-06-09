@@ -46,7 +46,15 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);
-      _logInExistingUser(username);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Looks like this username is taken! Try with a new username or login.',
+            ),
+          ),
+        );
       return;
     }
 
@@ -58,17 +66,35 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     context.push(AppRoutes.signup);
   }
 
-  void _logInExistingUser(String username) {
-    ScaffoldMessenger.of(context)
-      ..clearSnackBars()
-      ..showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Logging in as an existing user is coming soon. '
-            'Pick a new username for now.',
+  void _logInExistingUser() async {
+    if (!_canSubmit) return;
+    final username = _usernameController.text.trim();
+    setState(() => _busy = true);
+
+    final int userId;
+    try {
+      userId = await _authoriser.getExistingUserId(username);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _busy = false);
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text(
+              "We don't have anyone with that username! Click 'Sign up' to make an account.",
+            ),
           ),
-        ),
-      );
+        );
+      return;
+    }
+
+    if (!mounted) return;
+    setState(() => _busy = false);
+
+    // Set the current logged in user id & move to setup page
+    ref.read(userIdProvider.notifier).login(userId);
+    context.push(AppRoutes.mainShell);
   }
 
   @override
@@ -112,16 +138,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: _canSubmit ? _submit : null,
-                  child: _busy
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Text('Continue'),
+                _loginPageButton(
+                  'Login',
+                  _logInExistingUser,
+                  _canSubmit,
+                  _busy,
                 ),
+                const SizedBox(height: 6),
+                _loginPageButton('Sign up', _submit, _canSubmit, _busy),
               ],
             ),
           ),
@@ -130,3 +154,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+
+FilledButton _loginPageButton(
+  String text,
+  void Function()? onPressed,
+  bool canPress,
+  bool busy,
+) => FilledButton(
+  onPressed: canPress ? onPressed : null,
+  child: busy
+      ? const SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        )
+      : Text(text),
+);
