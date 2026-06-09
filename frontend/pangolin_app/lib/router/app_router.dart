@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'tmp_fake_page.dart';
 import '../features/profile_view/profile_viewer_page.dart';
 import '../features/profile_setup/presentation/profile_setup_shell.dart';
-import '../features/profile_setup/presentation/pages/new_user_page.dart';
+import '../features/profile_setup/presentation/pages/login_page.dart';
 
 /// Named route constants — use these everywhere instead of raw strings.
 class AppRoutes {
