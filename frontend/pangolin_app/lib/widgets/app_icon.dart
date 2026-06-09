@@ -26,47 +26,48 @@ enum AppIconType {
 
 class _IconSource {
   final String? svgAsset;
+  final String? pngAsset;
   final IconData? materialIcon;
 
-  const _IconSource({this.svgAsset, this.materialIcon});
+  const _IconSource({this.pngAsset, this.materialIcon}) : svgAsset = null;
 }
 
 const Map<AppIconType, _IconSource> _sources = {
-  AppIconType.back: _IconSource(svgAsset: 'assets/icons/icons/back.svg'),
-  AppIconType.add: _IconSource(svgAsset: 'assets/icons/icons/add.svg'),
-  AppIconType.save: _IconSource(svgAsset: 'assets/icons/icons/save.svg'),
-  AppIconType.send: _IconSource(svgAsset: 'assets/icons/icons/send.svg'),
-  AppIconType.check: _IconSource(svgAsset: 'assets/icons/icons/check.svg'),
-  AppIconType.close: _IconSource(svgAsset: 'assets/icons/icons/cross.svg'),
-  AppIconType.preview: _IconSource(svgAsset: 'assets/icons/icons/preview.svg'),
+  AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png'),
+  AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png'),
+  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png'),
+  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png'),
+  AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png'),
+  AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png'),
+  AppIconType.preview: _IconSource(pngAsset: 'assets/icons/icons/preview.png'),
   AppIconType.brokenImage: _IconSource(
-    svgAsset: 'assets/icons/icons/brokenimage.svg',
+    pngAsset: 'assets/icons/icons/brokenimage.png',
   ),
-  AppIconType.refresh: _IconSource(svgAsset: 'assets/icons/icons/refresh.svg'),
+  AppIconType.refresh: _IconSource(pngAsset: 'assets/icons/icons/refresh.png'),
   AppIconType.addText: _IconSource(
-    svgAsset: 'assets/icons/wall_addition_icons/addtext.svg',
+    pngAsset: 'assets/icons/wall_addition_icons/addtext.png',
   ),
   AppIconType.addImage: _IconSource(
-    svgAsset: 'assets/icons/wall_addition_icons/addimage.svg',
+    pngAsset: 'assets/icons/wall_addition_icons/addimage.png',
   ),
   AppIconType.textColour: _IconSource(
-    svgAsset: 'assets/icons/text_customisation_icons/textcolour.svg',
+    pngAsset: 'assets/icons/text_customisation_icons/textcolour.png',
   ),
   AppIconType.textBackground: _IconSource(
-    svgAsset: 'assets/icons/text_customisation_icons/palette.svg',
+    pngAsset: 'assets/icons/text_customisation_icons/palettecolour.png',
   ),
   AppIconType.fontCycle: _IconSource(
-    svgAsset: 'assets/icons/text_customisation_icons/fonts.svg',
+    pngAsset: 'assets/icons/text_customisation_icons/font.png',
   ),
   AppIconType.person: _IconSource(materialIcon: Icons.person),
   AppIconType.expandLess: _IconSource(materialIcon: Icons.expand_less),
   AppIconType.expandMore: _IconSource(materialIcon: Icons.expand_more),
   AppIconType.delete: _IconSource(materialIcon: Icons.delete),
   AppIconType.sticker: _IconSource(
-    svgAsset: 'assets/icons/wall_addition_icons/addsticker.svg',
+    pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
   ),
   AppIconType.lightbulb: _IconSource(
-    svgAsset: 'assets/icons/icons/lightbulb.svg',
+    pngAsset: 'assets/icons/icons/lightbulb.png',
   ),
 };
 
@@ -96,15 +97,15 @@ class AppIcon extends StatelessWidget {
       );
     }
 
-    // final pngAsset = source.pngAsset;
-    // if (pngAsset != null) {
-    //   return Image.asset(
-    //     pngAsset,
-    //     width: resolvedSize,
-    //     height: resolvedSize,
-    //     fit: BoxFit.contain,
-    //   );
-    // }
+    final pngAsset = source.pngAsset;
+    if (pngAsset != null) {
+      return Image.asset(
+        pngAsset,
+        width: resolvedSize,
+        height: resolvedSize,
+        fit: BoxFit.contain,
+      );
+    }
 
     return Icon(source.materialIcon, size: resolvedSize, color: resolvedColor);
   }

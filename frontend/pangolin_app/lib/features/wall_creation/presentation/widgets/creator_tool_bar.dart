@@ -74,7 +74,7 @@ class _CircularToolButton extends StatelessWidget {
               height: 64,
               child: AppIcon(
                 icon,
-                size: 28,
+                size: 20,
                 color: colorScheme.onPrimaryContainer,
               ),
             ),
