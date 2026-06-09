@@ -23,6 +23,7 @@ import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
@@ -253,7 +254,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         title: const Text('Edit Profile'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.check),
+            icon: const AppIcon(AppIconType.check),
             tooltip: 'Save',
             onPressed: _loading || _saving ? null : _save,
           ),
@@ -494,7 +495,11 @@ class _WallCutoutPreview extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: colorScheme.primary,
               ),
-              child: Icon(Icons.edit, size: 24, color: colorScheme.onPrimary),
+              child: AppIcon(
+                AppIconType.edit,
+                size: 24,
+                color: colorScheme.onPrimary,
+              ),
             ),
           ],
         ),

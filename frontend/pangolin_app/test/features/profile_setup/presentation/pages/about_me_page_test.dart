@@ -122,7 +122,10 @@ void main() {
     await tester.tap(_addIcon);
     await tester.pumpAndSettle();
 
-    expect(find.byType(Image), findsNWidgets(2));
+    expect(
+      find.byWidgetPredicate((w) => w is Image && w.image is MemoryImage),
+      findsNWidgets(2),
+    );
     expect(builder.build().profileImageUrl, isNotEmpty);
   });
 

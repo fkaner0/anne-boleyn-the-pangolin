@@ -20,8 +20,15 @@ enum AppIconType {
   expandLess,
   expandMore,
   delete,
+  edit,
   sticker,
   lightbulb,
+  meFilled,
+  meUnfilled,
+  findFilled,
+  findUnfilled,
+  palsFilled,
+  palsUnfilled,
 }
 
 class _IconSource {
@@ -63,11 +70,30 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.expandLess: _IconSource(materialIcon: Icons.expand_less),
   AppIconType.expandMore: _IconSource(materialIcon: Icons.expand_more),
   AppIconType.delete: _IconSource(materialIcon: Icons.delete),
+  AppIconType.edit: _IconSource(materialIcon: Icons.edit),
   AppIconType.sticker: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
   ),
   AppIconType.lightbulb: _IconSource(
     pngAsset: 'assets/icons/icons/lightbulb.png',
+  ),
+  AppIconType.meFilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/mefilled.png',
+  ),
+  AppIconType.meUnfilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/meunfilled.png',
+  ),
+  AppIconType.findFilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/findfilled.png',
+  ),
+  AppIconType.findUnfilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/findunfilled.png',
+  ),
+  AppIconType.palsFilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/palsfilled.png',
+  ),
+  AppIconType.palsUnfilled: _IconSource(
+    pngAsset: 'assets/icons/menu_bar_icons/palsunfilled.png',
   ),
 };
 
