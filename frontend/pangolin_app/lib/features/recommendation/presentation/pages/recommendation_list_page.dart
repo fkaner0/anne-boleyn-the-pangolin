@@ -88,6 +88,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
         onEditProfile: () =>
             MainTabNavigation.goToEditProfile(context, widget.userId),
         onRecommendations: () {},
+        onFriends: () => MainTabNavigation.goToFriends(context, widget.userId),
       ),
       body: Builder(
         builder: (context) {

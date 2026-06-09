@@ -25,6 +25,7 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/splodge.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
 
@@ -272,6 +273,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         onEditProfile: () {},
         onRecommendations: () =>
             MainTabNavigation.goToRecommendations(context, widget.userId),
+        onFriends: () => MainTabNavigation.goToFriends(context, widget.userId),
       ),
     );
   }
@@ -463,7 +465,7 @@ class _WallCutoutPreview extends StatelessWidget {
           children: [
             Positioned.fill(
               child: ClipPath(
-                clipper: _SplodgeClipper(),
+                clipper: const SplodgeClipper(),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -506,28 +508,6 @@ class _WallCutoutPreview extends StatelessWidget {
       ),
     );
   }
-}
-
-class _SplodgeClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    return Path()
-      ..moveTo(w * 0.10, h * 0.32)
-      ..cubicTo(w * 0.04, h * 0.12, w * 0.30, h * 0.02, w * 0.50, h * 0.07)
-      ..cubicTo(w * 0.70, h * 0.12, w * 0.80, h * -0.02, w * 0.91, h * 0.13)
-      ..cubicTo(w * 1.03, h * 0.26, w * 0.92, h * 0.42, w * 0.96, h * 0.57)
-      ..cubicTo(w * 1.00, h * 0.74, w * 0.96, h * 0.94, w * 0.78, h * 0.94)
-      ..cubicTo(w * 0.60, h * 0.95, w * 0.55, h * 1.03, w * 0.37, h * 0.96)
-      ..cubicTo(w * 0.19, h * 0.90, w * 0.03, h * 0.96, w * 0.06, h * 0.74)
-      ..cubicTo(w * 0.08, h * 0.55, w * 0.15, h * 0.50, w * 0.10, h * 0.32)
-      ..close();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _InterestGroup extends StatelessWidget {
