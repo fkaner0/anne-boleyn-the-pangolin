@@ -14,15 +14,15 @@ sealed class CanvasItem {
 }
 
 final class CanvasImageItem extends CanvasItem {
-  final Uint8List bytes;
+  final Uint8List? bytes;
   final double aspectRatio;
   final String? url;
 
   const CanvasImageItem({
     required super.id,
     required super.transform,
-    required this.bytes,
     required this.aspectRatio,
+    this.bytes,
     this.url,
   });
 

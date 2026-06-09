@@ -63,6 +63,20 @@ class BedroomWallCanvas extends StatelessWidget {
     return transform.copyWith(center: transform.center / renderScale);
   }
 
+  Widget _imageChild(CanvasImageItem item) {
+    final bytes = item.bytes;
+    if (bytes != null) {
+      return Image.memory(bytes, fit: BoxFit.cover);
+    }
+
+    final url = item.url;
+    if (url != null && url.isNotEmpty) {
+      return Image.network(url, fit: BoxFit.cover);
+    }
+
+    return const ColoredBox(color: Color(0x22000000));
+  }
+
   Widget _buildItem(CanvasItem item, double renderScale) {
     final key = ValueKey(item.id);
     final initialTransform = _toRendered(item.transform, renderScale);
@@ -81,7 +95,7 @@ class BedroomWallCanvas extends StatelessWidget {
         onInteractionChanged: (active) =>
             onItemInteractionChanged(item.id, active),
         onDragUpdate: onItemDragUpdate,
-        child: Image.memory(item.bytes, fit: BoxFit.cover),
+        child: _imageChild(item),
       ),
       CanvasStickerItem() => InteractiveCanvasItem(
         key: key,

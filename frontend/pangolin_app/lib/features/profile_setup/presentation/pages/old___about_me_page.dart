@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/field_label.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/profile_text_field.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
@@ -178,7 +181,7 @@ class _AboutMePageState extends State<AboutMePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _FieldLabel('Preview'),
+              FieldLabel('Preview'),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -197,8 +200,8 @@ class _AboutMePageState extends State<AboutMePage> {
                 ),
               ),
               const SizedBox(height: 24),
-              _FieldLabel('Name'),
-              _TextField(
+              FieldLabel('Name'),
+              ProfileTextField(
                 controller: _nameController,
                 hintText: 'Your name',
                 onChanged: (value) {
@@ -207,8 +210,8 @@ class _AboutMePageState extends State<AboutMePage> {
                 },
               ),
               const SizedBox(height: 24),
-              _FieldLabel('Age'),
-              _TextField(
+              FieldLabel('Age'),
+              ProfileTextField(
                 controller: _ageController,
                 hintText: 'Your age',
                 keyboardType: TextInputType.number,
@@ -220,8 +223,8 @@ class _AboutMePageState extends State<AboutMePage> {
                 },
               ),
               const SizedBox(height: 24),
-              _FieldLabel('Rough location'),
-              _TextField(
+              FieldLabel('Rough location'),
+              ProfileTextField(
                 controller: _locationController,
                 hintText: 'Where you are based',
                 onChanged: (value) {
@@ -230,7 +233,7 @@ class _AboutMePageState extends State<AboutMePage> {
                 },
               ),
               const SizedBox(height: 24),
-              _FieldLabel('Main image'),
+              FieldLabel('Main image'),
               Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: Text(
@@ -240,14 +243,14 @@ class _AboutMePageState extends State<AboutMePage> {
                   ),
                 ),
               ),
-              _MainImagePicker(
+              MainImagePicker(
                 image: _mainImageProvider,
                 uploading: _uploadingImage,
                 onTap: _uploadingImage ? null : _pickMainImage,
               ),
               const SizedBox(height: 24),
-              _FieldLabel('Short Bio'),
-              _TextField(
+              FieldLabel('Short Bio'),
+              ProfileTextField(
                 controller: _bioController,
                 hintText: 'Summarise your vibe!',
                 minLines: 3,
@@ -260,109 +263,6 @@ class _AboutMePageState extends State<AboutMePage> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FieldLabel extends StatelessWidget {
-  final String text;
-
-  const _FieldLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 20,
-          fontStyle: FontStyle.italic,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-}
-
-class _TextField extends StatelessWidget {
-  final String hintText;
-  final ValueChanged<String> onChanged;
-  final TextEditingController? controller;
-  final TextInputType? keyboardType;
-  final List<TextInputFormatter>? inputFormatters;
-  final int minLines;
-  final int maxLines;
-  final int? maxLength;
-
-  const _TextField({
-    required this.hintText,
-    required this.onChanged,
-    this.controller,
-    this.keyboardType,
-    this.inputFormatters,
-    this.minLines = 1,
-    this.maxLines = 1,
-    this.maxLength,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onChanged: onChanged,
-      keyboardType: keyboardType,
-      inputFormatters: inputFormatters,
-      minLines: minLines,
-      maxLines: maxLines,
-      maxLength: maxLength,
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-}
-
-class _MainImagePicker extends StatelessWidget {
-  final ImageProvider? image;
-  final bool uploading;
-  final VoidCallback? onTap;
-
-  const _MainImagePicker({
-    required this.image,
-    required this.uploading,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 140,
-        height: 140,
-        decoration: BoxDecoration(
-          border: Border.all(color: colorScheme.outline),
-        ),
-        clipBehavior: Clip.hardEdge,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (image != null)
-              Image(image: image!, fit: BoxFit.cover)
-            else
-              Icon(Icons.add, size: 48, color: colorScheme.outline),
-            if (uploading)
-              const ColoredBox(
-                color: Color(0x66000000),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-          ],
         ),
       ),
     );
