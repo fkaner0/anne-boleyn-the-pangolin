@@ -415,6 +415,24 @@ object repo {
   //   UPDATE
   // """.query[Unit].run()
 
+  def _updateWallElements(
+    profileId: Int,
+    textboxCreators: Iterable[WallTextboxCreatorBuilder],
+    imageCreators: Iterable[WallImageCreatorBuilder],
+    stickerCreators: Iterable[WallStickerCreatorBuilder],
+  )(using DbCon) = {
+    repo.removeTextboxes(profileId)
+    repo.addTextboxes(textboxCreators.map(_.build(profileId)))
+    repo.removeImages(profileId)
+    repo.addImages(imageCreators.map(_.build(profileId)))
+    repo.removeStickers(profileId)
+    repo.addStickers(stickerCreators.map(_.build(profileId)))
+    Right(())
+    /// TODO: obviously this is the jankiest most disgusting code ever
+    /// but apparently it makes the frontend easier so we will leave as-is for now
+    /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
+  }
+
   def updateFullProfile(
         profileCreator: ProfileCreator,
         textboxCreators: Iterable[WallTextboxCreatorBuilder],
@@ -426,18 +444,13 @@ object repo {
       case Some(pid) => {
         /// TODO: change this so its plain sql!!
         repo.profileRepo.update(profileCreator.toProfile(pid))
-        repo.removeTextboxes(pid)
-        repo.addTextboxes(textboxCreators.map(_.build(pid)))
-        repo.removeImages(pid)
-        repo.addImages(imageCreators.map(_.build(pid)))
-        repo.removeStickers(pid)
-        repo.addStickers(stickerCreators.map(_.build(pid)))
-        Right(())
-        /// TODO: obviously this is the jankiest most disgusting code ever
-        /// but apparently it makes the frontend easier so we will leave as-is for now
-        /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
+        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
       }
-      case None => Left("No profileId matches the given accountId. No profile to update.")
+      case None => {
+        /// profile doesn't exist yet, so create a new one.
+        val pid = repo.profileRepo.insertReturning(profileCreator).id
+        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+      }
     }
   }
 
