@@ -26,10 +26,9 @@ enum AppIconType {
 
 class _IconSource {
   final String? svgAsset;
-  final String? pngAsset;
   final IconData? materialIcon;
 
-  const _IconSource({this.svgAsset, this.pngAsset, this.materialIcon});
+  const _IconSource({this.svgAsset, this.materialIcon});
 }
 
 const Map<AppIconType, _IconSource> _sources = {
@@ -97,15 +96,15 @@ class AppIcon extends StatelessWidget {
       );
     }
 
-    final pngAsset = source.pngAsset;
-    if (pngAsset != null) {
-      return Image.asset(
-        pngAsset,
-        width: resolvedSize,
-        height: resolvedSize,
-        fit: BoxFit.contain,
-      );
-    }
+    // final pngAsset = source.pngAsset;
+    // if (pngAsset != null) {
+    //   return Image.asset(
+    //     pngAsset,
+    //     width: resolvedSize,
+    //     height: resolvedSize,
+    //     fit: BoxFit.contain,
+    //   );
+    // }
 
     return Icon(source.materialIcon, size: resolvedSize, color: resolvedColor);
   }
