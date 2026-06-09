@@ -23,9 +23,8 @@ class ApiAuthoriser implements Authoriser {
       baseUrl = '$host:$port';
     }
     final uri = useHttps
-        //// TODO: CHECK ROUTES
-        ? Uri.https(baseUrl, '/profile/auth/$username')
-        : Uri.http(baseUrl, '/profile/auth/$username');
+        ? Uri.https(baseUrl, '/auth/$username')
+        : Uri.http(baseUrl, '/auth/$username');
 
     final response = await http.post(uri);
 
@@ -52,9 +51,8 @@ class ApiAuthoriser implements Authoriser {
       baseUrl = '$host:$port';
     }
     final uri = useHttps
-        //// TODO: CHECK ROUTES
-        ? Uri.https(baseUrl, '/profile/auth/$username')
-        : Uri.http(baseUrl, '/profile/auth/$username');
+        ? Uri.https(baseUrl, '/auth/$username')
+        : Uri.http(baseUrl, '/auth/$username');
 
     final response = await http.get(uri);
 
