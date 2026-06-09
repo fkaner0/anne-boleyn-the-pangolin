@@ -45,10 +45,10 @@ const Map<AppIconType, _IconSource> _sources = {
   ),
   AppIconType.refresh: _IconSource(svgAsset: 'assets/icons/icons/refresh.svg'),
   AppIconType.addText: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addtext.svg',
+    svgAsset: 'assets/icons/wall_addition_icons/addtext.svg',
   ),
   AppIconType.addImage: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addimage.svg',
+    svgAsset: 'assets/icons/wall_addition_icons/addimage.svg',
   ),
   AppIconType.textColour: _IconSource(
     svgAsset: 'assets/icons/text_customisation_icons/textcolour.svg',
@@ -64,10 +64,10 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.expandMore: _IconSource(materialIcon: Icons.expand_more),
   AppIconType.delete: _IconSource(materialIcon: Icons.delete),
   AppIconType.sticker: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addsticker.svg',
+    svgAsset: 'assets/icons/wall_addition_icons/addsticker.svg',
   ),
   AppIconType.lightbulb: _IconSource(
-    pngAsset: 'assets/icons/icons/lightbulb.svg',
+    svgAsset: 'assets/icons/icons/lightbulb.svg',
   ),
 };
 
