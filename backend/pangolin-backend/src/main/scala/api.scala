@@ -275,7 +275,7 @@ object api {
       val newUserId: IO[Either[Throwable, Int]] = repo.newUser(username)
       newUserId.map { _ match {
           case Left(err: SqlException) => Left(
-            s"Error inserting new user with username ${username}. Perhaps this user already exists."
+            s"Error inserting new user with username ${username}. Perhaps this user already exists.\n${err.toString}"
           )
           case Left(err) => Left(err.getMessage)
           case Right(userId) => Right(NewUserResponse(userId))
@@ -288,7 +288,7 @@ object api {
       val userId: IO[Either[Throwable, Int]] = repo.getUser(username)
       userId.map { _ match {
           case Left(err: SqlException) => Left(
-            s"Error getting userId from username ${username}. User might not exist."
+            s"Error getting userId from username ${username}. User might not exist.\n${err.toString}"
           )
           case Left(err) => Left(err.getMessage)
           case Right(userId) => Right(LoginResponse(userId))
