@@ -97,12 +97,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     try {
       final profile = await _profileFetcher.fetchProfile(widget.userId);
 
-      final stickerCatalog =
-          widget.stickerCatalog ??
-          await StickerCatalog.load().catchError(
-            (_) => StickerCatalog.fromAssetKeys(const <String>[]),
-          );
-      final fontCatalog = widget.fontCatalog ?? FontCatalog();
+      final stickerCatalog = widget.stickerCatalog ?? getIt<StickerCatalog>();
+      final fontCatalog = widget.fontCatalog ?? getIt<FontCatalog>();
 
       _builder = ProfileBuilder.from(profile).clearWall();
       _stickerCatalog = stickerCatalog;
@@ -462,39 +458,43 @@ class _WallCutoutPreview extends StatelessWidget {
         height: _height,
         width: double.infinity,
         child: Stack(
+          alignment: Alignment.center,
           children: [
             Positioned.fill(
               child: ClipPath(
                 clipper: _SplodgeClipper(),
-                child: ColoredBox(
-                  color: context.paletteColors.surfaceMuted,
-                  child: IgnorePointer(
-                    child: OverflowBox(
-                      alignment: Alignment.topCenter,
-                      maxHeight: double.infinity,
-                      child: BedroomWallView(
-                        profile: profile,
-                        stickerCatalog: stickerCatalog,
-                        fontCatalog: fontCatalog,
-                        onImageTap: (_) {},
-                        onTextTap: (_) {},
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ColoredBox(
+                      color: context.paletteColors.surfaceMuted,
+                      child: IgnorePointer(
+                        child: OverflowBox(
+                          alignment: Alignment.topCenter,
+                          maxHeight: double.infinity,
+                          child: BedroomWallView(
+                            profile: profile,
+                            stickerCatalog: stickerCatalog,
+                            fontCatalog: fontCatalog,
+                            onImageTap: (_) {},
+                            onTextTap: (_) {},
+                            enableWiggle: false,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    ColoredBox(color: Colors.grey.withValues(alpha: 0.55)),
+                  ],
                 ),
               ),
             ),
-            Positioned(
-              right: 24,
-              bottom: 24,
-              child: Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colorScheme.primary,
-                ),
-                child: Icon(Icons.edit, size: 20, color: colorScheme.onPrimary),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorScheme.primary,
               ),
+              child: Icon(Icons.edit, size: 24, color: colorScheme.onPrimary),
             ),
           ],
         ),
