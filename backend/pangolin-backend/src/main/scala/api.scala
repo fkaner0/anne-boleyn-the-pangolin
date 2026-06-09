@@ -76,17 +76,19 @@ object api {
   case class UploadResponse(
     url: String
   ) derives ReadWriter
+
   case class NewUserResponse(
     userId: Int
   ) derives ReadWriter
+
   case class SharedBoard(
-    elems: List[SharedBoardElement]
+    elems: Vector[SharedBoardElement]
   ) derives ReadWriter
 
   case class SharedBoardElement(
     sharedElemId: Int,
     datetime: Long,
-    messages: List[SharedBoardReply],
+    messages: Vector[SharedBoardReply],
     url: Option[String],
     text: Option[String],
     read: Boolean,
@@ -253,7 +255,7 @@ object api {
 
   private val sharedBoardRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     sharedBoardEndpoint.serverLogic { (user1Id, user2Id) =>
-      ???
+      repo.getSharedBoard(user1Id, user2Id).map(_.toRight(()))
     }
   )
 

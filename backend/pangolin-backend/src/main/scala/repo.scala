@@ -220,6 +220,8 @@ object repo {
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
 
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
+  private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
+  private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
 
   private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
     .where(sql"${ProfileImage.Table.userId} = $userId")
@@ -303,11 +305,33 @@ object repo {
   }
 
   def getSharedBoard(user1Id: Int, user2Id: Int) = {
-    val spec = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
     inDatabase {
-      sharedBoardRepo.findAll(spec).headOption
+      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+            api.SharedBoardReply(
+              datetime = reply.sentTimestamp,
+              senderId = reply.senderId,
+              text = reply.content,
+            )
+          }
+          api.SharedBoardElement(
+            sharedElemId = element.id,
+            datetime = element.sentTimestamp,
+            messages = replies,
+            url = element.url,
+            text = element.text,
+            read = element.readByReceiver,
+          )
+        }
+      }
+      elements.map(api.SharedBoard(_))
     }
   }
+
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
     connect(dataSource)(f)
