@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class ProfileHeaderBar extends StatelessWidget {
   final String name;
@@ -32,7 +33,7 @@ class ProfileHeaderBar extends StatelessWidget {
               const SizedBox(width: 8),
               IconButton(
                 onPressed: onBackPressed,
-                icon: const Icon(Icons.arrow_back),
+                icon: const AppIcon(AppIconType.back),
                 tooltip: 'Back',
               ),
             ],

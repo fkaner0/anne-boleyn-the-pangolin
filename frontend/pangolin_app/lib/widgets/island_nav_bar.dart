@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/app_icon.dart';
+
 enum IslandNavTab { editProfile, recommendations, friends }
 
 class IslandNavBar extends StatelessWidget {
@@ -45,20 +47,23 @@ class IslandNavBar extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _IslandNavItem(
-              icon: Icons.person_outline,
+              filledIcon: AppIconType.meFilled,
+              unfilledIcon: AppIconType.meUnfilled,
               label: 'Profile',
               selected: current == IslandNavTab.editProfile,
               onTap: () => _select(IslandNavTab.editProfile, onEditProfile),
             ),
             _IslandNavItem(
-              icon: Icons.style_outlined,
+              filledIcon: AppIconType.findFilled,
+              unfilledIcon: AppIconType.findUnfilled,
               label: 'Recommendations',
               selected: current == IslandNavTab.recommendations,
               onTap: () =>
                   _select(IslandNavTab.recommendations, onRecommendations),
             ),
             _IslandNavItem(
-              icon: Icons.group_outlined,
+              filledIcon: AppIconType.palsFilled,
+              unfilledIcon: AppIconType.palsUnfilled,
               label: 'Friends',
               selected: current == IslandNavTab.friends,
               onTap: onFriends == null
@@ -73,13 +78,15 @@ class IslandNavBar extends StatelessWidget {
 }
 
 class _IslandNavItem extends StatelessWidget {
-  final IconData icon;
+  final AppIconType filledIcon;
+  final AppIconType unfilledIcon;
   final String label;
   final bool selected;
   final VoidCallback? onTap;
 
   const _IslandNavItem({
-    required this.icon,
+    required this.filledIcon,
+    required this.unfilledIcon,
     required this.label,
     required this.selected,
     required this.onTap,
@@ -90,11 +97,10 @@ class _IslandNavItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final enabled = onTap != null;
 
-    final foreground = !enabled
-        ? colorScheme.onSurfaceVariant.withValues(alpha: 0.38)
-        : selected
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSurfaceVariant;
+    Widget icon = AppIcon(selected ? filledIcon : unfilledIcon, size: 24);
+    if (!enabled) {
+      icon = Opacity(opacity: 0.38, child: icon);
+    }
 
     return InkWell(
       onTap: onTap,
@@ -112,13 +118,13 @@ class _IslandNavItem extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: foreground, size: 24),
+            icon,
             if (selected) ...[
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: foreground,
+                  color: colorScheme.onPrimaryContainer,
                   fontWeight: FontWeight.w600,
                 ),
               ),

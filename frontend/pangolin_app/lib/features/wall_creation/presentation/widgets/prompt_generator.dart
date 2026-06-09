@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class PromptGenerator extends StatefulWidget {
   final Function(String) onCreate;
@@ -110,7 +111,9 @@ class _PromptGeneratorState extends State<PromptGenerator> {
           IconButton.filledTonal(
             onPressed: _onLightbulbPressed,
             tooltip: _expanded ? 'New prompt' : 'Show hint',
-            icon: Icon(_expanded ? Icons.refresh : Icons.lightbulb_outline),
+            icon: AppIcon(
+              _expanded ? AppIconType.refresh : AppIconType.lightbulb,
+            ),
           ),
         ],
       ),

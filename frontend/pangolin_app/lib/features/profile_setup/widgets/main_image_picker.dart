@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/app_icon.dart';
+
 class MainImagePicker extends StatelessWidget {
   final ImageProvider? image;
   final bool uploading;
@@ -31,7 +33,7 @@ class MainImagePicker extends StatelessWidget {
             if (image != null)
               Image(image: image!, fit: BoxFit.cover)
             else
-              Icon(Icons.add, size: 48, color: colorScheme.outline),
+              const Center(child: AppIcon(AppIconType.add, size: 48)),
             if (uploading)
               const ColoredBox(
                 color: Color(0x66000000),

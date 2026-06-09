@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class MessageComposer extends StatefulWidget {
   final String hintText;
@@ -68,7 +69,7 @@ class _MessageComposerState extends State<MessageComposer> {
           height: 52,
           child: ElevatedButton.icon(
             onPressed: _handleSend,
-            icon: const Icon(Icons.send),
+            icon: const AppIcon(AppIconType.send),
             label: const Text('Send'),
             style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/profile_image.dart';
 import 'wiggle_hint.dart';
 
@@ -46,7 +47,7 @@ class BedroomWallImageItem extends StatelessWidget {
                     return Container(
                       color: Theme.of(context).colorScheme.outline,
                       alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image, size: 40),
+                      child: const AppIcon(AppIconType.brokenImage, size: 40),
                     );
                   },
                 ),

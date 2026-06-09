@@ -12,6 +12,10 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
+
+Finder _iconOfType(AppIconType type) =>
+    find.byWidgetPredicate((w) => w is AppIcon && w.type == type);
 
 class _FakeProfileFetcher implements ProfileFetcher {
   final Profile profile;
@@ -106,7 +110,7 @@ void main() {
     );
 
     await tester.enterText(find.widgetWithText(TextField, 'Anne'), 'Annie');
-    await tester.tap(find.byIcon(Icons.check));
+    await tester.tap(_iconOfType(AppIconType.check));
     await tester.pumpAndSettle();
 
     expect(updater.saved, isNotNull);
@@ -139,7 +143,7 @@ void main() {
       updater: _CapturingProfileUpdater(),
     );
 
-    await tester.tap(find.byIcon(Icons.style_outlined));
+    await tester.tap(_iconOfType(AppIconType.findUnfilled));
     await tester.pumpAndSettle();
 
     expect(find.text('Your recommendations'), findsOneWidget);

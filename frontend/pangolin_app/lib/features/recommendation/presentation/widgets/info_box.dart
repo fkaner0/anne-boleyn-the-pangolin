@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/recommendation.dart';
 
 class InfoBox extends StatelessWidget {
@@ -37,7 +38,7 @@ class InfoBox extends StatelessWidget {
       height: 90,
       color: Theme.of(context).colorScheme.outline,
       alignment: Alignment.center,
-      child: const Icon(Icons.person),
+      child: const AppIcon(AppIconType.person),
     );
   }
 
