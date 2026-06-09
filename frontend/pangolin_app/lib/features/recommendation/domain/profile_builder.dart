@@ -29,7 +29,11 @@ class ProfileBuilder {
       _location = profile.location,
       _bio = profile.bio,
       _profileImageUrl = profile.profileImageUrl,
-      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB {
+      _wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
+      _hobby = profile.hobby,
+      _passionLevel = profile.passionLevel {
+    _subInterests.addAll(profile.subInterests);
+    _otherInterests.addAll(profile.otherInterests);
     _images.addAll(profile.images);
     _textboxes.addAll(profile.textboxes);
     _stickers.addAll(profile.stickers);
@@ -131,6 +135,13 @@ class ProfileBuilder {
     return this;
   }
 
+  ProfileBuilder clearWall() {
+    _images.clear();
+    _textboxes.clear();
+    _stickers.clear();
+    return this;
+  }
+
   // Append a single ProfileImage
   ProfileBuilder addImage(ProfileImage image) {
     _images.add(image);
@@ -194,6 +205,10 @@ class ProfileBuilder {
       profileImageUrl: _profileImageUrl ?? Profile.defaultProfileImageUrl,
       wallBackgroundHexARGB:
           _wallBackgroundHexARGB ?? Profile.defaultWallBackgroundHexARGB,
+      hobby: _hobby,
+      passionLevel: _passionLevel,
+      subInterests: List.unmodifiable(_subInterests),
+      otherInterests: List.unmodifiable(_otherInterests),
       images: List.unmodifiable(_images),
       textboxes: List.unmodifiable(_textboxes),
       stickers: List.unmodifiable(_stickers),

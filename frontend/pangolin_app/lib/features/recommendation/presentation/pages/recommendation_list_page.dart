@@ -6,6 +6,8 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
+import 'package:pangolin_app/router/main_tab_navigation.dart';
+import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
@@ -79,6 +81,12 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
             Navigator.of(context).pop();
           },
         ),
+      ),
+      bottomNavigationBar: IslandNavBar(
+        current: IslandNavTab.recommendations,
+        onEditProfile: () =>
+            MainTabNavigation.goToEditProfile(context, widget.userId),
+        onRecommendations: () {},
       ),
       body: Builder(
         builder: (context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_image.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_sticker.dart';
@@ -52,6 +53,57 @@ class BedroomWallCreatorController {
     return center != null
         ? CanvasTransform(center: center)
         : _centeredTransform();
+  }
+
+  CanvasTransform _transformFor(Position position) {
+    return CanvasTransform(
+      center: Offset(position.x.toDouble(), position.y.toDouble()),
+      scale: position.scale,
+      rotation: position.rotation,
+    );
+  }
+
+  void loadFrom(Profile profile) {
+    _items.clear();
+    _prompts.clear();
+
+    for (final image in profile.images) {
+      _items.add(
+        CanvasImageItem(
+          id: _nextId++,
+          transform: _transformFor(image.position),
+          aspectRatio: image.position.aspectRatio,
+          url: image.url,
+        ),
+      );
+    }
+
+    for (final textbox in profile.textboxes) {
+      _items.add(
+        CanvasTextItem(
+          id: _nextId++,
+          transform: _transformFor(textbox.position),
+          text: textbox.body,
+          font: textbox.font,
+          textColor: textbox.fontHexARGB != null
+              ? Color(textbox.fontHexARGB!)
+              : null,
+          backgroundColor: textbox.backgroundHexARGB != null
+              ? Color(textbox.backgroundHexARGB!)
+              : null,
+        ),
+      );
+    }
+
+    for (final sticker in profile.stickers) {
+      _items.add(
+        CanvasStickerItem(
+          id: _nextId++,
+          transform: _transformFor(sticker.position),
+          stickerName: sticker.name,
+        ),
+      );
+    }
   }
 
   Future<void> addImage({Offset? center}) async {
