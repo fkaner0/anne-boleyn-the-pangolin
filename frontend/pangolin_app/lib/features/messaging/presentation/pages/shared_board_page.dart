@@ -112,6 +112,9 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
 
     final picked = await _imagePicker.pickImage();
     if (picked == null || !mounted) return;
+    
+    final message = await _promptForInitialMessage(picked);
+    if (message == null || !mounted) return; // cancelled
 
     setState(() => _uploading = true);
     try {
@@ -120,7 +123,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         senderId: _userId,
         receiverId: widget.friendUserId,
         url: url,
-        message: "THIS IS A FAKE INITIAL MESSAGE", // TODO
+        message: message,
       );
       await _loadBoard();
     } catch (_) {
@@ -171,6 +174,69 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
+  
+  Future<String?> _promptForInitialMessage(PickedImage picked) async {
+  final controller = TextEditingController(
+    text: 'Check this out!',
+  );
+
+  return showModalBottomSheet<String>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return SingleChildScrollView (
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Add a message',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.memory(
+                picked.bytes,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              maxLines: 3,
+              textInputAction: TextInputAction.done,
+              decoration: const InputDecoration(
+                hintText: 'Say something about this image...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(controller.text.trim());
+              },
+              child: const Text('Send'),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
