@@ -181,17 +181,14 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<String>(
-          future: _friendName,
-          builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
-        ),
-        actions: [
-          IconButton(
-            icon: AppIcon(AppIconType.person),
-            onPressed: () =>
-                context.push(AppRoutes.viewProfile, extra: widget.friendUserId),
+        title: GestureDetector(
+          child: FutureBuilder<String>(
+            future: _friendName,
+            builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
           ),
-        ],
+          onTap: () =>
+              context.push(AppRoutes.viewProfile, extra: widget.friendUserId),
+        ),
       ),
       body: SafeArea(
         child: ValueListenableBuilder<Map<int, SharedElement>>(
