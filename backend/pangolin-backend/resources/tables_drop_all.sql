@@ -1,6 +1,9 @@
-DROP TABLE sharedboardreply;
-DROP TABLE sharedboardelement;
-DROP TABLE sharedboard;
+DROP TABLE connectionPending;
+DROP TABLE connectionRemoved;
+
+DROP TABLE sharedBoardReply;
+DROP TABLE sharedBoardElement;
+DROP TABLE sharedBoard;
 
 DROP TABLE wallImage;
 DROP TABLE wallTextbox;

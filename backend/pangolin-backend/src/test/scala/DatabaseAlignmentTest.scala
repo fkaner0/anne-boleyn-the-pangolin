@@ -103,6 +103,8 @@ final class SchemaAlignmentTest extends FunSuite {
   test("WallSticker matches database column ordering") {
     assertCaseClassMatchesTable[repo.WallSticker]("wallsticker")
   }
+
+  //
   
   test("SharedBoard matches database column ordering") {
     assertCaseClassMatchesTable[repo.SharedBoard]("sharedboard")
@@ -115,7 +117,19 @@ final class SchemaAlignmentTest extends FunSuite {
   test("SharedBoardReply matches database column ordering") {
     assertCaseClassMatchesTable[repo.SharedBoardReply]("sharedboardreply")
   }
+
+  //
+
+  test("ConnectionPending matches database column ordering") {
+    assertCaseClassMatchesTable[repo.ConnectionPending]("connectionpending")
+  }
   
+  test("ConnectionRemoved matches database column ordering") {
+    assertCaseClassMatchesTable[repo.ConnectionRemoved]("connectionremoved")
+  }
+
+  //
+
   test("ButtonLog matches database column ordering") {
     assertCaseClassMatchesTable[repo.ButtonLog]("buttonlog")
   }
