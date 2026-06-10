@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
@@ -71,6 +72,7 @@ void main() {
             service: service,
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
+            logger: MockButtonClickLogger(),
           ),
         ),
       ),
