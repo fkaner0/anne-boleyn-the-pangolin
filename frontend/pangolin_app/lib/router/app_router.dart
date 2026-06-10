@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/friends/presentation/pages/connections_page.dart';
+import 'package:pangolin_app/features/profile_edit/presentation/pages/edit_profile_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'tmp_fake_page.dart';
 import '../features/profile_view/profile_viewer_page.dart';
@@ -47,8 +49,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: AppRoutes.editProfile,
-            builder: (context, state) =>
-                const TmpFakePage(pageName: 'EditProfilePage()'),
+            pageBuilder: (context, state) => _fadeRoute(EditProfilePage()),
 
             // builder: (context, state) => const EditProfilePage(),
           ),
@@ -59,8 +60,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.connections,
-            builder: (context, state) =>
-                const TmpFakePage(pageName: 'ConnectionsPage()'),
+            pageBuilder: (context, state) => _fadeRoute(ConnectionsPage()),
           ),
         ],
       ),
