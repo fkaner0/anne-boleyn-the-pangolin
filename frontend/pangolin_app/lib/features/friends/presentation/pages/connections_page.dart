@@ -100,7 +100,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Connections')),
+      appBar: AppBar(
+        title: const Text('Connections'),
+        automaticallyImplyLeading: false,
+      ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.friends,
         onEditProfile: () => MainTabNavigation.goToEditProfile(context),

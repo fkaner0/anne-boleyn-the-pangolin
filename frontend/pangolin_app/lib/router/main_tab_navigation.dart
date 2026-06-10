@@ -11,10 +11,20 @@ import 'package:pangolin_app/features/recommendation/presentation/pages/recommen
 class MainTabNavigation {
   MainTabNavigation._();
 
+  static Route<void> _fadeRoute(Widget page) {
+    return PageRouteBuilder<void>(
+      transitionDuration: const Duration(milliseconds: 200),
+      reverseTransitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (context, animation, secondaryAnimation) => page,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+          FadeTransition(opacity: animation, child: child),
+    );
+  }
+
   static void goToRecommendations(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (_) => RecommendationListPage(
+      _fadeRoute(
+        RecommendationListPage(
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),
@@ -23,14 +33,10 @@ class MainTabNavigation {
   }
 
   static void goToEditProfile(BuildContext context) {
-    Navigator.of(
-      context,
-    ).pushReplacement(MaterialPageRoute(builder: (_) => EditProfilePage()));
+    Navigator.of(context).pushReplacement(_fadeRoute(const EditProfilePage()));
   }
 
   static void goToFriends(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const ConnectionsPage()),
-    );
+    Navigator.of(context).pushReplacement(_fadeRoute(const ConnectionsPage()));
   }
 }
