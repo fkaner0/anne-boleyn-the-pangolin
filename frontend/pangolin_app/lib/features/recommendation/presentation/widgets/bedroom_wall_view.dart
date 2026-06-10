@@ -85,9 +85,7 @@ class _BedroomWallViewState extends State<BedroomWallView> {
               children: [
                 Positioned.fill(
                   child: ColoredBox(
-                    color: Color(
-                      profile.wallBackgroundHexARGB,
-                    ),
+                    color: Color(profile.wallBackgroundHexARGB),
                   ),
                 ),
                 for (final (index, image) in profile.images.indexed)

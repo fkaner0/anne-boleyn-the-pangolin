@@ -73,7 +73,7 @@ class BedroomWallCreatorController {
   }
 
   void loadFrom(Profile profile) {
-    _backgroundColor = Color(profile.wallBackgroundHexARGB);  
+    _backgroundColor = Color(profile.wallBackgroundHexARGB);
     _items.clear();
     _prompts.clear();
 
@@ -242,9 +242,7 @@ class BedroomWallCreatorController {
   }
 
   void exportInto(ProfileBuilder builder) {
-    builder.setWallBackgroundHexARGB(
-      _backgroundColor.toARGB32(),
-    );
+    builder.setWallBackgroundHexARGB(_backgroundColor.toARGB32());
 
     for (final item in _items) {
       switch (item) {

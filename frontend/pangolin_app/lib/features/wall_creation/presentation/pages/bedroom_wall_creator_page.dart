@@ -219,45 +219,45 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(() => _preview = !_preview);
   }
 
-Future<void> _showBackgroundColourPicker() async {
-  Color pendingColor = _controller.backgroundColor;
+  Future<void> _showBackgroundColourPicker() async {
+    Color pendingColor = _controller.backgroundColor;
 
-  await showDialog<void>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Wall Colour'),
-        content: SingleChildScrollView(
-          child: ColorPicker(
-            pickerColor: pendingColor,
-            onColorChanged: (color) {
-              pendingColor = color;
-            },
-            enableAlpha: false,
-            labelTypes: const [],
-            pickerAreaHeightPercent: 0.8,
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Wall Colour'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pendingColor,
+              onColorChanged: (color) {
+                pendingColor = color;
+              },
+              enableAlpha: false,
+              labelTypes: const [],
+              pickerAreaHeightPercent: 0.8,
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
 
-              setState(() {
-                _controller.updateBackgroundColor(pendingColor);
-              });
-            },
-            child: const Text('Done'),
-          ),
-        ],
-      );
-    },
-  );
-}
+                setState(() {
+                  _controller.updateBackgroundColor(pendingColor);
+                });
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

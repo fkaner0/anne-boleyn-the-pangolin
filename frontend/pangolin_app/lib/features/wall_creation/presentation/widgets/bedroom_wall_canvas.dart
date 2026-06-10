@@ -52,7 +52,7 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.onPromptAddTextBox,
     required this.onItemInteractionChanged,
     required this.onItemDragUpdate,
-    required this.editable, 
+    required this.editable,
     required this.backgroundColor,
   });
 
@@ -174,9 +174,7 @@ class BedroomWallCanvas extends StatelessWidget {
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () => FocusScope.of(context).unfocus(),
-                  child: ColoredBox(
-                    color: backgroundColor,
-                  ),
+                  child: ColoredBox(color: backgroundColor),
                 ),
               ),
               for (final prompt in prompts) _buildPrompt(prompt, renderScale),
