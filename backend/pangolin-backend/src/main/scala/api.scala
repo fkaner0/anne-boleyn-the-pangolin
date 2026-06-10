@@ -510,5 +510,7 @@ object api {
     "/" -> messageReplyRoutes(topic),
     "/" -> messageListenSseRoutes(topic),
     "/" -> buttonLogRoutes,
+    "/" -> currentFriendsRoutes,
+    "/" -> pendingFriendsRoutes,
   ).orNotFound
 }
