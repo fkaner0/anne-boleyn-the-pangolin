@@ -133,6 +133,74 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     }
   }
 
+Future<void> _addText() async {
+  final topicController = TextEditingController();
+  final messageController = TextEditingController();
+
+  final result = await showModalBottomSheet<TextPostResult>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    builder: (context) {
+      return SingleChildScrollView(
+        padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Add text post',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: topicController,
+              decoration: const InputDecoration(
+                labelText: 'Topic',
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: messageController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'Message',
+                border: OutlineInputBorder(),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop(
+                  TextPostResult(
+                    topic: topicController.text.trim(),
+                    message: messageController.text.trim(),
+                  ),
+                );
+              },
+              child: const Text('Send'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
   void _grabFromWall() {
     _log(ButtonIds.sharedBoardGrabFromWall);
     context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
@@ -287,6 +355,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         uploading: _uploading,
         onGrab: _grabFromWall,
         onUpload: _uploadImage,
+        onAddText: _addText,
       ),
     );
   }
@@ -296,11 +365,13 @@ class _BottomBar extends StatelessWidget {
   final bool uploading;
   final VoidCallback onGrab;
   final VoidCallback onUpload;
+  final VoidCallback onAddText;
 
   const _BottomBar({
     required this.uploading,
     required this.onGrab,
     required this.onUpload,
+    required this.onAddText,
   });
 
   @override
@@ -318,22 +389,71 @@ class _BottomBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: uploading ? null : onUpload,
-                icon: uploading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const AppIcon(AppIconType.addImage),
-                label: const Text('Upload image'),
-              ),
+            _CircularToolButton(
+              icon: AppIconType.addText,
+              label: 'Text',
+              onPressed: onAddText,
+            ),
+            _CircularToolButton(
+              icon: AppIconType.addImage,
+              label: 'Image',
+              onPressed: onUpload,
             ),
           ],
         ),
       ),
     );
   }
+}
+
+class _CircularToolButton extends StatelessWidget {
+  final AppIconType icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _CircularToolButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Material(
+          color: colorScheme.primaryContainer,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            child: SizedBox(
+              width: 64,
+              height: 64,
+              child: AppIcon(
+                icon,
+                size: 20,
+                color: colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: const TextStyle(fontSize: 12)),
+      ],
+    );
+  }
+}
+
+class TextPostResult {
+  final String topic;
+  final String message;
+
+  TextPostResult({
+    required this.topic,
+    required this.message,
+  });
 }
