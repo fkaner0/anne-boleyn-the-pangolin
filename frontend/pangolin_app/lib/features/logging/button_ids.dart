@@ -35,4 +35,10 @@ class ButtonIds {
       'shared_board_upload_image'; // Shared board upload image
   static const sharedBoardSendReply = 
       'shared_board_send_reply'; // Shared board send reply
+  static const connectionsEditProfile = 
+      'connections_edit_profile'; // Edit profile button on connections page
+  static const connectionsRecommendations = 
+      'connections_recommendations'; // Recommendations page on connections page
+  static const connectionsFriends = 
+      'connections_friends'; // Connections page on connections page
 }

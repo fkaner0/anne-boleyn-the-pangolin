@@ -102,9 +102,17 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
       appBar: AppBar(title: const Text('Connections')),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.friends,
-        onEditProfile: () => MainTabNavigation.goToEditProfile(context),
-        onRecommendations: () => MainTabNavigation.goToRecommendations(context),
-        onFriends: () {},
+        onEditProfile: () {
+          _log(ButtonIds.connectionsEditProfile);
+          MainTabNavigation.goToEditProfile(context);
+        },
+        onRecommendations: () {
+          _log(ButtonIds.connectionsRecommendations);
+          MainTabNavigation.goToRecommendations(context);
+        },
+        onFriends: () {
+          _log(ButtonIds.connectionsFriends);
+        },
       ),
       body: SafeArea(child: _buildBody()),
     );
