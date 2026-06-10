@@ -112,11 +112,11 @@ class _Header extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
-          height: 160,
+          height: MediaQuery.sizeOf(context).height / 2 - 30,
           width: double.infinity,
           child: Image.network(
             element.content,
-            fit: BoxFit.cover,
+            fit: BoxFit.fitWidth,
             errorBuilder: (context, error, stackTrace) => ColoredBox(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: const Center(child: AppIcon(AppIconType.brokenImage)),

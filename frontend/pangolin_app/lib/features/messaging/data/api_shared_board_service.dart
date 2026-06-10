@@ -79,6 +79,7 @@ class ApiSharedBoardService implements SharedBoardService {
       'senderId': senderId,
       'receiverId': receiverId,
       'url': url,
+      'message': message,
       'datetime': datetime,
     });
   }
@@ -95,6 +96,7 @@ class ApiSharedBoardService implements SharedBoardService {
       'senderId': senderId,
       'receiverId': receiverId,
       'text': text,
+      'message': message,
       'datetime': datetime,
     });
   }
