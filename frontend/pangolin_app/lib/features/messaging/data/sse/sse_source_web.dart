@@ -1,49 +1,49 @@
 import 'dart:async';
-import 'dart:js_interop';
+import 'dart:convert';
 
-import 'package:web/web.dart' as web;
+import 'package:fetch_client/fetch_client.dart';
+import 'package:http/http.dart';
 
-Stream<String> sseDataStream(Uri uri) {
-  web.EventSource? source;
-  late final StreamController<String> controller;
+/// Returns a [Stream] that emits once for every Server-Sent Event received
+/// from [uri]. The event contents are intentionally ignored.
+///
+/// Example:
+/// ```dart
+/// sseStream(Uri.parse('https://example.com/events')).listen((_) {
+///   print('Event received!');
+/// });
+/// ```
+Stream<void> sseStream(Uri uri, {Map<String, String>? headers}) async* {
+  final client = FetchClient(mode: RequestMode.cors);
 
-  controller = StreamController<String>(
-    onListen: () {
-      final eventSource = web.EventSource(uri.toString());
-      source = eventSource;
-      eventSource.onmessage = (web.MessageEvent event) {
-        final data = event.data;
-        if (data != null && data.isA<JSString>()) {
-          if (!controller.isClosed) controller.add((data as JSString).toDart);
-        }
-      }.toJS;
-    },
-    onCancel: () {
-      source?.close();
-      source = null;
-    },
-  );
+  try {
+    final request = Request('GET', uri);
 
-  return controller.stream;
-}
+    request.headers.addAll({
+      'Accept': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      ...?headers,
+    });
 
-Stream<void> sseEventStream(Uri uri) {
-  web.EventSource? source;
-  late final StreamController<void> controller;
+    final response = await client.send(request);
 
-  controller = StreamController<void>(
-    onListen: () {
-      final eventSource = web.EventSource(uri.toString());
-      source = eventSource;
-      eventSource.onmessage = (web.MessageEvent event) {
-        if (!controller.isClosed) controller.add(null);
-      }.toJS;
-    },
-    onCancel: () {
-      source?.close();
-      source = null;
-    },
-  );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'SSE connection failed with status: ${response.statusCode}',
+      );
+    }
 
-  return controller.stream;
+    // Decode the byte stream into lines — a blank line = one complete event.
+    final lineStream = response.stream
+        .transform(utf8.decoder)
+        .transform(const LineSplitter());
+
+    await for (final line in lineStream) {
+      // A blank line signals a complete event — emit a void signal.
+      if (line.isEmpty) yield null;
+      // All other lines (data, id, event, comments) are intentionally ignored.
+    }
+  } finally {
+    client.close();
+  }
 }
