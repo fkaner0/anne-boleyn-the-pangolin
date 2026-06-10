@@ -9,13 +9,14 @@ import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_element_tile.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
 class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
-  final String friendName;
+  final ProfileFetcher? profileFetcher;
   final SharedBoardService? service;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
@@ -23,7 +24,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   const SharedBoardPage({
     super.key,
     required this.friendUserId,
-    required this.friendName,
+    this.profileFetcher, // we should use a lighter-weight api (don't currently have one)
     this.service,
     this.imagePicker,
     this.imageUploader,
@@ -40,7 +41,14 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
+  late final ProfileFetcher _profileFetcher =
+      widget.profileFetcher ?? getIt<ProfileFetcher>();
   late final int _userId;
+  late final Future<String> _friendName;
+
+  // TODO: this does NOT belong here
+  Future<String> userNameFromId(int userId) async =>
+      _profileFetcher.fetchProfile(userId).then((profile) => profile.name);
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   StreamSubscription<SharedElement>? _subscription;
@@ -50,6 +58,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
+    _friendName = userNameFromId(widget.friendUserId); // assign once, directly
     _subscription = _service.listen(_userId).listen(_onElement);
   }
 
@@ -99,14 +108,16 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     _showMessage('Grabbing from their wall is coming soon.');
   }
 
-  void _openChat(int elementId) {
+  void _openChat(int elementId) async {
+    final name = await _friendName;
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (_) => SharedBoardChatDialog(
         elements: _elements,
         elementId: elementId,
         userId: _userId,
-        friendName: widget.friendName,
+        friendName: name,
         onSendReply: (text) => _sendReply(elementId, text),
       ),
     );
@@ -135,7 +146,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.friendName)),
+      appBar: AppBar(
+        title: FutureBuilder<String>(
+          future: _friendName,
+          builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
+        ),
+      ),
       body: SafeArea(
         child: ValueListenableBuilder<Map<int, SharedElement>>(
           valueListenable: _elements,

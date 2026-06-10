@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/features/friends/presentation/pages/connections_page.dart';
+import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/profile_edit/presentation/pages/edit_profile_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import 'tmp_fake_page.dart';
-import '../features/profile_view/profile_viewer_page.dart';
 import '../features/profile_setup/presentation/profile_setup_shell.dart';
 import '../features/profile_setup/presentation/pages/login_page.dart';
 
@@ -85,12 +85,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Selected shared board (for chatting)
       GoRoute(
         path: AppRoutes.sharedBoard,
-        builder: (context, state) => TmpFakePage(
-          pageName: 'shared board with friendUserId ${userIdFromState(state)}',
-        ),
-        // builder: (context, state) {
-        //   return SharedBoardPage(userId: userIdFromState(state));
-        // },
+        builder: (context, state) =>
+            SharedBoardPage(friendUserId: userIdFromState(state)),
       ),
     ],
 
