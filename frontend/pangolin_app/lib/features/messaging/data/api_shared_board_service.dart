@@ -72,6 +72,7 @@ class ApiSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
+    required String message,
     required int datetime,
   }) {
     return _post('/message/send/image', {
@@ -87,6 +88,7 @@ class ApiSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
+    required String message,
     required int datetime,
   }) {
     return _post('/message/send/text', {

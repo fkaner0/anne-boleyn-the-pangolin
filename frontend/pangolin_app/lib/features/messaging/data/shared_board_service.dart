@@ -9,6 +9,7 @@ abstract interface class SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
+    required String message,
     required int datetime,
   });
 
@@ -16,6 +17,7 @@ abstract interface class SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
+    required String message,
     required int datetime,
   });
 

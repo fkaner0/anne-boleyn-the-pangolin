@@ -11,6 +11,7 @@ void main() {
       senderId: 1,
       receiverId: 2,
       url: 'pic.jpg',
+      message: 'initial message 1',
       datetime: 10,
     );
     await Future<void>.delayed(Duration.zero);
@@ -33,6 +34,7 @@ void main() {
       senderId: 1,
       receiverId: 2,
       text: 'hi',
+      message: 'initial message 2',
       datetime: 10,
     );
     final created = await service.fetchBoard(1, 2);

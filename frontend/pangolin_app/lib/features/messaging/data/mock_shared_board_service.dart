@@ -22,6 +22,7 @@ class MockSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
+    required String message,
     required int datetime,
   }) async {
     _elements.add(
@@ -40,6 +41,7 @@ class MockSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
+    required String message,
     required int datetime,
   }) async {
     _elements.add(

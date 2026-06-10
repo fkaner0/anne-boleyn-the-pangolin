@@ -102,6 +102,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         senderId: _userId,
         receiverId: widget.friendUserId,
         url: url,
+        message: "THIS IS A FAKE INITIAL MESSAGE", // TODO
         datetime: _now(),
       );
       await _loadBoard();

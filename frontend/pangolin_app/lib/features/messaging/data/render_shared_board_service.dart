@@ -29,11 +29,13 @@ class RenderSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
+    required String message,
     required int datetime,
   }) => _delegate.sendImage(
     senderId: senderId,
     receiverId: receiverId,
     url: url,
+    message: message,
     datetime: datetime,
   );
 
@@ -42,11 +44,13 @@ class RenderSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
+    required String message,
     required int datetime,
   }) => _delegate.sendText(
     senderId: senderId,
     receiverId: receiverId,
     text: text,
+    message: message,
     datetime: datetime,
   );
 

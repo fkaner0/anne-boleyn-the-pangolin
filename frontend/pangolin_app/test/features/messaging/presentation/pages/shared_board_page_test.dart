@@ -35,6 +35,7 @@ class _FakeService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
+    required String message,
     required int datetime,
   }) async => sentImages.add(url);
 
@@ -43,6 +44,7 @@ class _FakeService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
+    required String message,
     required int datetime,
   }) async {}
 
