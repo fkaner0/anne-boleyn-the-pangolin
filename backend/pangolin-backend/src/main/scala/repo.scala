@@ -589,7 +589,7 @@ object repo {
   )
 
   private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String)(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
-    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
+    val board = getBoard(senderId, receiverId).getOrElse(makeBoard(senderId, receiverId))
     val elem = sharedBoardElementsRepo.insertReturning(
       SharedBoardElementCreator(
         boardId = board.id,
@@ -625,8 +625,13 @@ object repo {
     sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
   }
 
-  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
-    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
+  private def makeBoard(senderId: Int, receiverId: Int)(using DbCon): SharedBoard = {
+    val newBoard = sharedBoardRepo.insertReturning(SharedBoardCreator(senderId, receiverId))
+    connectionPendingRepo.insert(ConnectionPendingCreator(
+      boardId = newBoard.id,
+      pendingForUser = receiverId,
+    ))
+    newBoard
   }
 
   def logButtonPress(
