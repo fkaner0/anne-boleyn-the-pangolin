@@ -16,7 +16,7 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 
 import 'pages/about_page.dart';
-import 'pages/old___about_me_page.dart';
+import 'pages/intro_page.dart';
 
 class SignupShell extends ConsumerStatefulWidget {
   // final int userId;
@@ -115,7 +115,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
         onSave: _goNext,
         onBack: _goBack,
       ),
-      2 => AboutMePage(
+      2 => IntroPage(
         profileBuilder: _profileBuilder,
         wallController: _wallController,
         onNext: _finish,
