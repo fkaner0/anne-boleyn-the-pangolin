@@ -110,8 +110,9 @@ class _Header extends StatelessWidget {
     if (element.isImage) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: 1,
+        child: SizedBox(
+          height: 160,
+          width: double.infinity,
           child: Image.network(
             element.content,
             fit: BoxFit.cover,
@@ -133,6 +134,8 @@ class _Header extends StatelessWidget {
       ),
       child: Text(
         element.content,
+        maxLines: 3,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.titleMedium,
       ),
     );

@@ -145,9 +145,9 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
               return const Center(child: Text('Nothing shared yet'));
             }
             return ListView.separated(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
               itemCount: items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 20),
+              separatorBuilder: (_, _) => const SizedBox(height: 36),
               itemBuilder: (context, index) {
                 final element = items[index];
                 return SharedElementTile(
