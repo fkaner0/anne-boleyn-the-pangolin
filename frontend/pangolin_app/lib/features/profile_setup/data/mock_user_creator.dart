@@ -7,7 +7,7 @@ class MockUserCreator implements UserCreator {
   MockUserCreator({int firstId = 1}) : _nextId = firstId;
 
   @override
-  Future<int> createUser() async {
+  Future<int> createUser(String username) async {
     callCount++;
     return _nextId++;
   }

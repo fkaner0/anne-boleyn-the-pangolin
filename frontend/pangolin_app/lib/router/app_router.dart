@@ -1,8 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../features/profile_view/profile_viewer_page.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'tmp_fake_page.dart';
-import '../features/profile_setup/presentation/pages/new_user_page.dart';
+import '../features/profile_view/profile_viewer_page.dart';
+import '../features/profile_setup/presentation/profile_setup_shell.dart';
+import '../features/profile_setup/presentation/pages/login_page.dart';
 
 /// Named route constants — use these everywhere instead of raw strings.
 class AppRoutes {
@@ -17,26 +19,28 @@ class AppRoutes {
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  userIdFromState(GoRouterState state) => (state.extra as int);
+
   return GoRouter(
     // initialLocation: AppRoutes.login,
-    initialLocation: AppRoutes.signup,
+    initialLocation: AppRoutes.login,
     routes: [
       // Login page
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const TmpFakePage(pageName: 'LoginPage()'),
+        builder: (context, state) => const LoginPage(),
       ),
 
       // Profile Setup section (manages its own internal step state)
       GoRoute(
         path: AppRoutes.signup,
-        builder: (context, state) => const NewUserPage(),
+        builder: (context, state) => SignupShell(),
       ),
 
       // Main app shell with bottom nav
       ShellRoute(
-        builder: (context, state, child) =>
-            const TmpFakePage(pageName: 'MainScaffold(child: child)'),
+        //// TODO: ADD NAVBAR STUFF HERE I THINK????? INSTEAD OF JUST DELEGATING TO CHILD DIRECTLY
+        builder: (context, state, child) => child,
         routes: [
           GoRoute(
             path: AppRoutes.editProfile,
@@ -45,8 +49,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.recommendations,
-            builder: (context, state) =>
-                const TmpFakePage(pageName: 'RecommendationsPage()'),
+            builder: (context, state) => RecommendationListPage(),
           ),
           GoRoute(
             path: AppRoutes.connections,
@@ -60,10 +63,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.profile,
         builder: (context, state) {
-          /// TODO: what on eart is this userId thing?
-          // final userId = state.extra as String? ?? '';
-          final userId = 1;
-          return ProfileViewerPage(userId: userId);
+          return ProfileViewerPage(userId: userIdFromState(state));
         },
       ),
     ],

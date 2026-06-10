@@ -1,3 +1,3 @@
 abstract interface class UserCreator {
-  Future<int> createUser();
+  Future<int> createUser(String username);
 }

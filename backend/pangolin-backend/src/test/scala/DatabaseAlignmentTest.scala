@@ -80,19 +80,39 @@ final class SchemaAlignmentTest extends FunSuite {
     )
   }
 
-  test("Profile matches profile table ordering") {
+  test("Profile matches database column ordering") {
     assertCaseClassMatchesTable[repo.Profile]("profile")
   }
 
-  test("ProfileImage matches profileimage table ordering") {
-    assertCaseClassMatchesTable[repo.ProfileImage]("profileimage")
+  test("Account matches database column ordering") {
+    assertCaseClassMatchesTable[repo.Account]("account")
   }
 
-  test("ProfileTextbox matches profiletextbox table ordering") {
-    assertCaseClassMatchesTable[repo.ProfileTextbox]("profiletextbox")
+  test("WallImage matches database column ordering") {
+    assertCaseClassMatchesTable[repo.WallImage]("wallimage")
   }
 
-  test("ProfileSticker matches profilesticker table ordering") {
-    assertCaseClassMatchesTable[repo.ProfileSticker]("profilesticker")
+  test("WallTextbox matches database column ordering") {
+    assertCaseClassMatchesTable[repo.WallTextbox]("walltextbox")
+  }
+
+  test("WallSticker matches database column ordering") {
+    assertCaseClassMatchesTable[repo.WallSticker]("wallsticker")
+  }
+  
+  test("SharedBoard matches database column ordering") {
+    assertCaseClassMatchesTable[repo.SharedBoard]("sharedboard")
+  }
+  
+  test("SharedBoardElement matches database column ordering") {
+    assertCaseClassMatchesTable[repo.SharedBoardElement]("sharedboardelement")
+  }
+  
+  test("SharedBoardReply matches database column ordering") {
+    assertCaseClassMatchesTable[repo.SharedBoardReply]("sharedboardreply")
+  }
+  
+  test("ButtonLog matches database column ordering") {
+    assertCaseClassMatchesTable[repo.ButtonLog]("buttonlog")
   }
 }

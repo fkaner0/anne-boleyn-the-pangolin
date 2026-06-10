@@ -10,7 +10,7 @@ import com.augustnagro.magnum.{
   Spec,
   Table,
   TableInfo,
-  connect,
+  connect, transact,
   sql,
 }
 import io.github.cdimascio.dotenv.Dotenv
@@ -27,8 +27,8 @@ object repo {
     val scale: Double
   }
 
-  case class ProfileImageCreator(
-      userId: Int,
+  case class WallImageCreator(
+      profileId: Int,
       url: String,
       x: Int,
       y: Int,
@@ -38,9 +38,9 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileImage(
+  case class WallImage(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       url: String,
       x: Int,
       y: Int,
@@ -49,12 +49,12 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileImage {
-    val Table = TableInfo[ProfileImageCreator, ProfileImage, Int]
+  object WallImage {
+    val Table = TableInfo[WallImageCreator, WallImage, Int]
   }
 
-  case class ProfileTextboxCreator(
-      userId: Int,
+  case class WallTextboxCreator(
+      profileId: Int,
       title: String,
       body: String,
       font: Option[String],
@@ -68,9 +68,9 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileTextbox(
+  case class WallTextbox(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       title: String,
       body: String,
       font: Option[String],
@@ -83,12 +83,12 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileTextbox {
-    val Table = TableInfo[ProfileTextboxCreator, ProfileTextbox, Int]
+  object WallTextbox {
+    val Table = TableInfo[WallTextboxCreator, WallTextbox, Int]
   }
 
-  case class ProfileStickerCreator(
-      userId: Int,
+  case class WallStickerCreator(
+      profileId: Int,
       name: String,
       x: Int,
       y: Int,
@@ -98,9 +98,9 @@ object repo {
   ) extends Positioned derives DbCodec
 
   @Table(PostgresDbType)
-  case class ProfileSticker(
+  case class WallSticker(
       @Id id: Int,
-      userId: Int,
+      profileId: Int,
       name: String,
       x: Int,
       y: Int,
@@ -109,22 +109,101 @@ object repo {
       scale: Double,
   ) extends Positioned derives DbCodec
 
-  object ProfileSticker {
-    val Table = TableInfo[ProfileStickerCreator, ProfileSticker, Int]
+  object WallSticker {
+    val Table = TableInfo[WallStickerCreator, WallSticker, Int]
   }
+
+  /// We should really just make this a deriving type.
+  /// god I hate my code.
+  case class WallImageCreatorBuilder (
+    url: String,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = WallImageCreator(
+      profileId = profileId,
+      url = url,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+  case class WallTextboxCreatorBuilder(
+    title: String,
+    body: String,
+    font: Option[String],
+    fontARGB: Long,
+    backgroundARGB: Long,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = WallTextboxCreator(
+      profileId = profileId,
+      title = title,
+      body = body,
+      font = font,
+      fontARGB = fontARGB,
+      backgroundARGB = backgroundARGB,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+  case class WallStickerCreatorBuilder (
+    name: String,
+    x: Int,
+    y: Int,
+    rotation: Double,
+    aspectRatio: Double,
+    scale: Double,
+  ) {
+    def build(profileId: Int) = WallStickerCreator(
+      profileId = profileId,
+      name = name,
+      x = x,
+      y = y,
+      rotation = rotation,
+      aspectRatio = aspectRatio,
+      scale = scale,
+    )
+  }
+
 
   case class ProfileCreator(
+      accountId: Int,
       name: String,
       location: String,
       bio: String,
       wallBackgroundHexARGB: Long,
       profileImageUrl: String,
       age: Int,
-  ) derives DbCodec
+  ) derives DbCodec {
+    def toProfile(profileId: Int): Profile = Profile(
+      id = profileId,
+      accountId = accountId,
+      name = name,
+      location = location,
+      bio = bio,
+      wallBackgroundHexARGB = wallBackgroundHexARGB,
+      profileImageUrl = profileImageUrl,
+      age = age,
+    )
+  }
 
   @Table(PostgresDbType)
   case class Profile(
       @Id id: Int,
+      accountId: Int,
       name: String,
       location: String,
       bio: String,
@@ -137,6 +216,20 @@ object repo {
     val Table = TableInfo[ProfileCreator, Profile, Int]
   }
 
+  case class AccountCreator(
+      username: String,
+  ) derives DbCodec
+
+  @Table(PostgresDbType)
+  case class Account(
+      @Id id: Int,
+      username: String,
+  ) derives DbCodec
+
+  object Account {
+    val Table = TableInfo[AccountCreator, Account, Int]
+  }
+  
   case class SharedBoardCreator(
     user1Id: Int,
     user2Id: Int,
@@ -231,11 +324,13 @@ object repo {
     ds
   }
 
-  private val profileImageRepo = Repo[ProfileImageCreator, ProfileImage, Int]
-  private val profileTextboxRepo = Repo[ProfileTextboxCreator, ProfileTextbox, Int]
-  private val profileStickerRepo = Repo[ProfileStickerCreator, ProfileSticker, Int]
+
+  private val profileImageRepo = Repo[WallImageCreator, WallImage, Int]
+  private val profileTextboxRepo = Repo[WallTextboxCreator, WallTextbox, Int]
+  private val profileStickerRepo = Repo[WallStickerCreator, WallSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
+  private val accountRepo = Repo[AccountCreator, Account, Int]
 
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
   private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
@@ -243,42 +338,56 @@ object repo {
 
   private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
-  private def profileImagesSpec(userId: Int) = Spec[ProfileImage]
-    .where(sql"${ProfileImage.Table.userId} = $userId")
+  private def userIdFromUsernameSpec(username: String) = Spec[Account]
+    .where(sql"${Account.Table.username} = $username")
 
-  private def profileTextboxesSpec(userId: Int) = Spec[ProfileTextbox]
-    .where(sql"${ProfileTextbox.Table.userId} = $userId")
+  private def profileImagesSpec(profileId: Int) = Spec[WallImage]
+    .where(sql"${WallImage.Table.profileId} = $profileId")
 
-  private def profileStickersSpec(userId: Int) = Spec[ProfileSticker]
-    .where(sql"${ProfileSticker.Table.userId} = $userId")
+  private def profileTextboxesSpec(profileId: Int) = Spec[WallTextbox]
+    .where(sql"${WallTextbox.Table.profileId} = $profileId")
+
+  private def profileStickersSpec(profileId: Int) = Spec[WallSticker]
+    .where(sql"${WallSticker.Table.profileId} = $profileId")
 
   val getRecommendations = inDatabase {
     profileRepo.findAll.asRight
   }
 
-  def getProfile(userId: Int) = inDatabase {
-    profileRepo
-      .findById(userId)
-      .map { profile =>
-        val images = profileImageRepo.findAll(profileImagesSpec(userId))
-        val textboxes =
-          profileTextboxRepo.findAll(profileTextboxesSpec(userId))
-        val stickers =
-          profileStickerRepo.findAll(profileStickersSpec(userId))
-        (profile, images, textboxes, stickers)
-      }
-      .toRight(())
+  /// Yes, this should be a much better query. Believe in the power of query optimisation!
+  def getProfile(accountId: Int) = inDatabaseWithRollback {
+    getProfileIdFromUserId(accountId) match {
+      case None => Left("Could not find a profile for the given accoundId")
+      case Some(profileId) => profileRepo
+        .findById(profileId)
+        .map { profile =>
+          val images = profileImageRepo.findAll(profileImagesSpec(profileId))
+          val textboxes =
+            profileTextboxRepo.findAll(profileTextboxesSpec(profileId))
+          val stickers =
+            profileStickerRepo.findAll(profileStickersSpec(profileId))
+          (profile, images, textboxes, stickers)
+        }
+        .toRight(s"error getting profile information from profileId $profileId")
+    }
   }
 
-  def newProfile(): IO[Either[Nothing, Int]] = inDatabase {
-    profileRepo.insertReturning(ProfileCreator(
-      name = "no name provided",
-      location = "no location provided",
-      bio = "no bio provided",
-      wallBackgroundHexARGB = 0,
-      profileImageUrl = "https://placehold.co/400x400.jpg",
-      age = 0,
-    )).id.asRight
+  def newUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
+    try {
+      accountRepo.insertReturning(AccountCreator(
+      username = username
+      )).id.asRight
+    } catch {
+      case e => Left(e) // I have no idea what sort of error gets thrown
+    }
+  }
+
+  def getUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
+    try {
+      accountRepo.findAll(userIdFromUsernameSpec(username)).head.id.asRight
+    } catch {
+      case e => Left(e) // I have no idea what sort of error gets thrown
+    }
   }
 
   private def removeBySpec[EC, E, I](table: Repo[EC, E, I], spec: Spec[E], getId: E => I)(using DbCon)
@@ -287,36 +396,61 @@ object repo {
   private def addAll[EC, E, I](table: Repo[EC, E, I])(elems: Iterable[EC])(using DbCon)
     = table.insertAll(elems)
 
-  private def removeTextboxes(userId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(userId), _.id)
-  private def removeImages(userId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(userId), _.id)
-  private def removeStickers(userId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(userId), _.id)
+  private def removeTextboxes(profileId: Int)(using DbCon) = removeBySpec(profileTextboxRepo, profileTextboxesSpec(profileId), _.id)
+  private def removeImages(profileId: Int)(using DbCon) = removeBySpec(profileImageRepo, profileImagesSpec(profileId), _.id)
+  private def removeStickers(profileId: Int)(using DbCon) = removeBySpec(profileStickerRepo, profileStickersSpec(profileId), _.id)
   private def addTextboxes(using DbCon) = addAll(profileTextboxRepo)
   private def addImages(using DbCon) = addAll(profileImageRepo)
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
 
+  private def getProfileIdFromUserId(accountId: Int)(using DbCon): Option[Int] = sql"""
+    SELECT ${Profile.Table.id}
+      FROM ${Profile.Table}
+    WHERE ${Profile.Table.accountId} = $accountId
+    LIMIT 1
+  """.query[Int].run().headOption
+
+  /// TODO: actually write out the sql for this. will be nicer than the hell below.
+  // def updateProfileByAccountId(accountId: Int)(using DbCon) = sql"""
+  //   UPDATE
+  // """.query[Unit].run()
+
+  def _updateWallElements(
+    profileId: Int,
+    textboxCreators: Iterable[WallTextboxCreatorBuilder],
+    imageCreators: Iterable[WallImageCreatorBuilder],
+    stickerCreators: Iterable[WallStickerCreatorBuilder],
+  )(using DbCon) = {
+    repo.removeTextboxes(profileId)
+    repo.addTextboxes(textboxCreators.map(_.build(profileId)))
+    repo.removeImages(profileId)
+    repo.addImages(imageCreators.map(_.build(profileId)))
+    repo.removeStickers(profileId)
+    repo.addStickers(stickerCreators.map(_.build(profileId)))
+    Right(())
+    /// TODO: obviously this is the jankiest most disgusting code ever
+    /// but apparently it makes the frontend easier so we will leave as-is for now
+    /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
+  }
+
   def updateFullProfile(
-        profile: Profile,
-        textboxCreators: Iterable[ProfileTextboxCreator],
-        imageCreators: Iterable[ProfileImageCreator],
-        stickerCreators: Iterable[ProfileStickerCreator],
-  ) = repo.inDatabase {
-    // TODO: Transaction
-    profileRepo.findById(profile.id) match {
-      // Only update profile if the row already exists.
-      case Some(_) => {
-        repo.profileRepo.update(profile)
-        repo.removeTextboxes(profile.id)
-        repo.addTextboxes(textboxCreators)
-        repo.removeImages(profile.id)
-        repo.addImages(imageCreators)
-        repo.removeStickers(profile.id)
-        repo.addStickers(stickerCreators)
-        Right(())
-        /// TODO: obviously this is the jankiest most disgusting code ever
-        /// but apparently it makes the frontend easier so we will leave as-is for now
-        /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
+        profileCreator: ProfileCreator,
+        textboxCreators: Iterable[WallTextboxCreatorBuilder],
+        imageCreators: Iterable[WallImageCreatorBuilder],
+        stickerCreators: Iterable[WallStickerCreatorBuilder],
+  ) = repo.inDatabaseWithRollback {
+    val profileId: Option[Int] = getProfileIdFromUserId(profileCreator.accountId)
+    profileId match {
+      case Some(pid) => {
+        /// TODO: change this so its plain sql!!
+        repo.profileRepo.update(profileCreator.toProfile(pid))
+        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
       }
-      case None => Left("Provided userId does not exist. No profile to update.")
+      case None => {
+        /// profile doesn't exist yet, so create a new one.
+        val pid = repo.profileRepo.insertReturning(profileCreator).id
+        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+      }
     }
   }
 
@@ -403,10 +537,6 @@ object repo {
     sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
   }
 
-  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
-    connect(dataSource)(f)
-  }
-
   def logButtonPress(
     userId: Int,
     buttonId: String,
@@ -420,4 +550,14 @@ object repo {
       )
     ).asRight
   }
+
+  private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
+    connect(dataSource)(f)
+  }
+
+  private def inDatabaseWithRollback[B](f: DbCon ?=> B): IO[B] = IO.blocking {
+    transact(dataSource)(f)
+  }
 }
+
+

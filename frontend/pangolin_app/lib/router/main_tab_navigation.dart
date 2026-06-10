@@ -7,14 +7,14 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 
+//// TODO: pretty sure this needs to be made to work with the gorouter stuff.
 class MainTabNavigation {
   MainTabNavigation._();
 
-  static void goToRecommendations(BuildContext context, int userId) {
+  static void goToRecommendations(BuildContext context) {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => RecommendationListPage(
-          userId: userId,
           recommendationFetcher: getIt<RecommendationFetcher>(),
           profileFetcher: getIt<ProfileFetcher>(),
         ),
@@ -22,15 +22,15 @@ class MainTabNavigation {
     );
   }
 
-  static void goToEditProfile(BuildContext context, int userId) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => EditProfilePage(userId: userId)),
-    );
+  static void goToEditProfile(BuildContext context) {
+    Navigator.of(
+      context,
+    ).pushReplacement(MaterialPageRoute(builder: (_) => EditProfilePage()));
   }
 
-  static void goToFriends(BuildContext context, int userId) {
+  static void goToFriends(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => ConnectionsPage(userId: userId)),
+      MaterialPageRoute(builder: (_) => const ConnectionsPage()),
     );
   }
 }

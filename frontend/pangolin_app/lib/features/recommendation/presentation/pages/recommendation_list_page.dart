@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
@@ -13,28 +15,33 @@ import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
 
-class RecommendationListPage extends StatefulWidget {
-  final int userId;
-  final RecommendationFetcher recommendationFetcher;
+class RecommendationListPage extends ConsumerStatefulWidget {
+  final RecommendationFetcher? recommendationFetcher;
   final ProfileFetcher? profileFetcher;
   final ButtonClickLogger? logger;
 
   const RecommendationListPage({
     super.key,
-    required this.userId,
-    required this.recommendationFetcher,
+    this.recommendationFetcher,
     this.profileFetcher,
     this.logger,
   });
 
   @override
-  State<RecommendationListPage> createState() => _RecommendationListPageState();
+  ConsumerState<RecommendationListPage> createState() =>
+      _RecommendationListPageState();
 }
 
-class _RecommendationListPageState extends State<RecommendationListPage> {
+class _RecommendationListPageState
+    extends ConsumerState<RecommendationListPage> {
   bool _isLoading = true;
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
+
+  late final RecommendationFetcher _recommendationFetcher =
+      widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
+  late final ProfileFetcher _profileFetcher =
+      widget.profileFetcher ?? getIt<ProfileFetcher>();
 
   @override
   void initState() {
@@ -45,7 +52,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
   void _log(String buttonId) {
     unawaited(
       (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: widget.userId,
+        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
         buttonId: buttonId,
       ),
     );
@@ -53,7 +60,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
 
   Future<void> _loadRecommendations() async {
     try {
-      final recommendations = await widget.recommendationFetcher
+      final recommendations = await _recommendationFetcher
           .fetchRecommendations();
 
       setState(() {
@@ -85,10 +92,9 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
       ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.recommendations,
-        onEditProfile: () =>
-            MainTabNavigation.goToEditProfile(context, widget.userId),
+        onEditProfile: () => MainTabNavigation.goToEditProfile(context),
         onRecommendations: () {},
-        onFriends: () => MainTabNavigation.goToFriends(context, widget.userId),
+        onFriends: () => MainTabNavigation.goToFriends(context),
       ),
       body: Builder(
         builder: (context) {
@@ -117,9 +123,7 @@ class _RecommendationListPageState extends State<RecommendationListPage> {
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => RecommendationProfilePage(
-                        viewerUserId: widget.userId,
-                        profileFetcher:
-                            widget.profileFetcher ?? getIt<ProfileFetcher>(),
+                        profileFetcher: _profileFetcher,
                         userId: recommendation.userId,
                       ),
                     ),

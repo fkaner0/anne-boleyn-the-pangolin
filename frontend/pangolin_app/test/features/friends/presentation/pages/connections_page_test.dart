@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -10,6 +11,8 @@ import 'package:pangolin_app/features/friends/presentation/pages/connections_pag
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
   final CurrentFriends current;
@@ -45,11 +48,13 @@ void main() {
     List<PendingFriend> pending = const [],
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: ConnectionsPage(
-          userId: 7,
-          friendsFetcher: _FakeFriendsFetcher(data, pending: pending),
-          logger: logger,
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp(
+          home: ConnectionsPage(
+            friendsFetcher: _FakeFriendsFetcher(data, pending: pending),
+            logger: logger,
+          ),
         ),
       ),
     );

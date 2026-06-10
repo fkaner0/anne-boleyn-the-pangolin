@@ -1,3 +1,10 @@
-id,name,location,bio,wallbackgroundhexargb,profileimageurl
-1,"Alice","Hammersmith","I <3 rabbits & hay",0xFF444444,"url"
-2,"Bob","Fulham","I'm a carrot in my spare time",0xFF300070,"url"
+id,accountid,name,location,bio,wallbackgroundhexargb,profileimageurl,age
+94,1,Daisy P,"Tottenham, Online",shapes and colours!! idk what I'd do without them,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/pqygsomfvn70xuuzwu0e.jpg,30
+37,2,Jonny,London,"Landscape art capture your mood via capturing the changing moods of nature. whether you have beautiful sunsets or stormy skies, different landscapes offer to the viewer a range of emotions, some of which may connect with memories they have. They are not just an aesthetic pleasure.",4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/rnldp3k2i5kov85hpdzk.jpg,19
+102,3,Hazza,back labs,I have got Hella vibes,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/zhadfmadewk5kd5qe2kk.jpg,19
+106,4,Chester,Cheeseland,I love making cheese,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/wp4dsf0mmggstfdlkyvs.jpg,12
+110,5,Gary,Romford,Boats boats boats boats boats,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/ttre4xahzyupck5jphki.jpg,25
+23,6,Laura Bogsworth,Ealing,love hate relationship with my needles,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/qqroyry3izdu06desrni.jpg,20
+61,7,Rae T,London,interested in digital art!,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/snayyymzzrj37zzt7dkd.jpg,19
+64,8,Selena,Royal Holloway,my name is definitely Selena and I like 2 paint,4294967295,https://res.cloudinary.com/dvacw0gsi/image/upload/pxceb09dsnfxhq3ucyn9.jpg,32
+119,9,"Jess","London,UK","I love to paint (acrylic) & crochet. I end usually do it for gifts but want to do it more often! 🦜👩‍❤️‍💋‍👩🥹",4294967295,"https://res.cloudinary.com/dvacw0gsi/image/upload/kei1mpdcoiqmxnnwenl7.jpg",22

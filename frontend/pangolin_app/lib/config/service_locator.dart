@@ -1,5 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:pangolin_app/config/env.dart';
+import 'package:pangolin_app/features/auth/data/authoriser.dart';
+import 'package:pangolin_app/features/auth/data/mock_authoriser.dart';
+import 'package:pangolin_app/features/auth/data/render_authoriser.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
@@ -60,6 +63,7 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ImageUploader>(() => MockImageUploader());
       getIt.registerLazySingleton<ProfileUpdater>(() => MockProfileUpdater());
       getIt.registerLazySingleton<UserCreator>(() => MockUserCreator());
+      getIt.registerLazySingleton<Authoriser>(() => MockAuthoriser());
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => MockButtonClickLogger(),
       );
@@ -109,6 +113,10 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
+      getIt.registerLazySingleton<Authoriser>(
+        () =>
+            RenderAuthoriser(host: hostLocal, port: portLocal, useHttps: false),
+      );
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => RenderButtonClickLogger(
           host: hostLocal,
@@ -150,6 +158,9 @@ void configureDependencies(BackendMode backend) {
       );
       getIt.registerLazySingleton<UserCreator>(
         () => RenderUserCreator(host: host),
+      );
+      getIt.registerLazySingleton<Authoriser>(
+        () => RenderAuthoriser(host: host),
       );
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => RenderButtonClickLogger(host: host),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
@@ -8,6 +9,8 @@ import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 class _FakeProfileFetcher implements ProfileFetcher {
   final Profile profile;
@@ -53,12 +56,14 @@ void main() {
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: RecommendationProfilePage(
-          viewerUserId: 7,
-          profileFetcher: const _FakeProfileFetcher(profile),
-          userId: 5,
-          logger: logger,
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp(
+          home: RecommendationProfilePage(
+            profileFetcher: const _FakeProfileFetcher(profile),
+            userId: 5,
+            logger: logger,
+          ),
         ),
       ),
     );

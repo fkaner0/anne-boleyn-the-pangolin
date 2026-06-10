@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
@@ -11,8 +13,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_fi
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 
-class SharedBoardPage extends StatefulWidget {
-  final int userId;
+class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
   final String friendName;
   final SharedBoardService? service;
@@ -21,7 +22,6 @@ class SharedBoardPage extends StatefulWidget {
 
   const SharedBoardPage({
     super.key,
-    required this.userId,
     required this.friendUserId,
     required this.friendName,
     this.service,
@@ -30,16 +30,17 @@ class SharedBoardPage extends StatefulWidget {
   });
 
   @override
-  State<SharedBoardPage> createState() => _SharedBoardPageState();
+  ConsumerState<SharedBoardPage> createState() => _SharedBoardPageState();
 }
 
-class _SharedBoardPageState extends State<SharedBoardPage> {
+class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   late final SharedBoardService _service =
       widget.service ?? getIt<SharedBoardService>();
   late final ImageFilePicker _imagePicker =
       widget.imagePicker ?? GalleryImageFilePicker();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
+  late final int _userId;
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   StreamSubscription<SharedElement>? _subscription;
@@ -48,7 +49,8 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
   @override
   void initState() {
     super.initState();
-    _subscription = _service.listen(widget.userId).listen(_onElement);
+    _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
+    _subscription = _service.listen(_userId).listen(_onElement);
   }
 
   @override
@@ -59,7 +61,7 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
   }
 
   void _onElement(SharedElement element) {
-    if (!element.involves(widget.userId, widget.friendUserId)) return;
+    if (!element.involves(_userId, widget.friendUserId)) return;
     _elements.value = {..._elements.value, element.id: element};
   }
 
@@ -81,7 +83,7 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
     try {
       final url = await _imageUploader.uploadImage(picked.bytes);
       await _service.sendImage(
-        senderId: widget.userId,
+        senderId: _userId,
         receiverId: widget.friendUserId,
         url: url,
         datetime: _now(),
@@ -103,7 +105,7 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
       builder: (_) => SharedBoardChatDialog(
         elements: _elements,
         elementId: elementId,
-        userId: widget.userId,
+        userId: _userId,
         friendName: widget.friendName,
         onSendReply: (text) => _sendReply(elementId, text),
       ),
@@ -114,7 +116,7 @@ class _SharedBoardPageState extends State<SharedBoardPage> {
     try {
       await _service.sendReply(
         sharedElementId: elementId,
-        senderId: widget.userId,
+        senderId: _userId,
         receiverId: widget.friendUserId,
         text: text,
         datetime: _now(),

@@ -1,8 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
@@ -15,25 +17,20 @@ import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
-class ConnectionsPage extends StatefulWidget {
-  final int userId;
+class ConnectionsPage extends ConsumerStatefulWidget {
   final FriendsFetcher? friendsFetcher;
   final ButtonClickLogger? logger;
 
-  const ConnectionsPage({
-    super.key,
-    required this.userId,
-    this.friendsFetcher,
-    this.logger,
-  });
+  const ConnectionsPage({super.key, this.friendsFetcher, this.logger});
 
   @override
-  State<ConnectionsPage> createState() => _ConnectionsPageState();
+  ConsumerState<ConnectionsPage> createState() => _ConnectionsPageState();
 }
 
-class _ConnectionsPageState extends State<ConnectionsPage> {
+class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   late final FriendsFetcher _friendsFetcher =
       widget.friendsFetcher ?? getIt<FriendsFetcher>();
+  late final int _userId;
 
   bool _loading = true;
   String? _error;
@@ -42,12 +39,13 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
   @override
   void initState() {
     super.initState();
+    _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
   }
 
   Future<void> _load() async {
     try {
-      final data = await _friendsFetcher.fetchCurrentFriends(widget.userId);
+      final data = await _friendsFetcher.fetchCurrentFriends(_userId);
       if (!mounted) return;
       setState(() {
         _data = data;
@@ -66,7 +64,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
   void _log(String buttonId) {
     unawaited(
       (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: widget.userId,
+        userId: _userId,
         buttonId: buttonId,
       ),
     );
@@ -78,7 +76,7 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
     final selected = await showDialog<PendingFriend>(
       context: context,
       builder: (_) => PendingConnectionsDialog(
-        userId: widget.userId,
+        userId: _userId,
         friendsFetcher: _friendsFetcher,
         logger: widget.logger,
       ),
@@ -92,11 +90,8 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
   void _openBoard(int friendUserId, String friendName) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SharedBoardPage(
-          userId: widget.userId,
-          friendUserId: friendUserId,
-          friendName: friendName,
-        ),
+        builder: (_) =>
+            SharedBoardPage(friendUserId: friendUserId, friendName: friendName),
       ),
     );
   }
@@ -107,10 +102,8 @@ class _ConnectionsPageState extends State<ConnectionsPage> {
       appBar: AppBar(title: const Text('Connections')),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.friends,
-        onEditProfile: () =>
-            MainTabNavigation.goToEditProfile(context, widget.userId),
-        onRecommendations: () =>
-            MainTabNavigation.goToRecommendations(context, widget.userId),
+        onEditProfile: () => MainTabNavigation.goToEditProfile(context),
+        onRecommendations: () => MainTabNavigation.goToRecommendations(context),
         onFriends: () {},
       ),
       body: SafeArea(child: _buildBody()),

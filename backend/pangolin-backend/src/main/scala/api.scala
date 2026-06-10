@@ -17,7 +17,8 @@ import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, s
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.ReadWriter
-import pangolin.repo.ProfileTextboxCreator
+import pangolin.repo.WallTextboxCreator
+import com.augustnagro.magnum.SqlException //oops
 import scala.concurrent.duration.DurationInt
 
 object api {
@@ -39,12 +40,12 @@ object api {
       rejected: Boolean,
   ) derives ReadWriter
 
-  case class ProfileImage(
+  case class WallImage(
       url: String,
       position: Position,
   ) derives ReadWriter
 
-  case class ProfileTextbox(
+  case class WallTextbox(
       title: String,
       body: String,
       font: Option[String],
@@ -53,7 +54,7 @@ object api {
       position: Position,
   ) derives ReadWriter
 
-  case class ProfileSticker(
+  case class WallSticker(
       name: String, // plain name. no extension
       position: Position,
   ) derives ReadWriter
@@ -65,9 +66,9 @@ object api {
       bio: String,
       age: Int,
       wallBackgroundHexARGB: Long,
-      wallImages: Vector[ProfileImage],
-      wallTextboxes: Vector[ProfileTextbox],
-      wallStickers: Vector[ProfileSticker],
+      wallImages: Vector[WallImage],
+      wallTextboxes: Vector[WallTextbox],
+      wallStickers: Vector[WallSticker],
   ) derives ReadWriter
 
   case class UploadRequest(
@@ -77,7 +78,19 @@ object api {
     url: String
   ) derives ReadWriter
 
+  case class NewUserRequest(
+    username: String
+  ) derives ReadWriter
+
   case class NewUserResponse(
+    userId: Int
+  ) derives ReadWriter
+
+  case class LoginRequest(
+    username: String
+  ) derives ReadWriter
+
+  case class LoginResponse(
     userId: Int
   ) derives ReadWriter
 
@@ -130,6 +143,7 @@ object api {
 
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
+    .errorOut(stringBody)
     .out(jsonBody[FullProfile])
 
   private val profileEditEndpoint = endpoint.put
@@ -144,9 +158,15 @@ object api {
     .errorOut(stringBody)
     .out(jsonBody[UploadResponse])
 
-  private val newUserEndpoint = endpoint.post
-    .in("user")
+  private val signUpEndpoint = endpoint.post
+    .in("auth" / path[String]("username"))
+    .errorOut(stringBody)
     .out(jsonBody[NewUserResponse])
+
+  private val loginEndpoint = endpoint.get
+    .in("auth" / path[String]("username"))
+    .errorOut(stringBody)
+    .out(jsonBody[LoginResponse])
 
   private val buttonLogEndpoint = endpoint.post
     .in("debug" / "button-click")
@@ -197,7 +217,7 @@ object api {
 
   extension (user: repo.Profile) {
     def toRecommendation = Recommendation(
-      userId = user.id,
+      userId = user.accountId,
       name = user.name,
       location = user.location,
       bio = user.bio,
@@ -230,10 +250,10 @@ object api {
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
-        request.fromApi(userId),
-        request.wallTextboxes.map(_.fromApi(userId)),
-        request.wallImages.map(_.fromApi(userId)),
-        request.wallStickers.map(_.fromApi(userId)),
+        request.fromApi(accountId = userId),
+        request.wallTextboxes.map(_.fromApi),
+        request.wallImages.map(_.fromApi),
+        request.wallStickers.map(_.fromApi),
       )
     }
   )
@@ -250,10 +270,29 @@ object api {
     }
   )
 
-  private val newUserRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    newUserEndpoint.serverLogic { _ =>
-      val newUserId: IO[Either[Nothing, Int]] = repo.newProfile()
-      newUserId.map(_.map(NewUserResponse(_)))
+  private val signUpRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    signUpEndpoint.serverLogic { username =>
+      val newUserId: IO[Either[Throwable, Int]] = repo.newUser(username)
+      newUserId.map { _ match {
+          case Left(err: SqlException) => Left(
+            s"Error inserting new user with username ${username}. Perhaps this user already exists.\n${err.toString}"
+          )
+          case Left(err) => Left(err.getMessage)
+          case Right(userId) => Right(NewUserResponse(userId))
+      }}
+    }
+  )
+
+  private val loginRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
+    loginEndpoint.serverLogic { username =>
+      val userId: IO[Either[Throwable, Int]] = repo.getUser(username)
+      userId.map { _ match {
+          case Left(err: SqlException) => Left(
+            s"Error getting userId from username ${username}. User might not exist.\n${err.toString}"
+          )
+          case Left(err) => Left(err.getMessage)
+          case Right(userId) => Right(LoginResponse(userId))
+      }}
     }
   )
 
@@ -301,15 +340,15 @@ object api {
     }
   )
 
-  extension (image: repo.ProfileImage) {
-    private def toApi = ProfileImage(
+  extension (image: repo.WallImage) {
+    private def toApi = WallImage(
       url = image.url,
       position = image.position,
     )
   }
 
-  extension (textbox: repo.ProfileTextbox) {
-    private def toApi = ProfileTextbox(
+  extension (textbox: repo.WallTextbox) {
+    private def toApi = WallTextbox(
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,
@@ -320,9 +359,8 @@ object api {
   }
 
 
-  extension (sticker: ProfileSticker) {
-    private def fromApi(userId: Int) = repo.ProfileStickerCreator(
-      userId = userId,
+  extension (sticker: WallSticker) {
+    private def fromApi = repo.WallStickerCreatorBuilder(
       name = sticker.name,
       x = sticker.position.x,
       y = sticker.position.y,
@@ -332,9 +370,8 @@ object api {
     )
   }
 
-  extension (image: ProfileImage) {
-    private def fromApi(userId: Int) = repo.ProfileImageCreator(
-      userId = userId,
+  extension (image: WallImage) {
+    private def fromApi = repo.WallImageCreatorBuilder(
       url = image.url,
       x = image.position.x,
       y = image.position.y,
@@ -344,9 +381,8 @@ object api {
     )
   }
   
-  extension (textbox: ProfileTextbox) {
-    private def fromApi(userId: Int) = repo.ProfileTextboxCreator(
-      userId = userId,
+  extension (textbox: WallTextbox) {
+    private def fromApi = repo.WallTextboxCreatorBuilder(
       title = textbox.title,
       body = textbox.body,
       font = textbox.font,
@@ -361,8 +397,8 @@ object api {
   }
 
   extension (profile: FullProfile) {
-    private def fromApi(userId: Int) = repo.Profile(
-      id = userId,
+    private def fromApi(accountId: Int) = repo.ProfileCreator(
+      accountId = accountId,
       name = profile.name,
       location = profile.location,
       bio = profile.bio,
@@ -372,8 +408,8 @@ object api {
     )
   }
 
-  extension (sticker: repo.ProfileSticker) {
-    private def toApi = ProfileSticker(
+  extension (sticker: repo.WallSticker) {
+    private def toApi = WallSticker(
       name = sticker.name,
       position = sticker.position,
     )
@@ -390,7 +426,8 @@ object api {
   }
 
   def router(topic: Topic[IO, (Int, Int)]) = Router(
-    "/" -> newUserRoutes,
+    "/" -> loginRoutes,
+    "/" -> signUpRoutes,
     "/" -> recommendationsRoutes,
     "/" -> profileViewRoutes,
     "/" -> profileEditRoutes,

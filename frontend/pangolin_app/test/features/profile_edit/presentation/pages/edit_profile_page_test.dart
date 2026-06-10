@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -13,6 +14,8 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_imag
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 Finder _iconOfType(AppIconType type) =>
     find.byWidgetPredicate((w) => w is AppIcon && w.type == type);
@@ -67,15 +70,17 @@ void main() {
     required ProfileUpdater updater,
   }) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: EditProfilePage(
-          userId: 7,
-          profileFetcher: fetcher,
-          profileUpdater: updater,
-          imagePicker: _FakeImageFilePicker(),
-          imageUploader: MockImageUploader(),
-          stickerCatalog: StickerCatalog.fromAssetKeys(const <String>[]),
-          fontCatalog: const FontCatalog(),
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp(
+          home: EditProfilePage(
+            profileFetcher: fetcher,
+            profileUpdater: updater,
+            imagePicker: _FakeImageFilePicker(),
+            imageUploader: MockImageUploader(),
+            stickerCatalog: StickerCatalog.fromAssetKeys(const <String>[]),
+            fontCatalog: const FontCatalog(),
+          ),
         ),
       ),
     );

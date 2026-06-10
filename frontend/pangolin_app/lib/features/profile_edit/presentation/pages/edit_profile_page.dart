@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/add_chip_button.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/field_label.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.dart';
@@ -29,8 +31,7 @@ import 'package:pangolin_app/widgets/splodge.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
 
-class EditProfilePage extends StatefulWidget {
-  final int userId;
+class EditProfilePage extends ConsumerStatefulWidget {
   final ProfileFetcher? profileFetcher;
   final ProfileUpdater? profileUpdater;
   final ImageFilePicker? imagePicker;
@@ -40,7 +41,6 @@ class EditProfilePage extends StatefulWidget {
 
   const EditProfilePage({
     super.key,
-    required this.userId,
     this.profileFetcher,
     this.profileUpdater,
     this.imagePicker,
@@ -50,10 +50,10 @@ class EditProfilePage extends StatefulWidget {
   });
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+  ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late final ProfileFetcher _profileFetcher =
       widget.profileFetcher ?? getIt<ProfileFetcher>();
   late final ProfileUpdater _profileUpdater =
@@ -83,7 +83,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   void initState() {
     super.initState();
-    _load();
+    final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
+    _load(userId);
   }
 
   @override
@@ -95,9 +96,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  Future<void> _load() async {
+  Future<void> _load(int userId) async {
     try {
-      final profile = await _profileFetcher.fetchProfile(widget.userId);
+      final profile = await _profileFetcher.fetchProfile(userId);
 
       final stickerCatalog = widget.stickerCatalog ?? getIt<StickerCatalog>();
       final fontCatalog = widget.fontCatalog ?? getIt<FontCatalog>();
@@ -238,7 +239,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     if (!mounted) return;
     setState(() => _saving = false);
     _showMessage('Profile saved');
-    MainTabNavigation.goToRecommendations(context, widget.userId);
+    MainTabNavigation.goToRecommendations(context);
   }
 
   void _showMessage(String message) {
@@ -271,9 +272,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.editProfile,
         onEditProfile: () {},
-        onRecommendations: () =>
-            MainTabNavigation.goToRecommendations(context, widget.userId),
-        onFriends: () => MainTabNavigation.goToFriends(context, widget.userId),
+        onRecommendations: () => MainTabNavigation.goToRecommendations(context),
+        onFriends: () => MainTabNavigation.goToFriends(context),
       ),
     );
   }

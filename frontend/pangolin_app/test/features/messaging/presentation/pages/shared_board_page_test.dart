@@ -3,12 +3,15 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -59,14 +62,16 @@ void main() {
   Future<_FakeService> pumpBoard(WidgetTester tester) async {
     final service = _FakeService();
     await tester.pumpWidget(
-      MaterialApp(
-        home: SharedBoardPage(
-          userId: 1,
-          friendUserId: 2,
-          friendName: 'Sally',
-          service: service,
-          imagePicker: _FakePicker(),
-          imageUploader: MockImageUploader(),
+      ProviderScope(
+        overrides: [loggedInUserId(1)],
+        child: MaterialApp(
+          home: SharedBoardPage(
+            friendUserId: 2,
+            friendName: 'Sally',
+            service: service,
+            imagePicker: _FakePicker(),
+            imageUploader: MockImageUploader(),
+          ),
         ),
       ),
     );
