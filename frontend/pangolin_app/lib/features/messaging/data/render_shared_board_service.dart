@@ -18,7 +18,11 @@ class RenderSharedBoardService implements SharedBoardService {
        );
 
   @override
-  Stream<SharedElement> listen(int userId) => _delegate.listen(userId);
+  Stream<void> notifications(int userId) => _delegate.notifications(userId);
+
+  @override
+  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId) =>
+      _delegate.fetchBoard(userId, friendUserId);
 
   @override
   Future<void> sendImage({

@@ -28,7 +28,7 @@ void main() {
     );
   }
 
-  testWidgets('shows the label only for the current tab', (tester) async {
+  testWidgets('shows the filled icon for the current tab only', (tester) async {
     await pumpBar(
       tester,
       current: IslandNavTab.recommendations,
@@ -36,9 +36,10 @@ void main() {
       onRecommendations: () {},
     );
 
-    expect(find.text('Recommendations'), findsOneWidget);
-    expect(find.text('Profile'), findsNothing);
-    expect(find.text('Friends'), findsNothing);
+    expect(iconOfType(AppIconType.findFilled), findsOneWidget);
+    expect(iconOfType(AppIconType.meUnfilled), findsOneWidget);
+    expect(iconOfType(AppIconType.palsUnfilled), findsOneWidget);
+    expect(iconOfType(AppIconType.findUnfilled), findsNothing);
   });
 
   testWidgets('tapping another tab invokes its callback', (tester) async {

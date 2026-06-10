@@ -1,7 +1,9 @@
 import '../domain/shared_element.dart';
 
 abstract interface class SharedBoardService {
-  Stream<SharedElement> listen(int userId);
+  Stream<void> notifications(int userId);
+
+  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId);
 
   Future<void> sendImage({
     required int senderId,
