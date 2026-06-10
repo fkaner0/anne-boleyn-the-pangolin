@@ -230,6 +230,7 @@ object api {
 
   private val currentFriendsEndpoint = endpoint.get
     .in("friends" / "current" / path[Int]("userId"))
+    .errorOut(stringBody)
     .out(jsonBody[CurrentFriends])
 
   private val pendingFriendsEndpoint = endpoint.get
@@ -370,14 +371,18 @@ object api {
   )
 
   private val currentFriendsRoutes = serverInterpreter.toRoutes(
-    currentFriendsEndpoint.serverLogicSuccess { userId =>
-      repo.getCurrentFriends(userId).map(CurrentFriends(_, 0))
+    currentFriendsEndpoint.serverLogic { userId =>
+      repo.getCurrentFriends(userId).map(
+        _.map((friends, nPending) => CurrentFriends(friends, nPending))
+        .toRight(s"Error finding friends for user $userId")
+      )
+      // repo.getCurrentFriends(userId).map((friends, nPending) => CurrentFriends(friends, nPending))
     }
   )
 
   private val pendingFriendsRoutes = serverInterpreter.toRoutes(
     pendingFriendsEndpoint.serverLogicSuccess { userId =>
-      IO.pure(PendingFriends(Vector.empty))
+      repo.getPendingFriends(userId).map(PendingFriends(_))
     }
   )
 

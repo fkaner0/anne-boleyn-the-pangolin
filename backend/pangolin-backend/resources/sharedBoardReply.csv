@@ -1,0 +1,64 @@
+id,sharedboardelementid,text,timestamp,senderid,read
+1,1,hello world!,1,8,f
+2,1,hello world 3,2,8,f
+3,1,hello world 4,4,8,f
+4,1,hello from harry,1781090583494,3,f
+5,1,hello world 5,5,8,f
+6,1,hello again,1781090677424,3,f
+7,1,hi hi hi,1781090822044,3,f
+8,2,THIS IS A FAKE INITIAL MESSAGE,1781091000839,3,f
+9,3,THIS IS A FAKE INITIAL MESSAGE,1781092032979,3,f
+10,3,wheee,1781092319649,3,f
+11,2,weheee,1781092353278,3,f
+12,2,eiurtt,1781092358049,3,f
+13,2,sjdfitrer,1781092369537,3,f
+14,3,hii,1781092432091,3,f
+15,1,hello world 5,5,8,f
+16,1,hello world 7,7,8,f
+17,1,hello world 8,1781092765681,3,f
+18,1,hello world 7,7,8,f
+19,1,hello world 100,7,8,f
+20,2,please work,1781093111682,8,f
+21,2,wheeeee,1781093125867,3,f
+22,2,please please work,1781093301120,3,f
+23,2,helloooooooo,1781093321787,8,f
+24,4,Heya! Sick magpie,1781095329673,3,f
+25,4,wheee,1781096706347,3,f
+26,6,THIS IS A FAKE INITIAL MESSAGE,1781098431319,3,f
+27,9,I love ducks,1781098904592,2,f
+28,9,Me too!,1781098945297,1,f
+29,9,Wow,1781098977800,2,f
+30,9,Really,1781099076806,1,f
+31,9,Aaaaaa,1781099272805,1,f
+32,7,I am groot,1781099428819,2,f
+33,7,Me too,1781099444493,1,f
+34,10,this is awesome,1781100268299,4,f
+35,11,me too!,1781100303130,4,f
+36,10,you're awesome!!!!!!,1781100326591,5,f
+37,11,BOATS!!!!!!,1781100345437,5,f
+38,12,THIS IS A FAKE INITIAL MESSAGE,1781100496905,5,f
+39,12,i wish i was a boat,1781100511024,5,f
+40,12,I don't really like getting wet,1781100792763,4,f
+41,13,Groooot,1781104013642,1,f
+42,10,hello,1781108390465,5,f
+43,14,THIS IS A FAKE INITIAL MESSAGE,1781108441008,5,f
+44,15,THIS IS A FAKE INITIAL MESSAGE,1781108895037,2,f
+45,16,cool painting!! did you make this and what artists are you inspired by?,1781112126269,7,f
+46,16,yeah i painted it with my mum! i'm inspired by van gogh,1781112174893,3,f
+47,17,test,1781112248216,7,f
+48,18,test,1781112311805,7,f
+49,18,hi :),1781112327230,3,f
+50,17,test222,1781112337822,3,f
+51,19,i love bugs too!!!!,1781112664556,1,f
+52,20,I love Dexter ❤️ cutest boy,1781112733653,9,f
+53,21,THIS IS A FAKE INITIAL MESSAGE,1781112808539,9,f
+54,22,THIS IS A FAKE INITIAL MESSAGE,1781112838671,7,f
+55,23,rah,1781113418993,7,f
+56,24,test,1781113432841,7,f
+57,25,yay,1781113452197,7,f
+58,19,yay! 🪲,1781113744300,7,f
+59,26,i hate hobgoblins,1781116705734,6,f
+60,27,is that u gaga,1781116798778,3,f
+61,28,galalala,1781117771621,6,f
+62,29,ahahah,1781118643826,6,f
+63,30,hi,1781118679008,7,f
