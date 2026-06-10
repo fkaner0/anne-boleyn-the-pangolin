@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_edit/presentation/pages/edit_profile_page.dart';
@@ -9,6 +10,8 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/position.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_text.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
@@ -69,11 +72,12 @@ void main() {
     required ProfileFetcher fetcher,
     required ProfileUpdater updater,
   }) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [loggedInUserId(7)],
-        child: MaterialApp(
-          home: EditProfilePage(
+    final router = GoRouter(
+      initialLocation: AppRoutes.editProfile,
+      routes: [
+        GoRoute(
+          path: AppRoutes.editProfile,
+          builder: (_, _) => EditProfilePage(
             profileFetcher: fetcher,
             profileUpdater: updater,
             imagePicker: _FakeImageFilePicker(),
@@ -82,6 +86,17 @@ void main() {
             fontCatalog: const FontCatalog(),
           ),
         ),
+        GoRoute(
+          path: AppRoutes.recommendations,
+          builder: (_, _) => RecommendationListPage(),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
     await tester.pumpAndSettle();

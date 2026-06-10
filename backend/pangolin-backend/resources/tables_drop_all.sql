@@ -1,5 +1,3 @@
-DROP TABLE buttonlog;
-
 DROP TABLE sharedboardreply;
 DROP TABLE sharedboardelement;
 DROP TABLE sharedboard;

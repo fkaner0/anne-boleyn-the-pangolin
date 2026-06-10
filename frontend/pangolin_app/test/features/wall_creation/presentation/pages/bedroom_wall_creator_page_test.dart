@@ -3,20 +3,26 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
+import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/creator_tool_bar.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+
+import '../../../../support/auth_test_support.dart';
 
 final Uint8List _onePixelPng = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
@@ -68,12 +74,27 @@ void main() {
     BedroomWallCreatorController? controller,
     ProfileUpdater? profileUpdater,
   }) {
-    return tester.pumpWidget(
-      MaterialApp(
-        home: BedroomWallCreatorPage(
-          controller: controller,
-          profileUpdater: profileUpdater,
+    final router = GoRouter(
+      initialLocation: AppRoutes.editWall,
+      routes: [
+        GoRoute(
+          path: AppRoutes.editWall,
+          builder: (_, _) => BedroomWallCreatorPage(
+            controller: controller,
+            profileUpdater: profileUpdater,
+          ),
         ),
+        GoRoute(
+          path: AppRoutes.recommendations,
+          builder: (_, _) => RecommendationListPage(),
+        ),
+      ],
+    );
+
+    return tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(1)],
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
   }
