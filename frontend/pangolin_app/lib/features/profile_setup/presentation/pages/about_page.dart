@@ -236,7 +236,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           ),
         ),
 
-        // --- Expandable body ---
+        // --- Expandable body ---//
         if (expanded) ...[
           const SizedBox(height: 16),
 
@@ -246,17 +246,32 @@ class _AdditionalInfoSection extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [AddChipButton(onPressed: onAddSubInterest)],
+            children: [
+              for (final interest in subInterests)
+                InputChip(
+                  label: Text(interest),
+                  onDeleted: () => onRemoveSubInterest(interest),
+                ),
+              AddChipButton(onPressed: onAddSubInterest),
+            ],
           ),
+
           const SizedBox(height: 20),
 
           // Other interests
-          Text('Other Interests', style: theme.textTheme.bodyMedium),
+          Text('Other interests', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [AddChipButton(onPressed: onAddOtherInterest)],
+            children: [
+              for (final interest in otherInterests)
+                InputChip(
+                  label: Text(interest),
+                  onDeleted: () => onRemoveOtherInterest(interest),
+                ),
+              AddChipButton(onPressed: onAddOtherInterest),
+            ],
           ),
         ],
       ],
