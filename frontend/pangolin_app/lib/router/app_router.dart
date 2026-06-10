@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
@@ -53,7 +54,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           ),
           GoRoute(
             path: AppRoutes.recommendations,
-            builder: (context, state) => const RecommendationListPage(),
+            pageBuilder: (context, state) =>
+                _fadeRoute(RecommendationListPage()),
           ),
           GoRoute(
             path: AppRoutes.connections,
@@ -100,3 +102,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
   );
 });
+
+Page _fadeRoute(Widget widget) => CustomTransitionPage(
+  child: widget,
+  transitionsBuilder: (context, animation, secondaryAnimation, child) =>
+      FadeTransition(opacity: animation, child: child),
+  transitionDuration: const Duration(milliseconds: 200),
+);
