@@ -591,15 +591,14 @@ object repo {
     ).asRight
   }
 
-  // TODO: Avoid so many queries
   def getCurrentFriends(userId: Int) = inDatabase {
     val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
     sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
+      val coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
-        coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
-        coverImageUrls = coverImages.map(_.url).collect { case Some(url) => url }
+        coverImageUrls <- coverImages.map(_.url).sequence
       } yield (friendProfile.accountId, friendProfile.name, coverImageUrls, friendProfile.profileImageUrl)
     }.collect {
       case Some(x) => x
