@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/shared_element.dart';
 import '../../domain/shared_reply.dart';
 
@@ -73,7 +74,7 @@ class _SharedBoardChatDialogState extends State<SharedBoardChatDialog> {
           Align(
             alignment: Alignment.centerRight,
             child: IconButton(
-              icon: const Icon(Icons.close),
+              icon: const AppIcon(AppIconType.close),
               tooltip: 'Close',
               onPressed: () => Navigator.of(context).pop(),
             ),
@@ -118,7 +119,7 @@ class _Header extends StatelessWidget {
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => ColoredBox(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: const Center(child: Icon(Icons.broken_image_outlined)),
+              child: const Center(child: AppIcon(AppIconType.brokenImage)),
             ),
           ),
         ),
@@ -216,7 +217,7 @@ class _Composer extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         IconButton.filled(
-          icon: const Icon(Icons.send),
+          icon: const AppIcon(AppIconType.send),
           tooltip: 'Send',
           onPressed: onSend,
         ),

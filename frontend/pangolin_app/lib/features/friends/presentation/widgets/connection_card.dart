@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/features/friends/domain/friend.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 class ConnectionCard extends StatelessWidget {
@@ -133,7 +134,7 @@ class _MainImageBadge extends StatelessWidget {
   Widget _placeholder(ColorScheme colorScheme) {
     return ColoredBox(
       color: colorScheme.surfaceContainerHighest,
-      child: Icon(Icons.person, color: colorScheme.onSurfaceVariant),
+      child: AppIcon(AppIconType.person, color: colorScheme.onSurfaceVariant),
     );
   }
 }

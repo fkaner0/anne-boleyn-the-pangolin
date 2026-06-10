@@ -12,6 +12,7 @@ import 'package:pangolin_app/features/messaging/presentation/widgets/shared_elem
 import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
@@ -189,7 +190,7 @@ class _BottomBar extends StatelessWidget {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: onGrab,
-                icon: const Icon(Icons.wallpaper),
+                icon: const AppIcon(AppIconType.wallpaper),
                 label: const Text('Grab from their wall'),
               ),
             ),
@@ -203,7 +204,7 @@ class _BottomBar extends StatelessWidget {
                         height: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(Icons.add_photo_alternate_outlined),
+                    : const AppIcon(AppIconType.addImage),
                 label: const Text('Upload image'),
               ),
             ),
