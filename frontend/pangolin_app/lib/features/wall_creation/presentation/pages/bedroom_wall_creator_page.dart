@@ -9,6 +9,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
 import '../../data/picker/gallery_image_file_picker.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
@@ -272,8 +273,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: SingleChildScrollView(
-                key: _viewportKey,
+              child: BedroomWallViewport(
+                viewportKey: _viewportKey,
                 controller: _scrollController,
                 child: BedroomWallCanvas(
                   canvas: _controller.canvas,

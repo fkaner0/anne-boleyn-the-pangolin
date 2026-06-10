@@ -1,4 +1,26 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+
+class _TwoFingerScaleGestureRecognizer extends ScaleGestureRecognizer {
+  final Set<int> _pointers = {};
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    _pointers.add(event.pointer);
+    super.addAllowedPointer(event);
+  }
+
+  @override
+  void handleEvent(PointerEvent event) {
+    if (_pointers.length < 2 && event is PointerMoveEvent) {
+      resolve(GestureDisposition.rejected);
+    }
+    super.handleEvent(event);
+    if (event is PointerUpEvent || event is PointerCancelEvent) {
+      _pointers.remove(event.pointer);
+    }
+  }
+}
 
 class PinchToZoom extends StatefulWidget {
   final Widget child;
@@ -84,11 +106,19 @@ class _PinchToZoomState extends State<PinchToZoom>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return RawGestureDetector(
       behavior: HitTestBehavior.opaque,
-      onScaleStart: _onScaleStart,
-      onScaleUpdate: _onScaleUpdate,
-      onScaleEnd: _onScaleEnd,
+      gestures: {
+        _TwoFingerScaleGestureRecognizer:
+            GestureRecognizerFactoryWithHandlers<
+              _TwoFingerScaleGestureRecognizer
+            >(() => _TwoFingerScaleGestureRecognizer(), (recognizer) {
+              recognizer
+                ..onStart = _onScaleStart
+                ..onUpdate = _onScaleUpdate
+                ..onEnd = _onScaleEnd;
+            }),
+      },
       child: ClipRect(
         child: Transform(transform: _transform, child: widget.child),
       ),
