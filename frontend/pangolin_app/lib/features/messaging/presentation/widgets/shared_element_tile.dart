@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/shared_element.dart';
 
 class SharedElementTile extends StatelessWidget {
@@ -30,7 +31,7 @@ class SharedElementTile extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => _fallback(
                       colorScheme,
-                      const Icon(Icons.broken_image_outlined),
+                      const AppIcon(AppIconType.brokenImage),
                     ),
                   )
                 : Container(

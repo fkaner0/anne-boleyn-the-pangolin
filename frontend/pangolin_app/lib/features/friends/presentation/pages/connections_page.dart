@@ -14,6 +14,7 @@ import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
@@ -99,7 +100,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Connections')),
+      appBar: AppBar(
+        title: const Text('Connections'),
+        automaticallyImplyLeading: false,
+      ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.friends,
         onEditProfile: () => MainTabNavigation.goToEditProfile(context),
@@ -180,8 +184,8 @@ class _PendingConnectionsButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Icon(
-                Icons.people_alt_outlined,
+              AppIcon(
+                AppIconType.peopleAlt,
                 color: colorScheme.onPrimaryContainer,
               ),
               const SizedBox(width: 12),
@@ -194,7 +198,10 @@ class _PendingConnectionsButton extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.chevron_right, color: colorScheme.onPrimaryContainer),
+              AppIcon(
+                AppIconType.chevronRight,
+                color: colorScheme.onPrimaryContainer,
+              ),
             ],
           ),
         ),

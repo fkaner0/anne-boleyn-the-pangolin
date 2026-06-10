@@ -7,6 +7,7 @@ import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 class PendingConnectionsDialog extends StatefulWidget {
   final int userId;
@@ -100,7 +101,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close),
+                    icon: const AppIcon(AppIconType.close),
                     tooltip: 'Close',
                     onPressed: _close,
                   ),
@@ -170,7 +171,10 @@ class _PendingCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
+              AppIcon(
+                AppIconType.chevronRight,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -210,7 +214,7 @@ class _Avatar extends StatelessWidget {
   Widget _placeholder(ColorScheme colorScheme) {
     return ColoredBox(
       color: colorScheme.surface,
-      child: Icon(Icons.person, color: colorScheme.onSurfaceVariant),
+      child: AppIcon(AppIconType.person, color: colorScheme.onSurfaceVariant),
     );
   }
 }
