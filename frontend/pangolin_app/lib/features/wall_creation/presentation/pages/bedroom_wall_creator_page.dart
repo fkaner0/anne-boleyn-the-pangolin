@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
-import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
-import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../data/picker/gallery_image_file_picker.dart';
 import '../../data/uploader/wall_image_uploader.dart';
@@ -212,14 +211,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   void _openRecommendations() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RecommendationListPage(
-          recommendationFetcher: getIt<RecommendationFetcher>(),
-          profileFetcher: getIt<ProfileFetcher>(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.recommendations);
   }
 
   void _togglePreview() {

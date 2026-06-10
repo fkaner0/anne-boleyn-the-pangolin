@@ -14,8 +14,10 @@ class AppRoutes {
   static const String mainShell = '/main';
   static const String recommendations = '/main/recommendations';
   static const String connections = '/main/connections';
-  static const String editProfile = '/main/edit-profile';
+  static const String editProfile = '/profile/edit-profile';
+  static const String editWall = '/profile/edit-wall';
   static const String profile = '/main/profile';
+  static const String sharedBoard = '/chat/board';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -34,7 +36,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Profile Setup section (manages its own internal step state)
       GoRoute(
         path: AppRoutes.signup,
-        builder: (context, state) => SignupShell(),
+        builder: (context, state) => const SignupShell(),
       ),
 
       // Main app shell with bottom nav
@@ -46,10 +48,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: AppRoutes.editProfile,
             builder: (context, state) =>
                 const TmpFakePage(pageName: 'EditProfilePage()'),
+
+            // builder: (context, state) => const EditProfilePage(),
           ),
           GoRoute(
             path: AppRoutes.recommendations,
-            builder: (context, state) => RecommendationListPage(),
+            builder: (context, state) => const RecommendationListPage(),
           ),
           GoRoute(
             path: AppRoutes.connections,
@@ -59,12 +63,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
+      // edit current user's own wall
+      GoRoute(
+        path: AppRoutes.editWall,
+        builder: (context, state) =>
+            const TmpFakePage(pageName: "edit your bedroom wall <3"),
+        // BedroomWallCreatorPage( /////// TODO?),
+      ),
+
       // Selected user profile
       GoRoute(
         path: AppRoutes.profile,
         builder: (context, state) {
           return ProfileViewerPage(userId: userIdFromState(state));
         },
+      ),
+
+      // Selected shared board (for chatting)
+      GoRoute(
+        path: AppRoutes.sharedBoard,
+        builder: (context, state) => TmpFakePage(
+          pageName: 'shared board with friendUserId $userIdFromState(state)',
+        ),
+        // builder: (context, state) {
+        //   return SharedBoardPage(userId: userIdFromState(state));
+        // },
       ),
     ],
 
