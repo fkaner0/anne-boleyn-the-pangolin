@@ -185,7 +185,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
           builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
         ),
         actions: [
-          IconButton(
+          IconButton.filledTonal(
             icon: AppIcon(AppIconType.person),
             onPressed: () =>
                 context.push(AppRoutes.viewProfile, extra: widget.friendUserId),

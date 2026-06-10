@@ -82,7 +82,7 @@ class _AboutPageState extends State<AboutPage> {
         title: const Text('About your craft'),
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.save),
             tooltip: 'Save',
             onPressed: _onNext,
