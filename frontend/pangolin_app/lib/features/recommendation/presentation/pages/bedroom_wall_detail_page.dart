@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
@@ -137,6 +139,7 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
                                   text: widget.textbox!.body,
                                   message: message,
                                 );
+                          context.push(AppRoutes.sharedBoard, extra: widget.profile.userId);
                         },
                       ),
                     ],
