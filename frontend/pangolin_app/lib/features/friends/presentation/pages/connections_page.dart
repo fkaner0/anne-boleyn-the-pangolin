@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
@@ -10,9 +11,9 @@ import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
-import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
@@ -89,12 +90,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   }
 
   void _openBoard(int friendUserId, String friendName) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) =>
-            SharedBoardPage(friendUserId: friendUserId, friendName: friendName),
-      ),
-    );
+    context.push(AppRoutes.sharedBoard, extra: friendUserId);
   }
 
   @override

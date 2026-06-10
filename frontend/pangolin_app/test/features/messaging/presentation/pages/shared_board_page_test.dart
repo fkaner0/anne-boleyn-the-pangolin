@@ -8,6 +8,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
+import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 
@@ -58,6 +60,21 @@ class _FakePicker implements ImageFilePicker {
       PickedImage(bytes: _onePixelPng, aspectRatio: 1);
 }
 
+class _FakeProfileFetcher implements ProfileFetcher {
+  final String name;
+
+  const _FakeProfileFetcher(this.name);
+
+  @override
+  Future<Profile> fetchProfile(int userId) async => Profile(
+    userId: userId,
+    name: name,
+    location: '',
+    images: [],
+    textboxes: [],
+  );
+}
+
 void main() {
   Future<_FakeService> pumpBoard(WidgetTester tester) async {
     final service = _FakeService();
@@ -67,7 +84,7 @@ void main() {
         child: MaterialApp(
           home: SharedBoardPage(
             friendUserId: 2,
-            friendName: 'Sally',
+            profileFetcher: const _FakeProfileFetcher('Sally'),
             service: service,
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
