@@ -67,7 +67,6 @@ void main() {
         child: MaterialApp(
           home: SharedBoardPage(
             friendUserId: 2,
-            friendName: 'Sally',
             service: service,
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
