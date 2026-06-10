@@ -469,7 +469,7 @@ class _WallCutoutPreview extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: context.paletteColors.surfaceMuted,
+                      color: Color(profile.wallBackgroundHexARGB),
                       child: IgnorePointer(
                         child: OverflowBox(
                           alignment: Alignment.topCenter,

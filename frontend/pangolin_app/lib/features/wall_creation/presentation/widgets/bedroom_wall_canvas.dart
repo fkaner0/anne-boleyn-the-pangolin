@@ -35,6 +35,7 @@ class BedroomWallCanvas extends StatelessWidget {
   final void Function(int id, bool active) onItemInteractionChanged;
   final void Function(Offset globalPosition) onItemDragUpdate;
   final bool editable;
+  final Color backgroundColor;
 
   const BedroomWallCanvas({
     super.key,
@@ -52,7 +53,8 @@ class BedroomWallCanvas extends StatelessWidget {
     required this.onPromptAddTextBox,
     required this.onItemInteractionChanged,
     required this.onItemDragUpdate,
-    required this.editable,
+    required this.editable, 
+    required this.backgroundColor,
   });
 
   CanvasTransform _toRendered(CanvasTransform transform, double renderScale) {
@@ -173,7 +175,9 @@ class BedroomWallCanvas extends StatelessWidget {
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () => FocusScope.of(context).unfocus(),
-                  child: ColoredBox(color: context.paletteColors.surfaceMuted),
+                  child: ColoredBox(
+                    color: backgroundColor,
+                  ),
                 ),
               ),
               for (final prompt in prompts) _buildPrompt(prompt, renderScale),

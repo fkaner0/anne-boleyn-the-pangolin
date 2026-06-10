@@ -218,6 +218,57 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(() => _preview = !_preview);
   }
 
+  Future<void> _showBackgroundColourPicker() async {
+  const colours = [
+    Colors.white,
+    Colors.black,
+    Colors.red,
+    Colors.orange,
+    Colors.yellow,
+    Colors.green,
+    Colors.blue,
+    Colors.purple,
+    Colors.pink,
+    Colors.teal,
+    Colors.brown,
+    Colors.grey,
+  ];
+
+  final selected = await showDialog<Color>(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Choose wall colour'),
+        content: Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            for (final colour in colours)
+              GestureDetector(
+                onTap: () => Navigator.pop(context, colour),
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colour,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black26),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    },
+  );
+
+  if (selected != null) {
+    setState(() {
+      _controller.updateBackgroundColor(selected);
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -242,6 +293,11 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
           onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         actions: [
+          IconButton(
+            icon: const AppIcon(AppIconType.textBackground),
+            tooltip: 'Background colour',
+            onPressed: _showBackgroundColourPicker,
+          ),
           IconButton(
             icon: const AppIcon(AppIconType.preview),
             tooltip: _preview ? 'Hide Preview' : 'Preview',
@@ -268,6 +324,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                 key: _viewportKey,
                 controller: _scrollController,
                 child: BedroomWallCanvas(
+                  backgroundColor: _controller.backgroundColor,
                   canvas: _controller.canvas,
                   stickerCatalog: _controller.stickerCatalog,
                   fontCatalog: _controller.fontCatalog,
