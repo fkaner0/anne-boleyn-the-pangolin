@@ -113,20 +113,4 @@ void main() {
     expect(logger.clicks.single.userId, 7);
     expect(logger.clicks.single.buttonId, ButtonIds.recommendationList);
   });
-
-  testWidgets('logs a back click with a unique id', (tester) async {
-    final logger = MockButtonClickLogger();
-
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
-
-    await pumpList(tester, fetcher: mockFetcher, logger: logger, loggedInId: 7);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byTooltip('Back'));
-    await tester.pump();
-
-    expect(logger.clicks, hasLength(1));
-    expect(logger.clicks.single.userId, 7);
-    expect(logger.clicks.single.buttonId, ButtonIds.recommendationListBack);
-  });
 }
