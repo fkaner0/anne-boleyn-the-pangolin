@@ -94,7 +94,7 @@ class _RecommendationListPageState
         current: IslandNavTab.recommendations,
         onEditProfile: () => MainTabNavigation.goToEditProfile(context),
         onRecommendations: () {},
-        onFriends: () => MainTabNavigation.goToFriends(context, widget.userId),
+        onFriends: () => MainTabNavigation.goToFriends(context),
       ),
       body: Builder(
         builder: (context) {

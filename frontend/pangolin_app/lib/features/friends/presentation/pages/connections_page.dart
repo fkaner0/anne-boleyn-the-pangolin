@@ -90,10 +90,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   void _openBoard(int friendUserId, String friendName) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => SharedBoardPage(
-          friendUserId: friendUserId,
-          friendName: friendName,
-        ),
+        builder: (_) =>
+            SharedBoardPage(friendUserId: friendUserId, friendName: friendName),
       ),
     );
   }
