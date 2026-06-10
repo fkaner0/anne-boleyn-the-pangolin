@@ -18,6 +18,7 @@ import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
 // import org.postgresql.geometric.*
 import com.augustnagro.magnum.pg.PgCodec.given
+import com.augustnagro.magnum.SortOrder
 
 object repo {
 
@@ -588,6 +589,37 @@ object repo {
         pressTimestamp = pressTimestamp,
       )
     ).asRight
+  }
+
+  // TODO: Avoid so many queries
+  def getCurrentFriends(userId: Int) = inDatabase {
+    val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
+    sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
+      val friendId = if user1Id == userId then user2Id else user1Id
+      for {
+        friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
+        coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
+        coverImageUrls = coverImages.map(_.url).collect { case Some(url) => url }
+      } yield (friendProfile.accountId, friendProfile.name, coverImageUrls, friendProfile.profileImageUrl)
+    }.collect {
+      case Some(x) => x
+    }
+  }
+
+  private def currentFriendsSpec(userId: Int) = {
+    Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId")
+  }
+
+  private def profileFromAccountIdSpec(userId: Int) = {
+    Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")
+  }
+
+  private def coverImagesSpec(boardId: Int) = {
+    Spec[SharedBoardElement]
+      .where(sql"${SharedBoardElement.Table.id} = $boardId")
+      .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
+      .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
+      .limit(4)
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
