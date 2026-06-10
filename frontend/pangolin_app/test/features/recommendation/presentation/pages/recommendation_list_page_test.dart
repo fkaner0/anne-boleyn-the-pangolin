@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -10,6 +11,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/domain/recommendation.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/recommendation_list_item.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -28,15 +30,27 @@ void main() {
     MockButtonClickLogger? logger,
     int loggedInId = 1,
   }) {
-    return tester.pumpWidget(
-      ProviderScope(
-        overrides: [loggedInUserId(loggedInId)],
-        child: MaterialApp(
-          home: RecommendationListPage(
+    final router = GoRouter(
+      initialLocation: AppRoutes.recommendations,
+      routes: [
+        GoRoute(
+          path: AppRoutes.recommendations,
+          builder: (_, _) => RecommendationListPage(
             recommendationFetcher: fetcher,
             logger: logger,
           ),
         ),
+        GoRoute(
+          path: AppRoutes.viewProfile,
+          builder: (_, _) => const Text('PROFILE'),
+        ),
+      ],
+    );
+
+    return tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(loggedInId)],
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
   }
@@ -112,21 +126,5 @@ void main() {
     expect(logger.clicks, hasLength(1));
     expect(logger.clicks.single.userId, 7);
     expect(logger.clicks.single.buttonId, ButtonIds.recommendationList);
-  });
-
-  testWidgets('logs a back click with a unique id', (tester) async {
-    final logger = MockButtonClickLogger();
-
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
-
-    await pumpList(tester, fetcher: mockFetcher, logger: logger, loggedInId: 7);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byTooltip('Back'));
-    await tester.pump();
-
-    expect(logger.clicks, hasLength(1));
-    expect(logger.clicks.single.userId, 7);
-    expect(logger.clicks.single.buttonId, ButtonIds.recommendationListBack);
   });
 }

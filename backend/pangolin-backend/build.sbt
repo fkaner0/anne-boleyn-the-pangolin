@@ -19,6 +19,7 @@ lazy val root = project
     libraryDependencies += "org.http4s" %% "http4s-blaze-server" % "0.23.16",
     libraryDependencies += "com.softwaremill.sttp.client4" %% "core" % "4.0.0-RC3",
     libraryDependencies += "com.augustnagro" %% "magnum" % "1.3.0",
+    libraryDependencies += "com.augustnagro" %% "magnumpg" % "1.3.0", // allows for arrays in db
     libraryDependencies += "org.postgresql" % "postgresql" % "42.7.11",
     libraryDependencies += "com.lihaoyi" %% "os-lib" % "0.11.7",
 

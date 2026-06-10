@@ -1,20 +1,24 @@
 import '../domain/shared_element.dart';
 
 abstract interface class SharedBoardService {
-  Stream<SharedElement> listen(int userId);
+  Stream<void> notifications(int userId);
+
+  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId);
 
   Future<void> sendImage({
     required int senderId,
     required int receiverId,
     required String url,
-    required int datetime,
+    required String message,
+    int? datetime,
   });
 
   Future<void> sendText({
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    required String message,
+    int? datetime,
   });
 
   Future<void> sendReply({
@@ -22,6 +26,8 @@ abstract interface class SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   });
+
+  static int now() => DateTime.now().millisecondsSinceEpoch;
 }

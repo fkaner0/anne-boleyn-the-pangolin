@@ -68,18 +68,18 @@ class Profile {
       wallBackgroundHexARGB:
           (json['wallBackgroundHexARGB'] as int?) ??
           defaultWallBackgroundHexARGB,
-      //hobby: json['hobby'] as String?,
-      //passionLevel: (json['passionLevel'] as num?)?.toDouble(),
-      //subInterests:
-      //    (json['subInterests'] as List<dynamic>?)
-      //        ?.map((item) => item as String)
-      //        .toList() ??
-      //    const [],
-      //otherInterests:
-      //    (json['otherInterests'] as List<dynamic>?)
-      //        ?.map((item) => item as String)
-      //        .toList() ??
-      //    const [],
+      hobby: json['hobby'] as String?,
+      passionLevel: (json['passionLevel'] as num?)?.toDouble(),
+      subInterests:
+          (json['subInterests'] as List<dynamic>?)
+              ?.map((item) => item as String)
+              .toList() ??
+          const [],
+      otherInterests:
+          (json['otherInterests'] as List<dynamic>?)
+              ?.map((item) => item as String)
+              .toList() ??
+          const [],
       images: (json['wallImages'] as List<dynamic>)
           .map((item) => ProfileImage.fromJson(item as Map<String, dynamic>))
           .toList(),

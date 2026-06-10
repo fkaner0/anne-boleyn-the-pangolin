@@ -17,7 +17,6 @@ import sttp.tapir.server.http4s.{Http4sServerOptions, Http4sServerInterpreter, s
 import sttp.tapir.server.interceptor.RequestInterceptor
 import sttp.tapir.server.interceptor.cors.{CORSConfig, CORSInterceptor}
 import upickle.default.ReadWriter
-import pangolin.repo.WallTextboxCreator
 import com.augustnagro.magnum.SqlException //oops
 import scala.concurrent.duration.DurationInt
 
@@ -69,6 +68,10 @@ object api {
       wallImages: Vector[WallImage],
       wallTextboxes: Vector[WallTextbox],
       wallStickers: Vector[WallSticker],
+      hobby: String,
+      passionLevel: Double,
+      subInterests: Vector[String],
+      otherInterests: Vector[String],
   ) derives ReadWriter
 
   case class UploadRequest(
@@ -117,6 +120,7 @@ object api {
     senderId: Int,
     receiverId: Int,
     url: String,
+    message: String,
     datetime: Long,
   ) derives ReadWriter
 
@@ -124,6 +128,7 @@ object api {
     senderId: Int,
     receiverId: Int,
     text: String,
+    message: String,
     datetime: Long,
   ) derives ReadWriter
 
@@ -139,6 +144,31 @@ object api {
     userId: Int,
     buttonId: String,
     datetime: Long,
+  ) derives ReadWriter
+
+  case class CurrentFriends(
+    friends: Vector[Friend],
+    pendingFriends: Int,
+  ) derives ReadWriter
+
+  case class Friend(
+    friendUserId: Int,
+    name: String,
+    coverImages: Vector[String],
+    mainImage: String,
+  ) derives ReadWriter
+
+  case class PendingFriends(
+    pendingFriends: Vector[PendingFriend],
+  ) derives ReadWriter
+
+  case class PendingFriend(
+    friendUserId: Int,
+    name: String,
+    mainImage: String,
+    age: Int,
+    location: String,
+    bio: String,
   ) derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
@@ -198,6 +228,14 @@ object api {
     .in("message" / "listen" / path[Int]("receiverId"))
     .out(serverSentEventsBody[IO])
 
+  private val currentFriendsEndpoint = endpoint.get
+    .in("friends" / "current" / path[Int]("userId"))
+    .out(jsonBody[CurrentFriends])
+
+  private val pendingFriendsEndpoint = endpoint.get
+    .in("friends" / "pending" / path[Int]("userId"))
+    .out(jsonBody[PendingFriends])
+
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
     .corsInterceptor(
@@ -231,18 +269,8 @@ object api {
     profileViewEndpoint.serverLogic { userId =>
       repo
         .getProfile(userId)
-        .map(_.map { (user, images, textboxes, stickers) =>
-          FullProfile(
-            name = user.name,
-            location = user.location,
-            bio = user.bio,
-            age = user.age,
-            profileImageUrl = user.profileImageUrl,
-            wallBackgroundHexARGB = user.wallBackgroundHexARGB,
-            wallImages = images.map(_.toApi),
-            wallTextboxes = textboxes.map(_.toApi),
-            wallStickers = stickers.map(_.toApi),
-          )
+        .map(_.map { (user, userHobbyInfo, images, textboxes, stickers) =>
+          user.toApi(userHobbyInfo, images, textboxes, stickers)
         })
     },
   )
@@ -250,7 +278,8 @@ object api {
   private val profileEditRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
-        request.fromApi(accountId = userId),
+        request.profileFromApi(accountId = userId),
+        request.hobbyInfoFromApi(accountId = userId),
         request.wallTextboxes.map(_.fromApi),
         request.wallImages.map(_.fromApi),
         request.wallStickers.map(_.fromApi),
@@ -303,14 +332,14 @@ object api {
   )
 
   private def messageTextRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageTextEndpoint.serverLogicSuccess { message =>
-      repo.sendTextMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    messageTextEndpoint.serverLogicSuccess { messageText =>
+      repo.sendTextMessage(messageText) >> publishMessage(topic, messageText.senderId, messageText.receiverId)
     }
   )
 
   private def messageImageRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageImageEndpoint.serverLogicSuccess { message =>
-      repo.sendImageMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    messageImageEndpoint.serverLogicSuccess { messageImage =>
+      repo.sendImageMessage(messageImage) >> publishMessage(topic, messageImage.senderId, messageImage.receiverId)
     }
   )
 
@@ -337,6 +366,18 @@ object api {
   private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
       repo.logButtonPress(userId, buttonId, datetime)
+    }
+  )
+
+  private val currentFriendsRoutes = serverInterpreter.toRoutes(
+    currentFriendsEndpoint.serverLogicSuccess { userId =>
+      repo.getCurrentFriends(userId).map(CurrentFriends(_, 0))
+    }
+  )
+
+  private val pendingFriendsRoutes = serverInterpreter.toRoutes(
+    pendingFriendsEndpoint.serverLogicSuccess { userId =>
+      IO.pure(PendingFriends(Vector.empty))
     }
   )
 
@@ -396,8 +437,31 @@ object api {
     )
   }
 
+  extension (profile: repo.Profile) {
+    private def toApi(
+          userHobbyInfo: repo.UserHobbyInfo,
+          images: Vector[repo.WallImage],
+          textboxes: Vector[repo.WallTextbox],
+          stickers: Vector[repo.WallSticker],
+    ): FullProfile = FullProfile(
+      name = profile.name,
+      location = profile.location,
+      bio = profile.bio,
+      age = profile.age,
+      profileImageUrl = profile.profileImageUrl,
+      wallBackgroundHexARGB = profile.wallBackgroundHexARGB,
+      wallImages = images.map(_.toApi),
+      wallTextboxes = textboxes.map(_.toApi),
+      wallStickers = stickers.map(_.toApi),
+      hobby = userHobbyInfo.hobby,
+      passionLevel = userHobbyInfo.passionLevel,
+      subInterests = userHobbyInfo.subInterests,
+      otherInterests = userHobbyInfo.otherInterests,
+    )
+  }
+
   extension (profile: FullProfile) {
-    private def fromApi(accountId: Int) = repo.ProfileCreator(
+    private def profileFromApi(accountId: Int) = repo.ProfileCreator(
       accountId = accountId,
       name = profile.name,
       location = profile.location,
@@ -408,8 +472,18 @@ object api {
     )
   }
 
+  extension (profile: FullProfile) {
+    private def hobbyInfoFromApi(accountId: Int) = repo.UserHobbyInfoCreator(
+      accountId = accountId,
+      hobby = profile.hobby,
+      passionLevel = profile.passionLevel,
+      subInterests = profile.subInterests,
+      otherInterests = profile.otherInterests,
+    )
+  }
+
   extension (sticker: repo.WallSticker) {
-    private def toApi = WallSticker(
+    def toApi = WallSticker(
       name = sticker.name,
       position = sticker.position,
     )
@@ -438,5 +512,7 @@ object api {
     "/" -> messageReplyRoutes(topic),
     "/" -> messageListenSseRoutes(topic),
     "/" -> buttonLogRoutes,
+    "/" -> currentFriendsRoutes,
+    "/" -> pendingFriendsRoutes,
   ).orNotFound
 }

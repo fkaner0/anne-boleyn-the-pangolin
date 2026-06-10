@@ -27,6 +27,7 @@ class BedroomWallCreatorController {
   int _nextId = 0;
 
   BedroomWallCreatorController({
+    /// TODO: these should probably all become optional
     required this.imagePicker,
     required this.imageUploader,
     required this.stickerCatalog,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
 enum IslandNavTab { editProfile, recommendations, friends }
@@ -26,37 +27,36 @@ class IslandNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final palette = context.paletteColors;
 
     return SafeArea(
       top: false,
       child: Container(
         margin: const EdgeInsets.fromLTRB(24, 0, 24, 12),
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: colorScheme.primary,
           borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
+              color: palette.shadow,
               blurRadius: 16,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _IslandNavItem(
               filledIcon: AppIconType.meFilled,
               unfilledIcon: AppIconType.meUnfilled,
-              label: 'Profile',
               selected: current == IslandNavTab.editProfile,
               onTap: () => _select(IslandNavTab.editProfile, onEditProfile),
             ),
             _IslandNavItem(
               filledIcon: AppIconType.findFilled,
               unfilledIcon: AppIconType.findUnfilled,
-              label: 'Recommendations',
               selected: current == IslandNavTab.recommendations,
               onTap: () =>
                   _select(IslandNavTab.recommendations, onRecommendations),
@@ -64,7 +64,6 @@ class IslandNavBar extends StatelessWidget {
             _IslandNavItem(
               filledIcon: AppIconType.palsFilled,
               unfilledIcon: AppIconType.palsUnfilled,
-              label: 'Friends',
               selected: current == IslandNavTab.friends,
               onTap: onFriends == null
                   ? null
@@ -80,57 +79,37 @@ class IslandNavBar extends StatelessWidget {
 class _IslandNavItem extends StatelessWidget {
   final AppIconType filledIcon;
   final AppIconType unfilledIcon;
-  final String label;
   final bool selected;
   final VoidCallback? onTap;
 
   const _IslandNavItem({
     required this.filledIcon,
     required this.unfilledIcon,
-    required this.label,
     required this.selected,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final palette = context.paletteColors;
     final enabled = onTap != null;
 
-    Widget icon = AppIcon(selected ? filledIcon : unfilledIcon, size: 24);
+    Widget icon = AppIcon(selected ? filledIcon : unfilledIcon, size: 30);
     if (!enabled) {
       icon = Opacity(opacity: 0.38, child: icon);
     }
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(24),
+      customBorder: const CircleBorder(),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(
-          horizontal: selected ? 16 : 14,
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: selected ? colorScheme.primaryContainer : Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
+          color: selected ? palette.pangolin : Colors.transparent,
+          shape: BoxShape.circle,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            if (selected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(
-                  color: colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ],
-        ),
+        child: icon,
       ),
     );
   }
