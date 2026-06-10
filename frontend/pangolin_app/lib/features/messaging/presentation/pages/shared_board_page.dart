@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
@@ -19,6 +21,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   final SharedBoardService? service;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
+  final ButtonClickLogger? logger;
 
   const SharedBoardPage({
     super.key,
@@ -27,6 +30,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
     this.service,
     this.imagePicker,
     this.imageUploader,
+    this.logger,
   });
 
   @override
@@ -41,6 +45,15 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
   late final int _userId;
+
+  void _log(String buttonId) {
+    unawaited(
+      (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
+        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
+        buttonId: buttonId,
+      ),
+    );
+  }
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   StreamSubscription<SharedElement>? _subscription;
@@ -76,6 +89,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   Future<void> _uploadImage() async {
     if (_uploading) return;
 
+    _log(ButtonIds.sharedBoardUploadImage);
+
     final picked = await _imagePicker.pickImage();
     if (picked == null || !mounted) return;
 
@@ -96,6 +111,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   void _grabFromWall() {
+    _log(ButtonIds.sharedBoardGrabFromWall);
     _showMessage('Grabbing from their wall is coming soon.');
   }
 
@@ -113,6 +129,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   Future<void> _sendReply(int elementId, String text) async {
+    _log(ButtonIds.sharedBoardSendReply);
+
     try {
       await _service.sendReply(
         sharedElementId: elementId,
@@ -152,7 +170,10 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
                 final element = items[index];
                 return SharedElementTile(
                   element: element,
-                  onTap: () => _openChat(element.id),
+                  onTap: () {
+                    _log(ButtonIds.sharedBoardElement);
+                    _openChat(element.id);
+                  },
                 );
               },
             );

@@ -27,4 +27,12 @@ class ButtonIds {
       'pending_connection'; // Any pending connection card in the popup
   static const String pendingConnectionsClose =
       'pending_connections_close'; // Close button on the pending popup
+  static const sharedBoardElement = 
+      'shared_board_element'; // Shared board element tap
+  static const sharedBoardGrabFromWall = 
+      'shared_board_grab_from_wall'; // Shared board grab from wall
+  static const sharedBoardUploadImage = 
+      'shared_board_upload_image'; // Shared board upload image
+  static const sharedBoardSendReply = 
+      'shared_board_send_reply'; // Shared board send reply
 }
