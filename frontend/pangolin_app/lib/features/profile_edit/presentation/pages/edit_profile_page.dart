@@ -23,7 +23,6 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
@@ -469,7 +468,7 @@ class _WallCutoutPreview extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: context.paletteColors.surfaceMuted,
+                      color: Color(profile.wallBackgroundHexARGB),
                       child: IgnorePointer(
                         child: OverflowBox(
                           alignment: Alignment.topCenter,
