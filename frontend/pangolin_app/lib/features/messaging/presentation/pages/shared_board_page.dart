@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
@@ -14,6 +15,7 @@ import 'package:pangolin_app/features/messaging/presentation/widgets/shared_elem
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
 class SharedBoardPage extends ConsumerStatefulWidget {
@@ -130,7 +132,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
 
   void _grabFromWall() {
     _log(ButtonIds.sharedBoardGrabFromWall);
-    _showMessage('Grabbing from their wall is coming soon.');
+    context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
   }
 
   void _openChat(int elementId) async {
@@ -178,6 +180,13 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
           future: _friendName,
           builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
         ),
+        actions: [
+          IconButton(
+            icon: AppIcon(AppIconType.person),
+            onPressed: () =>
+                context.push(AppRoutes.viewProfile, extra: widget.friendUserId),
+          ),
+        ],
       ),
       body: SafeArea(
         child: ValueListenableBuilder<Map<int, SharedElement>>(

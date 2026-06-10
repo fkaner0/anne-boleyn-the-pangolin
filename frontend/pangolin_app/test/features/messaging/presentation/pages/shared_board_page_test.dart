@@ -185,13 +185,4 @@ void main() {
 
     expect(service.sentImages, hasLength(1));
   });
-
-  testWidgets('grab from their wall is a stub', (tester) async {
-    await pumpBoard(tester);
-
-    await tester.tap(find.text('Grab from their wall'));
-    await tester.pump();
-
-    expect(find.textContaining('coming soon'), findsOneWidget);
-  });
 }
