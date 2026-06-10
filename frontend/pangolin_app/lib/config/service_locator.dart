@@ -4,6 +4,7 @@ import 'package:pangolin_app/features/auth/data/authoriser.dart';
 import 'package:pangolin_app/features/auth/data/mock_authoriser.dart';
 import 'package:pangolin_app/features/auth/data/render_authoriser.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
+import 'package:pangolin_app/features/friends/data/render_friends_fetcher.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -124,7 +125,13 @@ void configureDependencies(BackendMode backend) {
         ),
       );
       // TODO: Switch to RenderFriendsFetcher once the friends endpoints exist.
-      getIt.registerLazySingleton<FriendsFetcher>(() => MockFriendsFetcher());
+      getIt.registerLazySingleton<FriendsFetcher>(
+        () => RenderFriendsFetcher(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
       getIt.registerLazySingleton<SharedBoardService>(
         () => RenderSharedBoardService(
           host: hostLocal,
@@ -160,7 +167,9 @@ void configureDependencies(BackendMode backend) {
         () => RenderButtonClickLogger(host: host),
       );
       // TODO: Switch to RenderFriendsFetcher once the friends endpoints exist.
-      getIt.registerLazySingleton<FriendsFetcher>(() => MockFriendsFetcher());
+      getIt.registerLazySingleton<FriendsFetcher>(
+        () => RenderFriendsFetcher(host: host),
+      );
       getIt.registerLazySingleton<SharedBoardService>(
         () => RenderSharedBoardService(host: host),
       );
