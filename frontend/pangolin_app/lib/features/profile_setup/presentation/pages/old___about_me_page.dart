@@ -6,7 +6,6 @@ import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.da
 import 'package:pangolin_app/features/profile_setup/widgets/profile_text_field.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
@@ -39,7 +38,7 @@ class AboutMePage extends StatefulWidget {
 
 class _AboutMePageState extends State<AboutMePage> {
   late final ImageFilePicker _imagePicker =
-      widget.imagePicker ?? GalleryImageFilePicker();
+      widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
 

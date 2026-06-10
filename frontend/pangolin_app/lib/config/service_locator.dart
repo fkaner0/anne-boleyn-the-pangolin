@@ -10,6 +10,8 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/compressing_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/data/compressor/default_image_compressor.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
@@ -52,6 +54,12 @@ void configureDependencies(BackendMode backend) {
 
   if (!getIt.isRegistered<FontCatalog>()) {
     getIt.registerLazySingleton<FontCatalog>(() => FontCatalog());
+  }
+
+  if (!getIt.isRegistered<ImageFilePicker>()) {
+    getIt.registerLazySingleton<ImageFilePicker>(
+      () => GalleryImageFilePicker(),
+    );
   }
 
   switch (backend) {

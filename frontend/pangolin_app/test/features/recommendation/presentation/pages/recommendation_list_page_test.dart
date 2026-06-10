@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
@@ -10,6 +11,7 @@ import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher
 import 'package:pangolin_app/features/recommendation/domain/recommendation.dart';
 import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/recommendation_list_item.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -28,15 +30,27 @@ void main() {
     MockButtonClickLogger? logger,
     int loggedInId = 1,
   }) {
-    return tester.pumpWidget(
-      ProviderScope(
-        overrides: [loggedInUserId(loggedInId)],
-        child: MaterialApp(
-          home: RecommendationListPage(
+    final router = GoRouter(
+      initialLocation: AppRoutes.recommendations,
+      routes: [
+        GoRoute(
+          path: AppRoutes.recommendations,
+          builder: (_, _) => RecommendationListPage(
             recommendationFetcher: fetcher,
             logger: logger,
           ),
         ),
+        GoRoute(
+          path: AppRoutes.viewProfile,
+          builder: (_, _) => const Text('PROFILE'),
+        ),
+      ],
+    );
+
+    return tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(loggedInId)],
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
   }

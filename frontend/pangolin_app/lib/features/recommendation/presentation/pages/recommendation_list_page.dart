@@ -2,12 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
-import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_profile_page.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import '../../data/recommendation_fetcher.dart';
@@ -39,8 +40,6 @@ class _RecommendationListPageState
 
   late final RecommendationFetcher _recommendationFetcher =
       widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
-  late final ProfileFetcher _profileFetcher =
-      widget.profileFetcher ?? getIt<ProfileFetcher>();
 
   @override
   void initState() {
@@ -112,13 +111,9 @@ class _RecommendationListPageState
                 recommendation: recommendation,
                 onTap: () {
                   _log(ButtonIds.recommendationList);
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => RecommendationProfilePage(
-                        profileFetcher: _profileFetcher,
-                        userId: recommendation.userId,
-                      ),
-                    ),
+                  context.push(
+                    AppRoutes.viewProfile,
+                    extra: recommendation.userId,
                   );
                 },
               );

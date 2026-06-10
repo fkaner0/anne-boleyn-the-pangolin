@@ -64,7 +64,7 @@ CREATE TABLE wallSticker (
   scale double precision NOT NULL
 );
 
-CREATE TABLE buttonLog (
+CREATE TABLE IF NOT EXISTS buttonLog (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   userId integer NOT NULL,
   buttonId text NOT NULL,
