@@ -241,7 +241,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           const SizedBox(height: 16),
 
           // Sub-interests
-          Text('Sub-interests', style: theme.textTheme.bodyMedium),
+          Text('Niche hobby interests', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -259,7 +259,7 @@ class _AdditionalInfoSection extends StatelessWidget {
           const SizedBox(height: 20),
 
           // Other interests
-          Text('Other interests', style: theme.textTheme.bodyMedium),
+          Text('Non-hobby interests', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,

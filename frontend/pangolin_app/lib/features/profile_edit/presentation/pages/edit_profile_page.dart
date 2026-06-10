@@ -332,7 +332,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           const SectionTitle('Other Interests'),
           const SizedBox(height: 16),
           _InterestGroup(
-            label: 'Sub-interests',
+            label: 'Niche hobby interests',
             interests: _builder.subInterests,
             onAdd: () => _addInterest(_builder.addSubInterest),
             onRemove: (interest) =>
@@ -340,7 +340,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           const SizedBox(height: 20),
           _InterestGroup(
-            label: 'Other interests',
+            label: 'Non-hobby interests',
             interests: _builder.otherInterests,
             onAdd: () => _addInterest(_builder.addOtherInterest),
             onRemove: (interest) =>
