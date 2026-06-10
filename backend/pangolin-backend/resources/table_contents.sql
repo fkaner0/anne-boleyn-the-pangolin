@@ -10,6 +10,8 @@
 
 \copy wallSticker(id, profileid, name, x, y, rotation, aspectratio, scale) FROM 'wallSticker.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
 
+\copy userHobbyInfo(id, accountid, hobby, passionlevel, subinterests, otherinterests) FROM 'userHobbyInfo.csv' WITH(FORMAT csv, DELIMITER ',', HEADER, ENCODING 'UTF8', QUOTE '"', ESCAPE '''');
+
 
 
 
@@ -42,6 +44,12 @@ SELECT setval(
 SELECT setval(
     pg_get_serial_sequence('wallSticker', 'id'),
     COALESCE((SELECT MAX(id) FROM wallSticker), 0) + 1,
+    false
+);
+
+SELECT setval(
+    pg_get_serial_sequence('userHobbyInfo', 'id'),
+    COALESCE((SELECT MAX(id) FROM userHobbyInfo), 0) + 1,
     false
 );
 

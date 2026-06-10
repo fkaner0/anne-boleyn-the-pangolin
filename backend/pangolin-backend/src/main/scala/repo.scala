@@ -12,10 +12,12 @@ import com.augustnagro.magnum.{
   TableInfo,
   connect, transact,
   sql,
+  DbCon
 }
 import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
-import com.augustnagro.magnum.DbCon
+// import org.postgresql.geometric.*
+import com.augustnagro.magnum.pg.PgCodec.given
 
 object repo {
 
@@ -228,6 +230,27 @@ object repo {
 
   object Account {
     val Table = TableInfo[AccountCreator, Account, Int]
+  }
+  
+  @Table(PostgresDbType)
+  case class UserHobbyInfo(
+    @Id id: Int,
+    accountId: Int,
+    hobby: String,
+    passionLevel: Double,
+    subInterests: String,//Vector[String],
+    otherInterests: String,//Vector[String],
+  ) derives DbCodec
+  case class UserHobbyInfoCreator(
+    accountId: Int,
+    hobby: String,
+    passionLevel: Double,
+    subInterests: String,//Vector[String],
+    otherInterests: String,//Vector[String],
+  ) derives DbCodec
+
+  object UserHobbyInfo {
+    val Table = TableInfo[UserHobbyInfoCreator, UserHobbyInfo, Int]
   }
   
   case class SharedBoardCreator(
