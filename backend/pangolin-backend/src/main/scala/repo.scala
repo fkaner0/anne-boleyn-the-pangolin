@@ -631,7 +631,7 @@ object repo {
 
   private def coverImagesSpec(boardId: Int) = {
     Spec[SharedBoardElement]
-      .where(sql"${SharedBoardElement.Table.id} = $boardId")
+      .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
       .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
       .limit(4)
