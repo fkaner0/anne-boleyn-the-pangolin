@@ -51,6 +51,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       widget.profileFetcher ?? getIt<ProfileFetcher>();
   late final int _userId;
   late final Future<String> _friendName;
+  String _friendDisplayName = 'Them';
 
   // TODO: this does NOT belong here
   Future<String> userNameFromId(int userId) async =>
@@ -75,6 +76,9 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _friendName = userNameFromId(widget.friendUserId); // assign once, directly
+    _friendName.then((name) {
+      if (mounted) setState(() => _friendDisplayName = name);
+    }, onError: (_) {});
     _loadBoard();
     _subscription = _service
         .notifications(_userId)
@@ -200,13 +204,15 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
               return const Center(child: Text('Nothing shared yet'));
             }
             return ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
               itemCount: items.length,
               separatorBuilder: (_, _) => const SizedBox(height: 36),
               itemBuilder: (context, index) {
                 final element = items[index];
                 return SharedElementTile(
                   element: element,
+                  userId: _userId,
+                  friendName: _friendDisplayName,
                   onTap: () {
                     _log(ButtonIds.sharedBoardElement);
                     _openChat(element.id);
