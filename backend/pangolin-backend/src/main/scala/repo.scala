@@ -633,7 +633,7 @@ object repo {
     Spec[SharedBoardElement]
       .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
-      .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
+      .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
       .limit(4)
   }
 
