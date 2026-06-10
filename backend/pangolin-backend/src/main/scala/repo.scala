@@ -696,7 +696,7 @@ object repo {
   private def currentFriendsSpec(userId: Int) =
     Spec[SharedBoard]
       .where(sql"""
-        ${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId
+        (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
       AND ${SharedBoard.Table.id} NOT IN (
         SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
         UNION
