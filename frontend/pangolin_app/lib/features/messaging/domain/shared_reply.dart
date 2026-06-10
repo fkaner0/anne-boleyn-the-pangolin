@@ -13,7 +13,7 @@ class SharedReply {
     return SharedReply(
       senderId: json['senderId'] as int,
       text: (json['text'] as String?) ?? '',
-      datetime: (json['datetime'] as int?) ?? 0,
+      datetime: (json['datetime'] as num?)?.toInt() ?? 0,
     );
   }
 }

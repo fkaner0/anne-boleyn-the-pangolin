@@ -1,12 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pangolin_app/features/messaging/data/mock_shared_board_service.dart';
-import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 
 void main() {
-  test('sendImage echoes the new element on the listen stream', () async {
+  test('sendImage adds an image element and notifies', () async {
     final service = MockSharedBoardService();
-    final received = <SharedElement>[];
-    final sub = service.listen(1).listen(received.add);
+    var ticks = 0;
+    final sub = service.notifications(1).listen((_) => ticks++);
 
     await service.sendImage(
       senderId: 1,
@@ -16,17 +15,19 @@ void main() {
     );
     await Future<void>.delayed(Duration.zero);
 
-    expect(received, hasLength(1));
-    expect(received.single.isImage, isTrue);
-    expect(received.single.content, 'pic.jpg');
+    final board = await service.fetchBoard(1, 2);
+    expect(board, hasLength(1));
+    expect(board.single.isImage, isTrue);
+    expect(board.single.content, 'pic.jpg');
+    expect(ticks, 1);
 
     await sub.cancel();
   });
 
-  test('sendReply re-emits the element with the reply appended', () async {
+  test('sendReply appends a reply to the element and notifies', () async {
     final service = MockSharedBoardService();
-    final received = <SharedElement>[];
-    final sub = service.listen(1).listen(received.add);
+    var ticks = 0;
+    final sub = service.notifications(1).listen((_) => ticks++);
 
     await service.sendText(
       senderId: 1,
@@ -34,9 +35,9 @@ void main() {
       text: 'hi',
       datetime: 10,
     );
-    await Future<void>.delayed(Duration.zero);
+    final created = await service.fetchBoard(1, 2);
+    final elementId = created.single.id;
 
-    final elementId = received.single.id;
     await service.sendReply(
       sharedElementId: elementId,
       senderId: 2,
@@ -46,8 +47,9 @@ void main() {
     );
     await Future<void>.delayed(Duration.zero);
 
-    expect(received, hasLength(2));
-    expect(received.last.replies.single.text, 'hey');
+    final board = await service.fetchBoard(1, 2);
+    expect(board.single.replies.single.text, 'hey');
+    expect(ticks, greaterThanOrEqualTo(2));
 
     await sub.cancel();
   });

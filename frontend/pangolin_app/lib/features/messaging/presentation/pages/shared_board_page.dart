@@ -51,7 +51,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       _profileFetcher.fetchProfile(userId).then((profile) => profile.name);
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
-  StreamSubscription<SharedElement>? _subscription;
+  StreamSubscription<void>? _subscription;
+  bool _loading = true;
   bool _uploading = false;
 
   @override
@@ -59,7 +60,15 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _friendName = userNameFromId(widget.friendUserId); // assign once, directly
-    _subscription = _service.listen(_userId).listen(_onElement);
+    _loadBoard();
+    _subscription = _service
+        .notifications(_userId)
+        .listen(
+          (_) => _loadBoard(),
+          onError: (_) {
+            if (mounted) _showMessage('Connection lost. Trying to reconnect…');
+          },
+        );
   }
 
   @override
@@ -69,17 +78,23 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     super.dispose();
   }
 
-  void _onElement(SharedElement element) {
-    if (!element.involves(_userId, widget.friendUserId)) return;
-    _elements.value = {..._elements.value, element.id: element};
+  Future<void> _loadBoard() async {
+    try {
+      final board = await _service.fetchBoard(_userId, widget.friendUserId);
+      if (!mounted) return;
+      _elements.value = {for (final element in board) element.id: element};
+    } catch (_) {
+      if (mounted && _loading) _showMessage('Could not load the board.');
+    } finally {
+      if (mounted && _loading) setState(() => _loading = false);
+    }
   }
 
   int _now() => DateTime.now().millisecondsSinceEpoch;
 
   List<SharedElement> _sorted(Map<int, SharedElement> elements) {
-    final list = elements.values.toList()
+    return elements.values.toList()
       ..sort((a, b) => b.datetime.compareTo(a.datetime));
-    return list;
   }
 
   Future<void> _uploadImage() async {
@@ -97,6 +112,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         url: url,
         datetime: _now(),
       );
+      await _loadBoard();
     } catch (_) {
       if (mounted) _showMessage('Could not send that image.');
     } finally {
@@ -132,6 +148,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         text: text,
         datetime: _now(),
       );
+      await _loadBoard();
     } catch (_) {
       if (mounted) _showMessage('Could not send that message.');
     }
@@ -157,6 +174,9 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
           valueListenable: _elements,
           builder: (context, elements, _) {
             final items = _sorted(elements);
+            if (_loading && items.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
             if (items.isEmpty) {
               return const Center(child: Text('Nothing shared yet'));
             }
