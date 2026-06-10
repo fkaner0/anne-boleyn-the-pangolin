@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/wall_creation/domain/virtual_canvas.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/pinch_to_zoom.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
@@ -85,7 +84,9 @@ class _BedroomWallViewState extends State<BedroomWallView> {
               clipBehavior: Clip.none,
               children: [
                 Positioned.fill(
-                  child: ColoredBox(color: context.paletteColors.surfaceMuted),
+                  child: ColoredBox(
+                    color: Color(profile.wallBackgroundHexARGB),
+                  ),
                 ),
                 for (final (index, image) in profile.images.indexed)
                   BedroomWallImageItem(

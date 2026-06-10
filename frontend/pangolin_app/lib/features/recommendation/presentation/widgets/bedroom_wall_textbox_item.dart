@@ -52,7 +52,9 @@ class BedroomWallTextBoxItem extends StatelessWidget {
                   child: Container(
                     padding: EdgeInsets.all(8 * scale),
                     decoration: BoxDecoration(
-                      color: colorScheme.surface,
+                      color: textbox.backgroundHexARGB != null
+                          ? Color(textbox.backgroundHexARGB!)
+                          : colorScheme.surface,
                       border: Border.all(color: colorScheme.outline),
                       borderRadius: BorderRadius.circular(8 * scale),
                     ),
@@ -63,7 +65,9 @@ class BedroomWallTextBoxItem extends StatelessWidget {
                         inherit: false,
                         fontSize: _baseFontSize * renderScale * scale,
                         fontFamily: textbox.font,
-                        color: colorScheme.onSurface,
+                        color: textbox.fontHexARGB != null
+                            ? Color(textbox.fontHexARGB!)
+                            : colorScheme.onSurface,
                       ),
                     ),
                   ),
