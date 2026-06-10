@@ -70,8 +70,8 @@ object api {
       wallStickers: Vector[WallSticker],
       hobby: String,
       passionLevel: Double,
-      subInterests: String,//Vector[String],
-      otherInterests: String,//Vector[String],
+      subInterests: Vector[String],
+      otherInterests: Vector[String],
   ) derives ReadWriter
 
   case class UploadRequest(
@@ -408,8 +408,8 @@ object api {
       wallStickers = stickers.map(_.toApi),
       hobby = userHobbyInfo.hobby,
       passionLevel = userHobbyInfo.passionLevel,
-      subInterests = userHobbyInfo.subInterests.toString, //!!!
-      otherInterests = userHobbyInfo.otherInterests.toString, //!!!
+      subInterests = userHobbyInfo.subInterests,
+      otherInterests = userHobbyInfo.otherInterests,
     )
   }
 
@@ -430,8 +430,8 @@ object api {
       accountId = accountId,
       hobby = profile.hobby,
       passionLevel = profile.passionLevel,
-      subInterests = profile.subInterests.toString, //!!!
-      otherInterests = profile.otherInterests.toString, //!!!
+      subInterests = profile.subInterests,
+      otherInterests = profile.otherInterests,
     )
   }
 

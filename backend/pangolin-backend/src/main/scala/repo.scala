@@ -238,15 +238,15 @@ object repo {
     accountId: Int,
     hobby: String,
     passionLevel: Double,
-    subInterests: String,//Vector[String],
-    otherInterests: String,//Vector[String],
+    subInterests: Vector[String],
+    otherInterests: Vector[String],
   ) derives DbCodec
   case class UserHobbyInfoCreator(
     accountId: Int,
     hobby: String,
     passionLevel: Double,
-    subInterests: String,//Vector[String],
-    otherInterests: String,//Vector[String],
+    subInterests: Vector[String],
+    otherInterests: Vector[String],
   ) derives DbCodec
 
   object UserHobbyInfo {
