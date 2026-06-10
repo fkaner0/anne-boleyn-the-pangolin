@@ -10,7 +10,7 @@ class ButtonIds {
   static const String recommendationListFriends =
       'recommendation_list_friends'; // Friends button on recommendation list page
   static const String recommendationListRecommendations =
-      'recommendation_list_reccomendations'; // Recommendation list page button on recommendation list page
+      'recommendation_list_recommendations'; // Recommendation list page button on recommendation list page
   static const String bedroomWall =
       'bedroom_wall'; // Any interactable item on the bedroom wall (image or textbox)
   static const String bedroomWallBack =
