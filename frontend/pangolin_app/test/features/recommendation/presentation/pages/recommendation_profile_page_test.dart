@@ -60,7 +60,7 @@ void main() {
         overrides: [loggedInUserId(7)],
         child: MaterialApp(
           home: RecommendationProfilePage(
-            profileFetcher: const _FakeProfileFetcher(profile),
+            providedProfileFetcher: const _FakeProfileFetcher(profile),
             userId: 5,
             logger: logger,
           ),

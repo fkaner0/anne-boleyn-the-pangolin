@@ -6,26 +6,29 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
-import '../../data/profile_fetcher.dart';
 import '../../domain/profile.dart';
 import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
 import '../widgets/profile_header_bar.dart';
 
 class RecommendationProfilePage extends ConsumerWidget {
-  final ProfileFetcher profileFetcher;
+  final ProfileFetcher? providedProfileFetcher;
   final int userId;
   final ButtonClickLogger? logger;
 
   const RecommendationProfilePage({
     super.key,
-    required this.profileFetcher,
     required this.userId,
+    this.providedProfileFetcher,
     this.logger,
   });
+
+  ProfileFetcher profileFetcher() =>
+      providedProfileFetcher ?? getIt<ProfileFetcher>();
 
   void _log(String buttonId, WidgetRef ref) {
     unawaited(
@@ -37,7 +40,7 @@ class RecommendationProfilePage extends ConsumerWidget {
   }
 
   Future<(Profile, StickerCatalog, FontCatalog)> _load() async {
-    final profileFuture = profileFetcher.fetchProfile(userId);
+    final profileFuture = profileFetcher().fetchProfile(userId);
     final stickerCatalogFuture = StickerCatalog.load().catchError(
       (_) => StickerCatalog.fromAssetKeys(const <String>[]),
     );

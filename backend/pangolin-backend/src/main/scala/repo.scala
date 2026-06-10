@@ -18,6 +18,7 @@ import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
 // import org.postgresql.geometric.*
 import com.augustnagro.magnum.pg.PgCodec.given
+import com.augustnagro.magnum.SortOrder
 
 object repo {
 
@@ -298,7 +299,7 @@ object repo {
     text: String,
     timestamp: Long,
     senderId: Int,
-    read: Boolean,
+    read: Boolean = false,
   )
 
   @Table(PostgresDbType)
@@ -497,39 +498,43 @@ object repo {
     sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
   }
 
-  def getSharedBoard(user1Id: Int, user2Id: Int) = {
-    inDatabase {
-      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
-        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
-          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
-            api.SharedBoardReply(
-              datetime = reply.timestamp,
-              senderId = reply.senderId,
-              text = reply.text,
-            )
-          }
-          api.SharedBoardElement(
-            sharedElemId = element.id,
-            datetime = element.timestamp,
-            messages = replies,
-            url = element.url,
-            text = element.text,
-            read = element.read,
+  def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+      sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+        val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+          api.SharedBoardReply(
+            datetime = reply.timestamp,
+            senderId = reply.senderId,
+            text = reply.text,
           )
         }
+        api.SharedBoardElement(
+          sharedElemId = element.id,
+          datetime = element.timestamp,
+          messages = replies,
+          url = element.url,
+          text = element.text,
+          read = element.read,
+        )
       }
-      elements.map(api.SharedBoard(_))
     }
+    elements.map(api.SharedBoard(_))
   }
 
-  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
-  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
-  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
+    .where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
+    .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply]
+    .where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc)
 
   def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
     senderId = message.senderId,
     receiverId = message.receiverId,
     timestamp = message.datetime,
+    message = message.message,
     text = None,
     url = Some(message.url)
   )
@@ -538,13 +543,14 @@ object repo {
     senderId = message.senderId,
     receiverId = message.receiverId,
     timestamp = message.datetime,
+    message = message.message,
     text = Some(message.text),
     url = None
   )
 
-  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String)(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
     val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
-    sharedBoardElementsRepo.insert(
+    val elem = sharedBoardElementsRepo.insertReturning(
       SharedBoardElementCreator(
         boardId = board.id,
         timestamp = timestamp,
@@ -552,6 +558,13 @@ object repo {
         text = text,
         senderId = senderId,
         read = false,
+      )
+    )
+    sharedBoardReplyRepo.insert(SharedBoardReplyCreator(
+        sharedBoardElementId = elem.id,
+        text = message,
+        timestamp = timestamp,
+        senderId = senderId,
       )
     )
   }
@@ -563,7 +576,6 @@ object repo {
         text = message.text,
         timestamp = message.datetime,
         senderId = message.senderId,
-        read = false,
       )
     )
   }
@@ -588,6 +600,41 @@ object repo {
         pressTimestamp = pressTimestamp,
       )
     ).asRight
+  }
+
+  def getCurrentFriends(userId: Int) = inDatabase {
+    val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
+    sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
+      val friendId = if user1Id == userId then user2Id else user1Id
+      val coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
+      for {
+        friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
+        coverImageUrls <- coverImages.map(_.url).sequence
+      } yield api.Friend(
+        friendUserId = friendProfile.accountId,
+        name = friendProfile.name,
+        coverImages = coverImageUrls,
+        mainImage = friendProfile.profileImageUrl,
+      )
+    }.collect {
+      case Some(x) => x
+    }
+  }
+
+  private def currentFriendsSpec(userId: Int) = {
+    Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId")
+  }
+
+  private def profileFromAccountIdSpec(userId: Int) = {
+    Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")
+  }
+
+  private def coverImagesSpec(boardId: Int) = {
+    Spec[SharedBoardElement]
+      .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
+      .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
+      .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
+      .limit(4)
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {

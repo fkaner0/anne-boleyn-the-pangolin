@@ -27,6 +27,7 @@ class BedroomWallCreatorController {
   int _nextId = 0;
 
   BedroomWallCreatorController({
+    /// TODO: these should probably all become optional
     required this.imagePicker,
     required this.imageUploader,
     required this.stickerCatalog,
@@ -44,6 +45,14 @@ class BedroomWallCreatorController {
   Iterable<CanvasTextItem> get textItems => _items.whereType();
 
   Iterable<CanvasStickerItem> get stickerItems => _items.whereType();
+
+  Color _backgroundColor = Color(0xFFFEF9F2);
+
+  Color get backgroundColor => _backgroundColor;
+
+  void updateBackgroundColor(Color color) {
+    _backgroundColor = color;
+  }
 
   CanvasTransform _centeredTransform() {
     return CanvasTransform(center: Offset(canvas.width / 2, canvas.height / 2));
@@ -64,6 +73,7 @@ class BedroomWallCreatorController {
   }
 
   void loadFrom(Profile profile) {
+    _backgroundColor = Color(profile.wallBackgroundHexARGB);
     _items.clear();
     _prompts.clear();
 
@@ -232,6 +242,8 @@ class BedroomWallCreatorController {
   }
 
   void exportInto(ProfileBuilder builder) {
+    builder.setWallBackgroundHexARGB(_backgroundColor.toARGB32());
+
     for (final item in _items) {
       switch (item) {
         case CanvasImageItem():

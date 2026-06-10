@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
@@ -19,6 +22,7 @@ class BedroomWallDetailPage extends ConsumerStatefulWidget {
   final ProfileImage? image;
   final ProfileText? textbox;
   final ButtonClickLogger? logger;
+  final SharedBoardService? sharedBoardService;
 
   const BedroomWallDetailPage({
     super.key,
@@ -26,6 +30,7 @@ class BedroomWallDetailPage extends ConsumerStatefulWidget {
     this.image,
     this.textbox,
     this.logger,
+    this.sharedBoardService,
   }) : assert(
          image != null || textbox != null,
          'Either image or textbox must be provided.',
@@ -38,6 +43,10 @@ class BedroomWallDetailPage extends ConsumerStatefulWidget {
 
 class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
   late final TextEditingController _controller;
+  late final SharedBoardService _sharedBoardService =
+      widget.sharedBoardService ?? getIt<SharedBoardService>();
+  int _currentUserId() =>
+      ref.read(userIdProvider.notifier).currentUserIdThrow();
 
   @override
   void initState() {
@@ -54,7 +63,7 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
   void _log(String buttonId) {
     unawaited(
       (widget.logger ?? getIt<ButtonClickLogger>()).logButtonClick(
-        userId: ref.read(userIdProvider.notifier).currentUserIdThrow(),
+        userId: _currentUserId(),
         buttonId: buttonId,
       ),
     );
@@ -114,9 +123,25 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
                       const SizedBox(height: 24),
                       MessageComposer(
                         hintText: prompt,
+                        // TODO: make this tidier
                         onSend: (message) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Message sent: "$message"')),
+                          _log(ButtonIds.wallDetailSend);
+                          widget.image != null
+                              ? _sharedBoardService.sendImage(
+                                  senderId: _currentUserId(),
+                                  receiverId: widget.profile.userId,
+                                  url: widget.image!.url,
+                                  message: message,
+                                )
+                              : _sharedBoardService.sendText(
+                                  senderId: _currentUserId(),
+                                  receiverId: widget.profile.userId,
+                                  text: widget.textbox!.body,
+                                  message: message,
+                                );
+                          context.push(
+                            AppRoutes.sharedBoard,
+                            extra: widget.profile.userId,
                           );
                         },
                       ),

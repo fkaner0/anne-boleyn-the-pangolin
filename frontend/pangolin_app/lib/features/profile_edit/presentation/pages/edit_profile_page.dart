@@ -16,7 +16,6 @@ import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/bedroom_wall_view.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
@@ -24,7 +23,6 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
@@ -59,7 +57,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late final ProfileUpdater _profileUpdater =
       widget.profileUpdater ?? getIt<ProfileUpdater>();
   late final ImageFilePicker _imagePicker =
-      widget.imagePicker ?? GalleryImageFilePicker();
+      widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
 
@@ -172,7 +170,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         builder: (_) => BedroomWallCreatorPage(
           controller: _wallController,
           profileBuilder: _builder,
-          profileUpdater: _profileUpdater,
           onSaved: () => Navigator.of(context).pop(),
         ),
       ),
@@ -335,7 +332,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           const SectionTitle('Other Interests'),
           const SizedBox(height: 16),
           _InterestGroup(
-            label: 'Sub-interests',
+            label: 'Niche hobby interests',
             interests: _builder.subInterests,
             onAdd: () => _addInterest(_builder.addSubInterest),
             onRemove: (interest) =>
@@ -343,7 +340,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           const SizedBox(height: 20),
           _InterestGroup(
-            label: 'Other interests',
+            label: 'Non-hobby interests',
             interests: _builder.otherInterests,
             onAdd: () => _addInterest(_builder.addOtherInterest),
             onRemove: (interest) =>
@@ -471,7 +468,7 @@ class _WallCutoutPreview extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: context.paletteColors.surfaceMuted,
+                      color: Color(profile.wallBackgroundHexARGB),
                       child: IgnorePointer(
                         child: OverflowBox(
                           alignment: Alignment.topCenter,

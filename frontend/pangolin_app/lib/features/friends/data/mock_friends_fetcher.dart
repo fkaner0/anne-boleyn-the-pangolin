@@ -11,12 +11,10 @@ class MockFriendsFetcher implements FriendsFetcher {
     return CurrentFriends(
       pendingCount: 3,
       friends: [
-        _friend('Tim Johnson', 'Tim', 4),
-        _friend('Sally Parks', 'Sally', 3),
-        _friend('Selena Davis', 'Selena', 5),
-        _friend('Marcus Lee', 'Marcus', 2),
-        _friend('Priya Patel', 'Priya', 4),
-        _friend('Omar Haddad', 'Omar', 3),
+        _friend(1, 'Tim Johnson', 'Tim', 4),
+        _friend(2, 'Sally Parks', 'Sally', 3),
+        _friend(3, 'Selena Davis', 'Selena', 5),
+        _friend(4, 'Marcus Lee', 'Marcus', 2),
       ],
     );
   }
@@ -27,26 +25,26 @@ class MockFriendsFetcher implements FriendsFetcher {
 
     return const [
       PendingFriend(
-        friendUserId: 101,
+        friendUserId: 5,
         name: 'Jess Wong',
         mainImage: 'https://via.placeholder.com/200?text=Jess',
       ),
       PendingFriend(
-        friendUserId: 102,
+        friendUserId: 6,
         name: 'Diego Alvarez',
         mainImage: 'https://via.placeholder.com/200?text=Diego',
       ),
       PendingFriend(
-        friendUserId: 103,
+        friendUserId: 7,
         name: 'Mei Tan',
         mainImage: 'https://via.placeholder.com/200?text=Mei',
       ),
     ];
   }
 
-  Friend _friend(String name, String label, int coverCount) {
+  Friend _friend(int id, String name, String label, int coverCount) {
     return Friend(
-      friendUserId: name.hashCode,
+      friendUserId: id,
       name: name,
       mainImage: 'https://via.placeholder.com/200?text=$label',
       coverImages: [

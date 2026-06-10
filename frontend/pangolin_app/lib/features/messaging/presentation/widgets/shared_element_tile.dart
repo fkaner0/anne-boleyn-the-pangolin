@@ -28,7 +28,9 @@ class SharedElementTile extends StatelessWidget {
             child: element.isImage
                 ? Image.network(
                     element.content,
-                    fit: BoxFit.cover,
+                    fit: BoxFit.contain,
+                    width: MediaQuery.sizeOf(context).width / 3,
+                    height: MediaQuery.sizeOf(context).height / 5,
                     errorBuilder: (context, error, stackTrace) => _fallback(
                       colorScheme,
                       const AppIcon(AppIconType.brokenImage),

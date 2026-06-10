@@ -6,7 +6,6 @@ import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.da
 import 'package:pangolin_app/features/profile_setup/widgets/profile_text_field.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
@@ -15,7 +14,7 @@ import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
-class AboutMePage extends StatefulWidget {
+class IntroPage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
@@ -23,7 +22,7 @@ class AboutMePage extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onBack;
 
-  const AboutMePage({
+  const IntroPage({
     super.key,
     required this.profileBuilder,
     this.imagePicker,
@@ -34,12 +33,12 @@ class AboutMePage extends StatefulWidget {
   });
 
   @override
-  State<AboutMePage> createState() => _AboutMePageState();
+  State<IntroPage> createState() => _IntroPageState();
 }
 
-class _AboutMePageState extends State<AboutMePage> {
+class _IntroPageState extends State<IntroPage> {
   late final ImageFilePicker _imagePicker =
-      widget.imagePicker ?? GalleryImageFilePicker();
+      widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
 

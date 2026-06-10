@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
-import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
-import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/theme/palette_colors.dart';
 
 import 'pages/about_page.dart';
-import 'pages/old___about_me_page.dart';
+import 'pages/intro_page.dart';
 
 class SignupShell extends ConsumerStatefulWidget {
   // final int userId;
@@ -46,7 +45,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(
-        imagePicker: GalleryImageFilePicker(),
+        imagePicker: getIt<ImageFilePicker>(),
         imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
@@ -89,14 +88,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 
     if (!mounted) return;
     setState(() => _submitting = false);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RecommendationListPage(
-          recommendationFetcher: getIt<RecommendationFetcher>(),
-          profileFetcher: getIt<ProfileFetcher>(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.recommendations);
   }
 
   @override
@@ -123,7 +115,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
         onSave: _goNext,
         onBack: _goBack,
       ),
-      2 => AboutMePage(
+      2 => IntroPage(
         profileBuilder: _profileBuilder,
         wallController: _wallController,
         onNext: _finish,

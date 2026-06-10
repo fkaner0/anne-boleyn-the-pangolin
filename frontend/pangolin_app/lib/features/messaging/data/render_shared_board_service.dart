@@ -18,18 +18,24 @@ class RenderSharedBoardService implements SharedBoardService {
        );
 
   @override
-  Stream<SharedElement> listen(int userId) => _delegate.listen(userId);
+  Stream<void> notifications(int userId) => _delegate.notifications(userId);
+
+  @override
+  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId) =>
+      _delegate.fetchBoard(userId, friendUserId);
 
   @override
   Future<void> sendImage({
     required int senderId,
     required int receiverId,
     required String url,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) => _delegate.sendImage(
     senderId: senderId,
     receiverId: receiverId,
     url: url,
+    message: message,
     datetime: datetime,
   );
 
@@ -38,11 +44,13 @@ class RenderSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) => _delegate.sendText(
     senderId: senderId,
     receiverId: receiverId,
     text: text,
+    message: message,
     datetime: datetime,
   );
 
@@ -52,7 +60,7 @@ class RenderSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   }) => _delegate.sendReply(
     sharedElementId: sharedElementId,
     senderId: senderId,

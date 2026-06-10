@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
+import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/config/service_locator.dart';
-import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
-import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
-import 'package:pangolin_app/features/recommendation/presentation/pages/recommendation_list_page.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
-import '../../data/picker/gallery_image_file_picker.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
 import '../widgets/sticker_picker.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
@@ -43,7 +43,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   late final BedroomWallCreatorController _controller =
       widget.controller ??
       BedroomWallCreatorController(
-        imagePicker: GalleryImageFilePicker(),
+        imagePicker: getIt<ImageFilePicker>(),
         imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),
@@ -213,18 +213,51 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   void _openRecommendations() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RecommendationListPage(
-          recommendationFetcher: getIt<RecommendationFetcher>(),
-          profileFetcher: getIt<ProfileFetcher>(),
-        ),
-      ),
-    );
+    context.push(AppRoutes.recommendations);
   }
 
   void _togglePreview() {
     setState(() => _preview = !_preview);
+  }
+
+  Future<void> _showBackgroundColourPicker() async {
+    Color pendingColor = _controller.backgroundColor;
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Wall Colour'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pendingColor,
+              onColorChanged: (color) {
+                pendingColor = color;
+              },
+              enableAlpha: false,
+              labelTypes: const [],
+              pickerAreaHeightPercent: 0.8,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+
+                setState(() {
+                  _controller.updateBackgroundColor(pendingColor);
+                });
+              },
+              child: const Text('Done'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -252,6 +285,11 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         ),
         actions: [
           IconButton(
+            icon: const AppIcon(AppIconType.textBackground),
+            tooltip: 'Background colour',
+            onPressed: _showBackgroundColourPicker,
+          ),
+          IconButton(
             icon: const AppIcon(AppIconType.preview),
             tooltip: _preview ? 'Hide Preview' : 'Preview',
             onPressed: _togglePreview,
@@ -277,6 +315,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                 viewportKey: _viewportKey,
                 controller: _scrollController,
                 child: BedroomWallCanvas(
+                  backgroundColor: _controller.backgroundColor,
                   canvas: _controller.canvas,
                   stickerCatalog: _controller.stickerCatalog,
                   fontCatalog: _controller.fontCatalog,
