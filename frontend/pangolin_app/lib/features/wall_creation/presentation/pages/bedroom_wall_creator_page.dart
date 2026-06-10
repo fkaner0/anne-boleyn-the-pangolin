@@ -14,6 +14,7 @@ import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
 import '../widgets/sticker_picker.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class BedroomWallCreatorPage extends StatefulWidget {
   final BedroomWallCreatorController? controller;
@@ -218,55 +219,44 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     setState(() => _preview = !_preview);
   }
 
-  Future<void> _showBackgroundColourPicker() async {
-  const colours = [
-    Colors.white,
-    Colors.black,
-    Colors.red,
-    Colors.orange,
-    Colors.yellow,
-    Colors.green,
-    Colors.blue,
-    Colors.purple,
-    Colors.pink,
-    Colors.teal,
-    Colors.brown,
-    Colors.grey,
-  ];
+Future<void> _showBackgroundColourPicker() async {
+  Color pendingColor = _controller.backgroundColor;
 
-  final selected = await showDialog<Color>(
+  await showDialog<void>(
     context: context,
     builder: (context) {
       return AlertDialog(
-        title: const Text('Choose wall colour'),
-        content: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            for (final colour in colours)
-              GestureDetector(
-                onTap: () => Navigator.pop(context, colour),
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: colour,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black26),
-                  ),
-                ),
-              ),
-          ],
+        title: const Text('Wall Colour'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: pendingColor,
+            onColorChanged: (color) {
+              pendingColor = color;
+            },
+            enableAlpha: false,
+            labelTypes: const [],
+            pickerAreaHeightPercent: 0.8,
+          ),
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+
+              setState(() {
+                _controller.updateBackgroundColor(pendingColor);
+              });
+            },
+            child: const Text('Done'),
+          ),
+        ],
       );
     },
   );
-
-  if (selected != null) {
-    setState(() {
-      _controller.updateBackgroundColor(selected);
-    });
-  }
 }
 
   @override
