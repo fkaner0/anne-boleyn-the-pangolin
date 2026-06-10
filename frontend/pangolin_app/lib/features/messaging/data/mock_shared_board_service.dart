@@ -22,12 +22,13 @@ class MockSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) async {
     _elements.add(
       SharedElement(
         id: _nextId++,
-        datetime: datetime,
+        datetime: datetime ?? SharedBoardService.now(),
         kind: SharedElementKind.image,
         content: url,
       ),
@@ -40,12 +41,13 @@ class MockSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) async {
     _elements.add(
       SharedElement(
         id: _nextId++,
-        datetime: datetime,
+        datetime: datetime ?? SharedBoardService.now(),
         kind: SharedElementKind.text,
         content: text,
       ),
@@ -59,7 +61,7 @@ class MockSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   }) async {
     final index = _elements.indexWhere((e) => e.id == sharedElementId);
     if (index == -1) return;
@@ -73,7 +75,11 @@ class MockSharedBoardService implements SharedBoardService {
       read: element.read,
       replies: [
         ...element.replies,
-        SharedReply(senderId: senderId, text: text, datetime: datetime),
+        SharedReply(
+          senderId: senderId,
+          text: text,
+          datetime: datetime ?? SharedBoardService.now(),
+        ),
       ],
     );
     _controller.add(null);

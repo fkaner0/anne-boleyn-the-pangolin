@@ -73,13 +73,15 @@ class ApiSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String url,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) {
     return _post('/message/send/image', {
       'senderId': senderId,
       'receiverId': receiverId,
       'url': url,
-      'datetime': datetime,
+      'message': message,
+      'datetime': datetime ?? SharedBoardService.now(),
     });
   }
 
@@ -88,13 +90,15 @@ class ApiSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    required String message,
+    int? datetime,
   }) {
     return _post('/message/send/text', {
       'senderId': senderId,
       'receiverId': receiverId,
       'text': text,
-      'datetime': datetime,
+      'message': message,
+      'datetime': datetime ?? SharedBoardService.now(),
     });
   }
 
@@ -104,14 +108,14 @@ class ApiSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   }) {
     return _post('/message/send/reply', {
       'sharedElementId': sharedElementId,
       'senderId': senderId,
       'receiverId': receiverId,
       'text': text,
-      'datetime': datetime,
+      'datetime': datetime ?? SharedBoardService.now(),
     });
   }
 }

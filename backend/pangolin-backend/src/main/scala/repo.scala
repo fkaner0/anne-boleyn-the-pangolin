@@ -299,7 +299,7 @@ object repo {
     text: String,
     timestamp: Long,
     senderId: Int,
-    read: Boolean,
+    read: Boolean = false,
   )
 
   @Table(PostgresDbType)
@@ -531,6 +531,7 @@ object repo {
     senderId = message.senderId,
     receiverId = message.receiverId,
     timestamp = message.datetime,
+    message = message.message,
     text = None,
     url = Some(message.url)
   )
@@ -539,13 +540,14 @@ object repo {
     senderId = message.senderId,
     receiverId = message.receiverId,
     timestamp = message.datetime,
+    message = message.message,
     text = Some(message.text),
     url = None
   )
 
-  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String])(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
+  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String)(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
     val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
-    sharedBoardElementsRepo.insert(
+    val elem = sharedBoardElementsRepo.insertReturning(
       SharedBoardElementCreator(
         boardId = board.id,
         timestamp = timestamp,
@@ -553,6 +555,13 @@ object repo {
         text = text,
         senderId = senderId,
         read = false,
+      )
+    )
+    sharedBoardReplyRepo.insert(SharedBoardReplyCreator(
+        sharedBoardElementId = elem.id,
+        text = message,
+        timestamp = timestamp,
+        senderId = senderId,
       )
     )
   }
@@ -564,7 +573,6 @@ object repo {
         text = message.text,
         timestamp = message.datetime,
         senderId = message.senderId,
-        read = false,
       )
     )
   }
