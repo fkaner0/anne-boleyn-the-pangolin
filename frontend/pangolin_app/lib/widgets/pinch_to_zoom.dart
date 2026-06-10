@@ -14,6 +14,7 @@ class _TwoFingerScaleGestureRecognizer extends ScaleGestureRecognizer {
   void handleEvent(PointerEvent event) {
     if (_pointers.length < 2 && event is PointerMoveEvent) {
       resolve(GestureDisposition.rejected);
+      return;
     }
     super.handleEvent(event);
     if (event is PointerUpEvent || event is PointerCancelEvent) {
