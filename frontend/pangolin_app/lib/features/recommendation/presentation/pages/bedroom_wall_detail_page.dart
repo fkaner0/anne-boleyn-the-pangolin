@@ -115,6 +115,7 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
                       MessageComposer(
                         hintText: prompt,
                         onSend: (message) {
+                          _log(ButtonIds.wallDetailSend);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Message sent: "$message"')),
                           );
