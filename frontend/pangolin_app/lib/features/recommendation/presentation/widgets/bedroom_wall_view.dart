@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/features/wall_creation/domain/virtual_canvas.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/pinch_to_zoom.dart';
 import '../../domain/profile.dart';
 import '../../domain/profile_image.dart';
