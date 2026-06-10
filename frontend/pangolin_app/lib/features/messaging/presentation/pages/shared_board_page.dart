@@ -105,11 +105,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     }
   }
 
-  List<SharedElement> _sorted(Map<int, SharedElement> elements) {
-    return elements.values.toList()
-      ..sort((a, b) => b.datetime.compareTo(a.datetime));
-  }
-
   Future<void> _uploadImage() async {
     if (_uploading) return;
 
@@ -197,7 +192,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         child: ValueListenableBuilder<Map<int, SharedElement>>(
           valueListenable: _elements,
           builder: (context, elements, _) {
-            final items = _sorted(elements);
+            final items = elements.values.toList();
             if (_loading && items.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }

@@ -498,34 +498,37 @@ object repo {
     sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
   }
 
-  def getSharedBoard(user1Id: Int, user2Id: Int) = {
-    inDatabase {
-      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
-        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
-          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
-            api.SharedBoardReply(
-              datetime = reply.timestamp,
-              senderId = reply.senderId,
-              text = reply.text,
-            )
-          }
-          api.SharedBoardElement(
-            sharedElemId = element.id,
-            datetime = element.timestamp,
-            messages = replies,
-            url = element.url,
-            text = element.text,
-            read = element.read,
+  def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+      sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+        val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+          api.SharedBoardReply(
+            datetime = reply.timestamp,
+            senderId = reply.senderId,
+            text = reply.text,
           )
         }
+        api.SharedBoardElement(
+          sharedElemId = element.id,
+          datetime = element.timestamp,
+          messages = replies,
+          url = element.url,
+          text = element.text,
+          read = element.read,
+        )
       }
-      elements.map(api.SharedBoard(_))
     }
+    elements.map(api.SharedBoard(_))
   }
 
-  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
-  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
-  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
+    .where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
+    .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply]
+    .where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc)
 
   def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
     senderId = message.senderId,
@@ -628,7 +631,7 @@ object repo {
 
   private def coverImagesSpec(boardId: Int) = {
     Spec[SharedBoardElement]
-      .where(sql"${SharedBoardElement.Table.id} = $boardId")
+      .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
       .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
       .limit(4)
