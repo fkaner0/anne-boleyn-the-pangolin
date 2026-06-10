@@ -144,6 +144,31 @@ object api {
     datetime: Long,
   ) derives ReadWriter
 
+  case class CurrentFriends(
+    friends: Vector[Friend],
+    pendingFriends: Int,
+  ) derives ReadWriter
+
+  case class Friend(
+    friendUserId: Int,
+    name: String,
+    coverImages: Vector[String],
+    mainImage: String,
+  ) derives ReadWriter
+
+  case class PendingFriends(
+    pendingFriends: Vector[PendingFriend],
+  ) derives ReadWriter
+
+  case class PendingFriend(
+    friendUserId: Int,
+    name: String,
+    mainImage: String,
+    age: Int,
+    location: String,
+    bio: String,
+  ) derives ReadWriter
+
   private val profileViewEndpoint = endpoint.get
     .in("profile" / "view" / path[Int]("userId"))
     .errorOut(stringBody)
@@ -200,6 +225,14 @@ object api {
   private val messageListenSseEndpoint = endpoint.get
     .in("message" / "listen" / path[Int]("receiverId"))
     .out(serverSentEventsBody[IO])
+
+  private val currentFriendsEndpoint = endpoint.get
+    .in("friends" / "current" / path[Int]("userId"))
+    .out(jsonBody[CurrentFriends])
+
+  private val pendingFriendsEndpoint = endpoint.get
+    .in("friends" / "pending" / path[Int]("userId"))
+    .out(jsonBody[PendingFriends])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -331,6 +364,18 @@ object api {
   private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
       repo.logButtonPress(userId, buttonId, datetime)
+    }
+  )
+
+  private val currentFriendsRoutes = serverInterpreter.toRoutes(
+    currentFriendsEndpoint.serverLogicSuccess { userId =>
+      repo.getCurrentFriends(userId).map(CurrentFriends(_, 0))
+    }
+  )
+
+  private val pendingFriendsRoutes = serverInterpreter.toRoutes(
+    pendingFriendsEndpoint.serverLogicSuccess { userId =>
+      IO.pure(PendingFriends(Vector.empty))
     }
   )
 
