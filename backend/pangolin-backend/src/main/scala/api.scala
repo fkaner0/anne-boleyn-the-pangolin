@@ -120,6 +120,7 @@ object api {
     senderId: Int,
     receiverId: Int,
     url: String,
+    message: String,
     datetime: Long,
   ) derives ReadWriter
 
@@ -127,6 +128,7 @@ object api {
     senderId: Int,
     receiverId: Int,
     text: String,
+    message: String,
     datetime: Long,
   ) derives ReadWriter
 
@@ -330,14 +332,14 @@ object api {
   )
 
   private def messageTextRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageTextEndpoint.serverLogicSuccess { message =>
-      repo.sendTextMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    messageTextEndpoint.serverLogicSuccess { messageText =>
+      repo.sendTextMessage(messageText) >> publishMessage(topic, messageText.senderId, messageText.receiverId)
     }
   )
 
   private def messageImageRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
-    messageImageEndpoint.serverLogicSuccess { message =>
-      repo.sendImageMessage(message) >> publishMessage(topic, message.senderId, message.receiverId)
+    messageImageEndpoint.serverLogicSuccess { messageImage =>
+      repo.sendImageMessage(messageImage) >> publishMessage(topic, messageImage.senderId, messageImage.receiverId)
     }
   )
 
