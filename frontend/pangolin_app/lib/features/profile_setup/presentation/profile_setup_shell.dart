@@ -6,7 +6,7 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
@@ -45,7 +45,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 
   late final BedroomWallCreatorController _wallController =
       BedroomWallCreatorController(
-        imagePicker: GalleryImageFilePicker(),
+        imagePicker: getIt<ImageFilePicker>(),
         imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),

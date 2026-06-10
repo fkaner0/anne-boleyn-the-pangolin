@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/prompt_generator.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/app_router.dart';
@@ -8,7 +9,6 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
-import '../../data/picker/gallery_image_file_picker.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
@@ -41,7 +41,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   late final BedroomWallCreatorController _controller =
       widget.controller ??
       BedroomWallCreatorController(
-        imagePicker: GalleryImageFilePicker(),
+        imagePicker: getIt<ImageFilePicker>(),
         imageUploader: getIt<ImageUploader>(),
         stickerCatalog: getIt<StickerCatalog>(),
         fontCatalog: getIt<FontCatalog>(),

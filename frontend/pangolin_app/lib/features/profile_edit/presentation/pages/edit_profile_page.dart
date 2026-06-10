@@ -16,7 +16,6 @@ import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/bedroom_wall_view.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
@@ -59,7 +58,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late final ProfileUpdater _profileUpdater =
       widget.profileUpdater ?? getIt<ProfileUpdater>();
   late final ImageFilePicker _imagePicker =
-      widget.imagePicker ?? GalleryImageFilePicker();
+      widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
 
@@ -172,7 +171,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         builder: (_) => BedroomWallCreatorPage(
           controller: _wallController,
           profileBuilder: _builder,
-          profileUpdater: _profileUpdater,
           onSaved: () => Navigator.of(context).pop(),
         ),
       ),

@@ -9,7 +9,6 @@ import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_element_tile.dart';
-import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
@@ -38,7 +37,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   late final SharedBoardService _service =
       widget.service ?? getIt<SharedBoardService>();
   late final ImageFilePicker _imagePicker =
-      widget.imagePicker ?? GalleryImageFilePicker();
+      widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
       widget.imageUploader ?? getIt<ImageUploader>();
   late final int _userId;
