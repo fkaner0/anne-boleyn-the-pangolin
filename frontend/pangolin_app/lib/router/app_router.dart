@@ -19,7 +19,7 @@ class AppRoutes {
   static const String connections = '/main/connections';
   static const String editProfile = '/profile/edit-profile';
   static const String editWall = '/profile/edit-wall';
-  static const String profile = '/main/profile';
+  static const String viewProfile = '/main/profile';
   static const String sharedBoard = '/chat/board';
 }
 
@@ -75,7 +75,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
       // Selected user profile
       GoRoute(
-        path: AppRoutes.profile,
+        path: AppRoutes.viewProfile,
         builder: (context, state) {
           return ProfileViewerPage(userId: userIdFromState(state));
         },

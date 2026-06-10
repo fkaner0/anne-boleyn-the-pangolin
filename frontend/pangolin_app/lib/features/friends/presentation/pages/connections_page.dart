@@ -90,7 +90,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
   }
 
   void _openBoard(int friendUserId, String friendName) {
-    context.pushNamed(AppRoutes.sharedBoard, extra: friendUserId);
+    context.push(AppRoutes.sharedBoard, extra: friendUserId);
   }
 
   @override

@@ -40,8 +40,6 @@ class _RecommendationListPageState
 
   late final RecommendationFetcher _recommendationFetcher =
       widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
-  late final ProfileFetcher _profileFetcher =
-      widget.profileFetcher ?? getIt<ProfileFetcher>();
 
   @override
   void initState() {
@@ -113,8 +111,8 @@ class _RecommendationListPageState
                 recommendation: recommendation,
                 onTap: () {
                   _log(ButtonIds.recommendationList);
-                  context.pushNamed(
-                    AppRoutes.recommendations,
+                  context.push(
+                    AppRoutes.viewProfile,
                     extra: recommendation.userId,
                   );
                 },
