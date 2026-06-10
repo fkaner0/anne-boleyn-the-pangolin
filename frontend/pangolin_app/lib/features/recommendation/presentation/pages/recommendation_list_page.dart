@@ -83,9 +83,17 @@ class _RecommendationListPageState
       ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.recommendations,
-        onEditProfile: () => MainTabNavigation.goToEditProfile(context),
-        onRecommendations: () {},
-        onFriends: () => MainTabNavigation.goToFriends(context),
+        onEditProfile: () {
+          _log(ButtonIds.recommendationListEditProfile);
+          MainTabNavigation.goToEditProfile(context);
+        },
+        onRecommendations: () {
+          _log(ButtonIds.recommendationListRecommendations);
+        },
+        onFriends: () {
+          _log(ButtonIds.recommendationListFriends);
+          MainTabNavigation.goToFriends(context);
+        },
       ),
       body: Builder(
         builder: (context) {

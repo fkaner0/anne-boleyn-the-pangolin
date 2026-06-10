@@ -122,19 +122,22 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
                       MessageComposer(
                         hintText: prompt,
                         // TODO: make this tidier
-                        onSend: (message) => widget.image != null
-                            ? _sharedBoardService.sendImage(
-                                senderId: _currentUserId(),
-                                receiverId: widget.profile.userId,
-                                url: widget.image!.url,
-                                message: message,
-                              )
-                            : _sharedBoardService.sendText(
-                                senderId: _currentUserId(),
-                                receiverId: widget.profile.userId,
-                                text: widget.textbox!.body,
-                                message: message,
-                              ),
+                        onSend: (message) {
+                          _log(ButtonIds.wallDetailSend);
+                          widget.image != null
+                              ? _sharedBoardService.sendImage(
+                                  senderId: _currentUserId(),
+                                  receiverId: widget.profile.userId,
+                                  url: widget.image!.url,
+                                  message: message,
+                                )
+                              : _sharedBoardService.sendText(
+                                  senderId: _currentUserId(),
+                                  receiverId: widget.profile.userId,
+                                  text: widget.textbox!.body,
+                                  message: message,
+                                );
+                        },
                       ),
                     ],
                   ),
