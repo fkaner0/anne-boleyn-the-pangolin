@@ -69,12 +69,7 @@ class _BedroomWallViewState extends State<BedroomWallView> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final renderScale = constraints.maxHeight.isFinite
-            ? (constraints.maxWidth / canvasWidth).clamp(
-                0.0,
-                constraints.maxHeight / canvasHeight,
-              )
-            : constraints.maxWidth / canvasWidth;
+        final renderScale = constraints.maxWidth / canvasWidth;
 
         return PinchToZoom(
           child: SizedBox(
