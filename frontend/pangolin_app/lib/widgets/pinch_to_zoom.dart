@@ -89,7 +89,9 @@ class _PinchToZoomState extends State<PinchToZoom>
       onScaleStart: _onScaleStart,
       onScaleUpdate: _onScaleUpdate,
       onScaleEnd: _onScaleEnd,
-      child: Transform(transform: _transform, child: widget.child),
+      child: ClipRect(
+        child: Transform(transform: _transform, child: widget.child),
+      ),
     );
   }
 }

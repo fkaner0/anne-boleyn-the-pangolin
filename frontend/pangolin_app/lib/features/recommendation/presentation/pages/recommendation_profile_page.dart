@@ -92,8 +92,7 @@ class RecommendationProfilePage extends ConsumerWidget {
                   },
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                  child: ClipRect(
                     child: BedroomWallView(
                       profile: profile,
                       stickerCatalog: stickerCatalog,
