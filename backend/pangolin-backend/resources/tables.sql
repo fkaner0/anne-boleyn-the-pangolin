@@ -23,8 +23,8 @@ CREATE TABLE userHobbyInfo(
   accountId integer NOT NULL UNIQUE REFERENCES account (id) ON DELETE CASCADE,
   hobby text NOT NULL,
   passionlevel double precision NOT NULL,
-  subinterests text NOT NULL,
-  otherinterests text NOT NULL
+  subinterests text[] NOT NULL,
+  otherinterests text[] NOT NULL
 );
 
 CREATE TABLE wallImage (
