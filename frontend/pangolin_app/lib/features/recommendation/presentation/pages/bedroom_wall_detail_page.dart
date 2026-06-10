@@ -139,7 +139,10 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
                                   text: widget.textbox!.body,
                                   message: message,
                                 );
-                          context.push(AppRoutes.sharedBoard, extra: widget.profile.userId);
+                          context.push(
+                            AppRoutes.sharedBoard,
+                            extra: widget.profile.userId,
+                          );
                         },
                       ),
                     ],
