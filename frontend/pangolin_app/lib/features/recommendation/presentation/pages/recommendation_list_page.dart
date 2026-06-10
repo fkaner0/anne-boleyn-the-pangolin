@@ -92,9 +92,9 @@ class _RecommendationListPageState
       ),
       bottomNavigationBar: IslandNavBar(
         current: IslandNavTab.recommendations,
-        onEditProfile: () { 
-        _log(ButtonIds.recommendationListEditProfile);
-        MainTabNavigation.goToEditProfile(context);
+        onEditProfile: () {
+          _log(ButtonIds.recommendationListEditProfile);
+          MainTabNavigation.goToEditProfile(context);
         },
         onRecommendations: () {
           _log(ButtonIds.recommendationListRecommendations);
