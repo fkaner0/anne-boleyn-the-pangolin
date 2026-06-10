@@ -90,8 +90,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     }
   }
 
-  int _now() => DateTime.now().millisecondsSinceEpoch;
-
   List<SharedElement> _sorted(Map<int, SharedElement> elements) {
     return elements.values.toList()
       ..sort((a, b) => b.datetime.compareTo(a.datetime));
@@ -111,7 +109,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         receiverId: widget.friendUserId,
         url: url,
         message: "THIS IS A FAKE INITIAL MESSAGE", // TODO
-        datetime: _now(),
       );
       await _loadBoard();
     } catch (_) {
@@ -147,7 +144,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         senderId: _userId,
         receiverId: widget.friendUserId,
         text: text,
-        datetime: _now(),
       );
       await _loadBoard();
     } catch (_) {

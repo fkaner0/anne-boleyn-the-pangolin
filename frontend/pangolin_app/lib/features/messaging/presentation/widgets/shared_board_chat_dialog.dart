@@ -112,7 +112,7 @@ class _Header extends StatelessWidget {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: SizedBox(
-          height: MediaQuery.sizeOf(context).height / 2 - 30,
+          height: MediaQuery.sizeOf(context).height / 3 - 30,
           width: double.infinity,
           child: Image.network(
             element.content,

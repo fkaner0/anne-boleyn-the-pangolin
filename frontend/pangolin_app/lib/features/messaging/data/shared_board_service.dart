@@ -10,7 +10,7 @@ abstract interface class SharedBoardService {
     required int receiverId,
     required String url,
     required String message,
-    required int datetime,
+    int? datetime,
   });
 
   Future<void> sendText({
@@ -18,7 +18,7 @@ abstract interface class SharedBoardService {
     required int receiverId,
     required String text,
     required String message,
-    required int datetime,
+    int? datetime,
   });
 
   Future<void> sendReply({
@@ -26,6 +26,8 @@ abstract interface class SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   });
+
+  static int now() => DateTime.now().millisecondsSinceEpoch;
 }

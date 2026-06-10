@@ -30,7 +30,7 @@ class RenderSharedBoardService implements SharedBoardService {
     required int receiverId,
     required String url,
     required String message,
-    required int datetime,
+    int? datetime,
   }) => _delegate.sendImage(
     senderId: senderId,
     receiverId: receiverId,
@@ -45,7 +45,7 @@ class RenderSharedBoardService implements SharedBoardService {
     required int receiverId,
     required String text,
     required String message,
-    required int datetime,
+    int? datetime,
   }) => _delegate.sendText(
     senderId: senderId,
     receiverId: receiverId,
@@ -60,7 +60,7 @@ class RenderSharedBoardService implements SharedBoardService {
     required int senderId,
     required int receiverId,
     required String text,
-    required int datetime,
+    int? datetime,
   }) => _delegate.sendReply(
     sharedElementId: sharedElementId,
     senderId: senderId,
