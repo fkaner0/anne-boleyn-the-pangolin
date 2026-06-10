@@ -369,12 +369,7 @@ object api {
 
   private val currentFriendsRoutes = serverInterpreter.toRoutes(
     currentFriendsEndpoint.serverLogicSuccess { userId =>
-      repo.getCurrentFriends(userId).map { friendInfo =>
-        val friends = friendInfo.map { (friendId, name, images, profileImageUrl) =>
-          Friend(friendId, name, images, profileImageUrl)
-        }
-        CurrentFriends(friends, 0)
-      }
+      repo.getCurrentFriends(userId).map(CurrentFriends(_, 0))
     }
   )
 

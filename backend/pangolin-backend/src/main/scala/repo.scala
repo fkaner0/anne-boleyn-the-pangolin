@@ -599,7 +599,12 @@ object repo {
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- coverImages.map(_.url).sequence
-      } yield (friendProfile.accountId, friendProfile.name, coverImageUrls, friendProfile.profileImageUrl)
+      } yield api.Friend(
+        friendUserId = friendProfile.accountId,
+        name = friendProfile.name,
+        coverImages = coverImageUrls,
+        mainImage = friendProfile.profileImageUrl,
+      )
     }.collect {
       case Some(x) => x
     }
