@@ -234,21 +234,8 @@ object api {
     profileViewEndpoint.serverLogic { userId =>
       repo
         .getProfile(userId)
-        .map(_.map { (user, images, textboxes, stickers) =>
-          user.toApi(repo.UserHobbyInfo(
-            id = 0, accountId = 0, hobby = "wa", passionLevel = 0.2, subInterests = "[]", otherInterests = "[]",
-          ), images, textboxes, stickers)
-          // FullProfile(
-          //   name = user.name,
-          //   location = user.location,
-          //   bio = user.bio,
-          //   age = user.age,
-          //   profileImageUrl = user.profileImageUrl,
-          //   wallBackgroundHexARGB = user.wallBackgroundHexARGB,
-          //   wallImages = images.map(_.toApi),
-          //   wallTextboxes = textboxes.map(_.toApi),
-          //   wallStickers = stickers.map(_.toApi),
-          // )
+        .map(_.map { (user, userHobbyInfo, images, textboxes, stickers) =>
+          user.toApi(userHobbyInfo, images, textboxes, stickers)
         })
     },
   )
@@ -257,6 +244,7 @@ object api {
     profileEditEndpoint.serverLogic { (userId, request) =>
       repo.updateFullProfile(
         request.profileFromApi(accountId = userId),
+        request.hobbyInfoFromApi(accountId = userId),
         request.wallTextboxes.map(_.fromApi),
         request.wallImages.map(_.fromApi),
         request.wallStickers.map(_.fromApi),
