@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
@@ -11,6 +12,8 @@ import 'package:pangolin_app/features/friends/presentation/pages/connections_pag
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
+import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_page.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -47,15 +50,28 @@ void main() {
     MockButtonClickLogger? logger,
     List<PendingFriend> pending = const [],
   }) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [loggedInUserId(7)],
-        child: MaterialApp(
-          home: ConnectionsPage(
+    final router = GoRouter(
+      initialLocation: AppRoutes.connections,
+      routes: [
+        GoRoute(
+          path: AppRoutes.connections,
+          builder: (_, _) => ConnectionsPage(
             friendsFetcher: _FakeFriendsFetcher(data, pending: pending),
             logger: logger,
           ),
         ),
+        GoRoute(
+          path: AppRoutes.sharedBoard,
+          builder: (_, state) =>
+              SharedBoardPage(friendUserId: state.extra as int),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(7)],
+        child: MaterialApp.router(routerConfig: router),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,7 +111,7 @@ void main() {
     await pumpPage(tester, _sample(), logger: logger);
 
     await tester.tap(find.byType(ConnectionCard).first);
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(logger.clicks, hasLength(1));
     expect(logger.clicks.single.userId, 7);
