@@ -12,10 +12,12 @@ import com.augustnagro.magnum.{
   TableInfo,
   connect, transact,
   sql,
+  DbCon
 }
 import io.github.cdimascio.dotenv.Dotenv
 import org.postgresql.ds.PGSimpleDataSource
-import com.augustnagro.magnum.DbCon
+// import org.postgresql.geometric.*
+import com.augustnagro.magnum.pg.PgCodec.given
 
 object repo {
 
@@ -230,6 +232,27 @@ object repo {
     val Table = TableInfo[AccountCreator, Account, Int]
   }
   
+  @Table(PostgresDbType)
+  case class UserHobbyInfo(
+    @Id id: Int,
+    accountId: Int,
+    hobby: String,
+    passionLevel: Double,
+    subInterests: Vector[String],
+    otherInterests: Vector[String],
+  ) derives DbCodec
+  case class UserHobbyInfoCreator(
+    accountId: Int,
+    hobby: String,
+    passionLevel: Double,
+    subInterests: Vector[String],
+    otherInterests: Vector[String],
+  ) derives DbCodec
+
+  object UserHobbyInfo {
+    val Table = TableInfo[UserHobbyInfoCreator, UserHobbyInfo, Int]
+  }
+  
   case class SharedBoardCreator(
     user1Id: Int,
     user2Id: Int,
@@ -330,6 +353,7 @@ object repo {
   private val profileStickerRepo = Repo[WallStickerCreator, WallSticker, Int]
  
   private val profileRepo = Repo[ProfileCreator, Profile, Int]
+  private val userHobbyInfoRepo = Repo[UserHobbyInfoCreator, UserHobbyInfo, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
 
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
@@ -350,27 +374,28 @@ object repo {
   private def profileStickersSpec(profileId: Int) = Spec[WallSticker]
     .where(sql"${WallSticker.Table.profileId} = $profileId")
 
+  private def userHobbyInfoSpec(accountId: Int) = Spec[UserHobbyInfo]
+    .where(sql"${UserHobbyInfo.Table.accountId} = $accountId")
+
   val getRecommendations = inDatabase {
     profileRepo.findAll.asRight
   }
 
   /// Yes, this should be a much better query. Believe in the power of query optimisation!
-  def getProfile(accountId: Int) = inDatabaseWithRollback {
-    getProfileIdFromUserId(accountId) match {
-      case None => Left("Could not find a profile for the given accoundId")
-      case Some(profileId) => profileRepo
-        .findById(profileId)
-        .map { profile =>
-          val images = profileImageRepo.findAll(profileImagesSpec(profileId))
-          val textboxes =
-            profileTextboxRepo.findAll(profileTextboxesSpec(profileId))
-          val stickers =
-            profileStickerRepo.findAll(profileStickersSpec(profileId))
-          (profile, images, textboxes, stickers)
-        }
-        .toRight(s"error getting profile information from profileId $profileId")
+  def getProfile(
+    accountId: Int
+  ): IO[Either[String, (Profile, UserHobbyInfo, Vector[WallImage], Vector[WallTextbox], Vector[WallSticker])]] =
+    inDatabaseWithRollback {
+      for {
+        profileId <- getProfileIdFromUserId(accountId).toRight("Could not find a profile for the given accountId")
+        profile <- profileRepo.findById(profileId).toRight(s"Could not find profile for profileId $profileId")
+        images = profileImageRepo.findAll(profileImagesSpec(profileId = profileId))
+        textboxes = profileTextboxRepo.findAll(profileTextboxesSpec(profileId = profileId))
+        stickers = profileStickerRepo.findAll(profileStickersSpec(profileId = profileId))
+        userHobbyInfo = userHobbyInfoRepo.findAll(userHobbyInfoSpec(accountId = accountId)).headOption
+        hobbyInfo <- userHobbyInfo.toRight("Could not find hobby info for the given accountId")
+      } yield (profile, hobbyInfo, images, textboxes, stickers)
     }
-  }
 
   def newUser(username: String): IO[Either[Throwable, Int]] = inDatabaseWithRollback {
     try {
@@ -403,6 +428,9 @@ object repo {
   private def addImages(using DbCon) = addAll(profileImageRepo)
   private def addStickers(using DbCon) = addAll(profileStickerRepo)
 
+  private def removeHobbyInfo(accountId: Int)(using DbCon) = removeBySpec(userHobbyInfoRepo, userHobbyInfoSpec(accountId), _.id)
+  private def addHobbyInfo(uhiCreator: UserHobbyInfoCreator)(using DbCon) = userHobbyInfoRepo.insert(uhiCreator)
+
   private def getProfileIdFromUserId(accountId: Int)(using DbCon): Option[Int] = sql"""
     SELECT ${Profile.Table.id}
       FROM ${Profile.Table}
@@ -415,7 +443,7 @@ object repo {
   //   UPDATE
   // """.query[Unit].run()
 
-  def _updateWallElements(
+  private def updateWallElements(
     profileId: Int,
     textboxCreators: Iterable[WallTextboxCreatorBuilder],
     imageCreators: Iterable[WallImageCreatorBuilder],
@@ -433,25 +461,36 @@ object repo {
     /// (because the frontend can't use our element ids. doesn't help that we have an ugly DB structure)  
   }
 
+  private def updateHobbyInfo(
+    userHobbyInfoCreator: UserHobbyInfoCreator,
+  )(using DbCon) = {
+    repo.removeHobbyInfo(userHobbyInfoCreator.accountId)
+    repo.addHobbyInfo(userHobbyInfoCreator)
+  }
+
   def updateFullProfile(
         profileCreator: ProfileCreator,
+        userHobbyInfoCreator: UserHobbyInfoCreator,
         textboxCreators: Iterable[WallTextboxCreatorBuilder],
         imageCreators: Iterable[WallImageCreatorBuilder],
         stickerCreators: Iterable[WallStickerCreatorBuilder],
-  ) = repo.inDatabaseWithRollback {
+  ) = inDatabaseWithRollback {
     val profileId: Option[Int] = getProfileIdFromUserId(profileCreator.accountId)
     profileId match {
       case Some(pid) => {
         /// TODO: change this so its plain sql!!
         repo.profileRepo.update(profileCreator.toProfile(pid))
-        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+        updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+        updateHobbyInfo(userHobbyInfoCreator)
       }
       case None => {
         /// profile doesn't exist yet, so create a new one.
         val pid = repo.profileRepo.insertReturning(profileCreator).id
-        _updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+        updateWallElements(pid, textboxCreators, imageCreators, stickerCreators)
+        repo.userHobbyInfoRepo.insert(userHobbyInfoCreator)
       }
     }
+    Right(())
   }
 
   def newSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {

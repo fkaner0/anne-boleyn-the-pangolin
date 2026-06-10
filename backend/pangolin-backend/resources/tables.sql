@@ -9,13 +9,22 @@ CREATE TABLE account (
 
 CREATE TABLE profile (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  accountId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+  accountId integer NOT NULL UNIQUE REFERENCES account (id) ON DELETE CASCADE,
   name text NOT NULL,
   location text NOT NULL,
   bio text NOT NULL,
   wallBackgroundHexARGB uint4 NOT NULL,
   profileImageUrl text NOT NULL,
   age integer NOT NULL
+);
+
+CREATE TABLE userHobbyInfo(
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  accountId integer NOT NULL UNIQUE REFERENCES account (id) ON DELETE CASCADE,
+  hobby text NOT NULL,
+  passionlevel double precision NOT NULL,
+  subinterests text[] NOT NULL,
+  otherinterests text[] NOT NULL
 );
 
 CREATE TABLE wallImage (
