@@ -11,6 +11,7 @@ import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
+import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_element_tile.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
@@ -45,7 +46,8 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   ConsumerState<SharedBoardPage> createState() => _SharedBoardPageState();
 }
 
-class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
+class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
+    with BoardNotificationsListener<SharedBoardPage> {
   late final SharedBoardService _service =
       widget.service ?? getIt<SharedBoardService>();
   late final ImageFilePicker _imagePicker =
@@ -74,7 +76,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
-  StreamSubscription<void>? _subscription;
   bool _loading = true;
   bool _uploading = false;
 
@@ -87,19 +88,18 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       if (mounted) setState(() => _friendDisplayName = name);
     }, onError: (_) {});
     _loadBoard();
-    _subscription = _service
-        .notifications(_userId)
-        .listen(
-          (_) => _loadBoard(),
-          onError: (_) {
-            if (mounted) _showMessage('Connection lost. Trying to reconnect…');
-          },
-        );
+    listenToBoardNotifications(
+      _service,
+      _userId,
+      _loadBoard,
+      onError: (_) {
+        if (mounted) _showMessage('Connection lost. Trying to reconnect…');
+      },
+    );
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
     _elements.dispose();
     super.dispose();
   }

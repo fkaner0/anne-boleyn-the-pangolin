@@ -16,6 +16,7 @@ import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_
 import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
+import '../../../../support/fake_shared_board_service.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
   final CurrentFriends current;
@@ -53,6 +54,7 @@ void main() {
     CurrentFriends data, {
     MockButtonClickLogger? logger,
     List<PendingFriend> pending = const [],
+    FakeSharedBoardService? boardService,
   }) async {
     final fetcher = _FakeFriendsFetcher(data, pending: pending);
     final router = GoRouter(
@@ -60,8 +62,11 @@ void main() {
       routes: [
         GoRoute(
           path: AppRoutes.connections,
-          builder: (_, _) =>
-              ConnectionsPage(friendsFetcher: fetcher, logger: logger),
+          builder: (_, _) => ConnectionsPage(
+            friendsFetcher: fetcher,
+            boardService: boardService,
+            logger: logger,
+          ),
         ),
         GoRoute(
           path: AppRoutes.sharedBoard,
@@ -234,6 +239,19 @@ void main() {
     await tester.tap(find.byType(ConnectionCard).first);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(fetcher.currentFetchCount, 2);
+  });
+
+  testWidgets('refetches the connections on an sse notification', (
+    tester,
+  ) async {
+    final board = FakeSharedBoardService();
+    final fetcher = await pumpPage(tester, _sample(), boardService: board);
+    expect(fetcher.currentFetchCount, 1);
+
+    board.fireNotification();
     await tester.pumpAndSettle();
 
     expect(fetcher.currentFetchCount, 2);

@@ -8,6 +8,8 @@ import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
+import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
 enum _PendingAction { ignore, reportAndIgnore }
@@ -16,6 +18,7 @@ class PendingConnectionsDialog extends StatefulWidget {
   final int userId;
   final FriendsFetcher friendsFetcher;
   final FriendActionSender? friendActionSender;
+  final SharedBoardService? boardService;
   final ButtonClickLogger? logger;
 
   const PendingConnectionsDialog({
@@ -23,6 +26,7 @@ class PendingConnectionsDialog extends StatefulWidget {
     required this.userId,
     required this.friendsFetcher,
     this.friendActionSender,
+    this.boardService,
     this.logger,
   });
 
@@ -31,9 +35,12 @@ class PendingConnectionsDialog extends StatefulWidget {
       _PendingConnectionsDialogState();
 }
 
-class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
+class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
+    with BoardNotificationsListener<PendingConnectionsDialog> {
   late final FriendActionSender _sender =
       widget.friendActionSender ?? getIt<FriendActionSender>();
+  late final SharedBoardService _boardService =
+      widget.boardService ?? getIt<SharedBoardService>();
 
   bool _loading = true;
   String? _error;
@@ -43,6 +50,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
   void initState() {
     super.initState();
     _load();
+    listenToBoardNotifications(_boardService, widget.userId, _load);
   }
 
   Future<void> _load() async {
