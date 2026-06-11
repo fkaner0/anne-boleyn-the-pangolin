@@ -37,10 +37,24 @@ void main() {
       'friendUserId': 9,
       'name': 'Mei',
       'mainImage': 'mei.jpg',
+      'messagePreview': 'Hi there!',
+      'age': 22,
     });
 
     expect(pending.friendUserId, 9);
     expect(pending.name, 'Mei');
     expect(pending.mainImage, 'mei.jpg');
+    expect(pending.messagePreview, 'Hi there!');
+    expect(pending.age, 22);
+  });
+
+  test('PendingFriend.fromJson defaults a missing message preview', () {
+    final pending = PendingFriend.fromJson({
+      'friendUserId': 9,
+      'name': 'Mei',
+      'mainImage': 'mei.jpg',
+    });
+
+    expect(pending.messagePreview, '');
   });
 }

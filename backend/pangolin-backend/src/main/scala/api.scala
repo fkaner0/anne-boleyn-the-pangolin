@@ -166,6 +166,7 @@ object api {
     friendUserId: Int,
     name: String,
     mainImage: String,
+    messagePreview: String,
     age: Int,
     location: String,
     bio: String,

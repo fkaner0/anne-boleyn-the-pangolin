@@ -14,6 +14,15 @@ import 'package:pangolin_app/widgets/app_icon.dart';
 
 enum _PendingAction { ignore, reportAndIgnore }
 
+enum PendingActionKind { reply, viewProfile }
+
+class PendingSelection {
+  final PendingFriend friend;
+  final PendingActionKind kind;
+
+  const PendingSelection(this.friend, this.kind);
+}
+
 class PendingConnectionsDialog extends StatefulWidget {
   final int userId;
   final FriendsFetcher friendsFetcher;
@@ -87,9 +96,18 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
     Navigator.of(context).pop();
   }
 
-  void _select(PendingFriend friend) {
+  void _reply(PendingFriend friend) {
     _log(ButtonIds.pendingConnection);
-    Navigator.of(context).pop(friend);
+    Navigator.of(
+      context,
+    ).pop(PendingSelection(friend, PendingActionKind.reply));
+  }
+
+  void _viewProfile(PendingFriend friend) {
+    _log(ButtonIds.pendingViewProfile);
+    Navigator.of(
+      context,
+    ).pop(PendingSelection(friend, PendingActionKind.viewProfile));
   }
 
   Future<void> _ignore(PendingFriend friend) {
@@ -215,7 +233,8 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
         final friend = _pending[index];
         return _PendingCard(
           friend: friend,
-          onMessage: () => _select(friend),
+          onProfile: () => _viewProfile(friend),
+          onReply: () => _reply(friend),
           onIgnore: () => _ignore(friend),
           onReportAndIgnore: () => _reportAndIgnore(friend),
         );
@@ -226,13 +245,15 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
 
 class _PendingCard extends StatelessWidget {
   final PendingFriend friend;
-  final VoidCallback onMessage;
+  final VoidCallback onProfile;
+  final VoidCallback onReply;
   final VoidCallback onIgnore;
   final VoidCallback onReportAndIgnore;
 
   const _PendingCard({
     required this.friend,
-    required this.onMessage,
+    required this.onProfile,
+    required this.onReply,
     required this.onIgnore,
     required this.onReportAndIgnore,
   });
@@ -247,65 +268,128 @@ class _PendingCard extends StatelessWidget {
     return Material(
       color: colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(16),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Avatar(url: friend.mainImage),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InkWell(
+            onTap: onProfile,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Avatar(url: friend.mainImage),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (friend.location.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              friend.location,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
-                ),
-                PopupMenuButton<_PendingAction>(
-                  icon: AppIcon(
-                    AppIconType.moreVert,
-                    color: colorScheme.onSurfaceVariant,
+                  PopupMenuButton<_PendingAction>(
+                    icon: AppIcon(
+                      AppIconType.moreVert,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    tooltip: 'More',
+                    onSelected: (action) {
+                      switch (action) {
+                        case _PendingAction.ignore:
+                          onIgnore();
+                        case _PendingAction.reportAndIgnore:
+                          onReportAndIgnore();
+                      }
+                    },
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: _PendingAction.ignore,
+                        child: Text('Ignore'),
+                      ),
+                      PopupMenuItem(
+                        value: _PendingAction.reportAndIgnore,
+                        child: Text('Report and ignore'),
+                      ),
+                    ],
                   ),
-                  tooltip: 'More',
-                  onSelected: (action) {
-                    switch (action) {
-                      case _PendingAction.ignore:
-                        onIgnore();
-                      case _PendingAction.reportAndIgnore:
-                        onReportAndIgnore();
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(
-                      value: _PendingAction.ignore,
-                      child: Text('Ignore'),
-                    ),
-                    PopupMenuItem(
-                      value: _PendingAction.reportAndIgnore,
-                      child: Text('Report and ignore'),
-                    ),
-                  ],
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Material(
+              color: colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onReply,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (friend.messagePreview.isNotEmpty) ...[
+                        Text(
+                          '"${friend.messagePreview}"',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AppIcon(
+                            AppIconType.message,
+                            size: 20,
+                            color: colorScheme.onPrimaryContainer,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Reply',
+                            style: TextStyle(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
-            const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: onMessage,
-              icon: const AppIcon(AppIconType.message, size: 20),
-              label: Text('Message ${friend.name}'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

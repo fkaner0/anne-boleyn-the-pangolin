@@ -36,7 +36,14 @@ Future<_FakeFriendsFetcher> _pump(
 }) async {
   final sender = MockFriendActionSender();
   final fetcher = _FakeFriendsFetcher(const [
-    PendingFriend(friendUserId: 11, name: 'Jess', mainImage: '', age: 24),
+    PendingFriend(
+      friendUserId: 11,
+      name: 'Jess',
+      mainImage: '',
+      messagePreview: 'Hey there!',
+      location: 'London',
+      age: 24,
+    ),
   ], sender);
   await tester.pumpWidget(
     MaterialApp(
@@ -56,11 +63,26 @@ Future<_FakeFriendsFetcher> _pump(
 }
 
 void main() {
-  testWidgets('shows the name with age and a message button', (tester) async {
+  testWidgets('shows the name, age, location and a reply button', (
+    tester,
+  ) async {
     await _pump(tester);
 
     expect(find.text('Jess (24)'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Message Jess'), findsOneWidget);
+    expect(find.text('London'), findsOneWidget);
+    expect(find.text('Reply'), findsOneWidget);
+  });
+
+  testWidgets('shows the message preview in quotes and italics', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    final preview = tester.widget<Text>(find.text('"Hey there!"'));
+    expect(preview, isNotNull);
+    expect(preview.style?.fontStyle, FontStyle.italic);
+    expect(preview.maxLines, 2);
+    expect(preview.overflow, TextOverflow.ellipsis);
   });
 
   testWidgets('re-fetches pending friends on an sse notification', (

@@ -8,7 +8,6 @@ import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
-import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/connection_card.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
@@ -87,7 +86,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   Future<void> _openPending() async {
     _log(ButtonIds.connectionsPending);
 
-    final selected = await showDialog<PendingFriend>(
+    final selected = await showDialog<PendingSelection>(
       context: context,
       builder: (_) => PendingConnectionsDialog(
         userId: _userId,
@@ -99,7 +98,15 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
     if (selected == null || !mounted) return;
 
-    _openBoard(selected.friendUserId, selected.name);
+    switch (selected.kind) {
+      case PendingActionKind.reply:
+        _openBoard(selected.friend.friendUserId, selected.friend.name);
+      case PendingActionKind.viewProfile:
+        context.push(
+          AppRoutes.viewProfile,
+          extra: selected.friend.friendUserId,
+        );
+    }
   }
 
   Future<void> _openBoard(int friendUserId, String friendName) async {

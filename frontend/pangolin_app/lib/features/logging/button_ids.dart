@@ -27,6 +27,8 @@ class ButtonIds {
       'pending_connection'; // Any pending connection card in the popup
   static const String pendingConnectionsClose =
       'pending_connections_close'; // Close button on the pending popup
+  static const pendingViewProfile =
+      'pending_view_profile'; // Tapping a pending card's profile area
   static const pendingIgnore =
       'pending_ignore'; // Ignore action on a pending connection
   static const pendingReportAndIgnore =
