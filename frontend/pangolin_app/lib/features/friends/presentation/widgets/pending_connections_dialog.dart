@@ -86,7 +86,6 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
 
   Future<void> _ignore(PendingFriend friend) {
     return _runAction(
-      friend,
       () => _sender.reject(
         currentUserId: widget.userId,
         targetUserId: friend.friendUserId,
@@ -94,8 +93,8 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
     );
   }
 
-  Future<void> _reportAndIgnore(PendingFriend friend) {
-    return _runAction(friend, () async {
+  Future<void> _reportAndIgnore(PendingFriend friend) async {
+    final reported = await _runAction(() async {
       await _sender.report(
         currentUserId: widget.userId,
         targetUserId: friend.friendUserId,
@@ -105,27 +104,46 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
         targetUserId: friend.friendUserId,
       );
     });
+
+    if (reported && mounted) {
+      await _showReportConfirmation(friend.name);
+    }
   }
 
-  Future<void> _runAction(
-    PendingFriend friend,
-    Future<void> Function() action,
-  ) async {
+  Future<void> _showReportConfirmation(String name) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(
+          "$name's request has been sent to our moderation team for review, "
+          "if they've broken our Code of Conduct, they'll be banned. "
+          "We've blocked them for you.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _runAction(Future<void> Function() action) async {
     try {
       await action();
-      if (!mounted) return;
-      setState(() {
-        _pending = _pending
-            .where((f) => f.friendUserId != friend.friendUserId)
-            .toList();
-      });
+      if (!mounted) return false;
+      await _load();
+      return true;
     } catch (_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(
-          const SnackBar(content: Text('Could not complete that action.')),
-        );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(content: Text('Could not complete that action.')),
+          );
+      }
+      return false;
     }
   }
 

@@ -8,33 +8,35 @@ import 'package:pangolin_app/features/friends/presentation/widgets/pending_conne
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
-  final List<PendingFriend> pending;
+  final List<PendingFriend> all;
+  final MockFriendActionSender sender;
+  int pendingFetchCount = 0;
 
-  const _FakeFriendsFetcher(this.pending);
+  _FakeFriendsFetcher(this.all, this.sender);
 
   @override
   Future<CurrentFriends> fetchCurrentFriends(int userId) async =>
       const CurrentFriends(pendingCount: 0, friends: []);
 
   @override
-  Future<List<PendingFriend>> fetchPendingFriends(int userId) async => pending;
+  Future<List<PendingFriend>> fetchPendingFriends(int userId) async {
+    pendingFetchCount++;
+    final actioned = sender.actions.map((a) => a.targetUserId).toSet();
+    return all.where((f) => !actioned.contains(f.friendUserId)).toList();
+  }
 }
 
-Future<MockFriendActionSender> _pump(WidgetTester tester) async {
+Future<_FakeFriendsFetcher> _pump(WidgetTester tester) async {
   final sender = MockFriendActionSender();
+  final fetcher = _FakeFriendsFetcher(const [
+    PendingFriend(friendUserId: 11, name: 'Jess', mainImage: '', age: 24),
+  ], sender);
   await tester.pumpWidget(
     MaterialApp(
       home: Scaffold(
         body: PendingConnectionsDialog(
           userId: 7,
-          friendsFetcher: const _FakeFriendsFetcher([
-            PendingFriend(
-              friendUserId: 11,
-              name: 'Jess',
-              mainImage: '',
-              age: 24,
-            ),
-          ]),
+          friendsFetcher: fetcher,
           friendActionSender: sender,
           logger: MockButtonClickLogger(),
         ),
@@ -42,7 +44,7 @@ Future<MockFriendActionSender> _pump(WidgetTester tester) async {
     ),
   );
   await tester.pumpAndSettle();
-  return sender;
+  return fetcher;
 }
 
 void main() {
@@ -53,37 +55,45 @@ void main() {
     expect(find.widgetWithText(FilledButton, 'Message Jess'), findsOneWidget);
   });
 
-  testWidgets('Ignore rejects the friend and removes the card', (tester) async {
-    final sender = await _pump(tester);
+  testWidgets('Ignore rejects the friend and re-fetches the pending list', (
+    tester,
+  ) async {
+    final fetcher = await _pump(tester);
+    expect(fetcher.pendingFetchCount, 1);
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Ignore'));
     await tester.pumpAndSettle();
 
-    expect(sender.actions, hasLength(1));
-    expect(sender.actions.single.kind, FriendActionKind.reject);
-    expect(sender.actions.single.currentUserId, 7);
-    expect(sender.actions.single.targetUserId, 11);
+    expect(fetcher.sender.actions.single.kind, FriendActionKind.reject);
+    expect(fetcher.sender.actions.single.currentUserId, 7);
+    expect(fetcher.sender.actions.single.targetUserId, 11);
+    expect(fetcher.pendingFetchCount, 2);
     expect(find.text('Jess (24)'), findsNothing);
     expect(find.text('No pending connections'), findsOneWidget);
+    expect(find.textContaining('moderation team'), findsNothing);
   });
 
-  testWidgets('Report and ignore reports then rejects the friend', (
+  testWidgets('Report and ignore reports then rejects, then re-fetches', (
     tester,
   ) async {
-    final sender = await _pump(tester);
+    final fetcher = await _pump(tester);
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Report and ignore'));
     await tester.pumpAndSettle();
 
-    expect(sender.actions.map((a) => a.kind), [
+    expect(fetcher.sender.actions.map((a) => a.kind), [
       FriendActionKind.report,
       FriendActionKind.reject,
     ]);
-    expect(sender.actions.every((a) => a.targetUserId == 11), isTrue);
-    expect(find.text('Jess (24)'), findsNothing);
+    expect(fetcher.sender.actions.every((a) => a.targetUserId == 11), isTrue);
+    expect(fetcher.pendingFetchCount, 2);
+
+    expect(find.textContaining("Jess's request"), findsOneWidget);
+    expect(find.textContaining('moderation team'), findsOneWidget);
+    expect(find.text('OK'), findsOneWidget);
   });
 }
