@@ -700,7 +700,7 @@ object repo {
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
   def getCurrentFriends(userId: Int): IO[Option[(Vector[api.Friend], Int)]] = inDatabase {
-    val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
+    val sharedBoards = getAllCurrentFriends(userId)
     val friends = sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
       val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
@@ -723,7 +723,7 @@ object repo {
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
   def getPendingFriends(userId: Int): IO[Vector[api.PendingFriend]] = inDatabase {
-    val sharedBoards = sharedBoardRepo.findAll(pendingFriendsSpec(userId))
+    val sharedBoards = getAllPendingFriends(userId)
     sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
       val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
@@ -754,32 +754,37 @@ object repo {
     }
   }
 
-  private def currentFriendsSpec(userId: Int) = {
+  private def getAllCurrentFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
     val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
-    Spec[SharedBoard]
-      .where(sql"""
+    sql"""
+      SELECT *
+      FROM $sharedBoard
+      WHERE
         (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
       AND ${sharedBoard.id} NOT IN (
-        SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
+        (SELECT ${pending.boardId} FROM $pending WHERE ${pending.pendingForUser} = $userId)
         UNION
-        SELECT ${removed.boardId} FROM ${removed} WHERE ${removed.removedByUser} = $userId
+        (SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId)
       )
-    """)
+    """.query[SharedBoard].run()
   }
 
-  private def pendingFriendsSpec(userId: Int) = {
+  private def getAllPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
-    Spec[SharedBoard].where(sql"""
-      (${sharedBoard} = $userId OR ${sharedBoard.user2Id} = $userId)
+    sql"""
+      SELECT *
+      FROM $sharedBoard
+      WHERE 
+        (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
       AND ${sharedBoard.id} IN (
         SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
       )
-    """)
+    """.query[SharedBoard].run()
   }
   
   private def numberPendingFriends(userId: Int)(using DbCon) = {
