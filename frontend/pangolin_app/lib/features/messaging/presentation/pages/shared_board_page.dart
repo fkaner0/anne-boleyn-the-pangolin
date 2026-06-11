@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
@@ -24,6 +25,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   final SharedBoardService? service;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
+  final FriendActionSender? friendActionSender;
   final ButtonClickLogger? logger;
 
   const SharedBoardPage({
@@ -33,6 +35,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
     this.service,
     this.imagePicker,
     this.imageUploader,
+    this.friendActionSender,
     this.logger,
   });
 
@@ -49,6 +52,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       widget.imageUploader ?? getIt<ImageUploader>();
   late final ProfileFetcher _profileFetcher =
       widget.profileFetcher ?? getIt<ProfileFetcher>();
+  late final FriendActionSender _friendActionSender =
+      widget.friendActionSender ?? getIt<FriendActionSender>();
   late final int _userId;
   late final Future<String> _friendName;
   String _friendDisplayName = 'Them';
@@ -176,6 +181,44 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _removeConnection() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Remove connection?'),
+        content: Text(
+          'Are you sure you want to remove $_friendDisplayName? '
+          'This will end your shared board.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Yes'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _friendActionSender.remove(
+        currentUserId: _userId,
+        targetUserId: widget.friendUserId,
+      );
+    } catch (_) {
+      if (mounted) _showMessage('Could not remove that connection.');
+      return;
+    }
+
+    if (!mounted) return;
+    context.go(AppRoutes.connections);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,6 +228,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
           builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
         ),
         actions: [
+          IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.personRemove),
+            tooltip: 'Remove connection',
+            onPressed: _removeConnection,
+          ),
+          const SizedBox(width: 8),
           IconButton.filledTonal(
             icon: AppIcon(AppIconType.person),
             onPressed: () =>

@@ -5,6 +5,8 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/friends/data/mock_friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
@@ -13,6 +15,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
+import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -184,5 +187,72 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(service.sentImages, hasLength(1));
+  });
+
+  Future<MockFriendActionSender> pumpBoardWithRouter(
+    WidgetTester tester,
+  ) async {
+    final sender = MockFriendActionSender();
+    final router = GoRouter(
+      initialLocation: AppRoutes.sharedBoard,
+      routes: [
+        GoRoute(
+          path: AppRoutes.sharedBoard,
+          builder: (_, _) => SharedBoardPage(
+            friendUserId: 2,
+            profileFetcher: const _FakeProfileFetcher('Sally'),
+            service: _FakeService(),
+            imagePicker: _FakePicker(),
+            imageUploader: MockImageUploader(),
+            friendActionSender: sender,
+            logger: MockButtonClickLogger(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.connections,
+          builder: (_, _) => const Text('CONNECTIONS'),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(1)],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return sender;
+  }
+
+  testWidgets('remove connection confirms, sends remove, and leaves the board', (
+    tester,
+  ) async {
+    final sender = await pumpBoardWithRouter(tester);
+
+    await tester.tap(find.byTooltip('Remove connection'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove connection?'), findsOneWidget);
+    await tester.tap(find.text('Yes'));
+    await tester.pumpAndSettle();
+
+    expect(sender.actions, hasLength(1));
+    expect(sender.actions.single.kind, FriendActionKind.remove);
+    expect(sender.actions.single.currentUserId, 1);
+    expect(sender.actions.single.targetUserId, 2);
+    expect(find.text('CONNECTIONS'), findsOneWidget);
+  });
+
+  testWidgets('remove connection does nothing when declined', (tester) async {
+    final sender = await pumpBoardWithRouter(tester);
+
+    await tester.tap(find.byTooltip('Remove connection'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('No'));
+    await tester.pumpAndSettle();
+
+    expect(sender.actions, isEmpty);
+    expect(find.text('CONNECTIONS'), findsNothing);
   });
 }
