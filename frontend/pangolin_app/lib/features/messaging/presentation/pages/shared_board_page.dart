@@ -388,21 +388,21 @@ class _BottomBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onGrab,
-                icon: const AppIcon(AppIconType.wallpaper),
-                label: const Text('Grab from their wall'),
-              ),
+            _ToolButton(
+              icon: AppIconType.wallpaper,
+              label: 'Grab from their wall',
+              onPressed: onGrab,
+              iconColor: Colors.white,
             ),
-            const SizedBox(width: 12),
-            _CircularToolButton(
+            _ToolButton(
               icon: AppIconType.addText,
               label: 'Text',
               onPressed: onAddText,
             ),
-            _CircularToolButton(
+            _ToolButton(
               icon: AppIconType.addImage,
               label: 'Image',
               onPressed: onUpload,
@@ -414,15 +414,17 @@ class _BottomBar extends StatelessWidget {
   }
 }
 
-class _CircularToolButton extends StatelessWidget {
+class _ToolButton extends StatelessWidget {
   final AppIconType icon;
   final String label;
   final VoidCallback onPressed;
+  final Color? iconColor;
 
-  const _CircularToolButton({
+  const _ToolButton({
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.iconColor,
   });
 
   @override
@@ -441,16 +443,27 @@ class _CircularToolButton extends StatelessWidget {
             child: SizedBox(
               width: 64,
               height: 64,
-              child: AppIcon(
-                icon,
-                size: 20,
-                color: colorScheme.onPrimaryContainer,
+              child: Center(
+                child: AppIcon(
+                  icon,
+                  size: 36,
+                  color: iconColor ?? colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
           ),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        SizedBox(
+          width: 72,
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ),
       ],
     );
   }
