@@ -116,6 +116,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     }
   }
 
+  // Shared navigation target for all app bar taps.
+  void _navigateToProfile() {
+    _log(ButtonIds.sharedBoardViewProfile);
+    context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
+  }
+
   Future<void> _uploadImage() async {
     if (_uploading) return;
 
@@ -177,7 +183,10 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
                   labelText: 'Topic',
                   border: OutlineInputBorder(),
                 ),
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -423,9 +432,20 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: FutureBuilder<String>(
-          future: _friendName,
-          builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
+        // flexibleSpace sits behind the toolbar in the Z-order, so all
+        // existing buttons continue to receive their taps normally. Any
+        // tap that doesn't hit a button falls through to this handler.
+        flexibleSpace: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _navigateToProfile,
+        ),
+        title: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _navigateToProfile,
+          child: FutureBuilder<String>(
+            future: _friendName,
+            builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
+          ),
         ),
         actions: [
           IconButton.filledTonal(
@@ -434,13 +454,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
             onPressed: _removeConnection,
           ),
           const SizedBox(width: 8),
-          IconButton.filledTonal(
-            icon: AppIcon(AppIconType.person),
-            onPressed: () {
-              _log(ButtonIds.sharedBoardViewProfile);
-              context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
-            },
-          ),
         ],
       ),
       body: SafeArea(
