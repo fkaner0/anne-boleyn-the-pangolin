@@ -583,7 +583,11 @@ object repo {
   }
 
   private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
-    .where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+    .where(sql"""
+      (${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id)
+      OR
+      (${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id)
+    """)
   private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
     .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
     .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
@@ -750,24 +754,33 @@ object repo {
     }
   }
 
-  private def currentFriendsSpec(userId: Int) =
+  private def currentFriendsSpec(userId: Int) = {
+    val pending = ConnectionPending.Table.alias("cp")
+    val removed = ConnectionRemoved.Table.alias("cr")
+    val sharedBoard = SharedBoard.Table.alias("sb")
+
     Spec[SharedBoard]
       .where(sql"""
-        (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
-      AND ${SharedBoard.Table.id} NOT IN (
-        SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
+        (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
+      AND ${sharedBoard.id} NOT IN (
+        SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
         UNION
-        SELECT ${ConnectionRemoved.Table.boardId} FROM ${ConnectionRemoved.Table} WHERE ${ConnectionRemoved.Table.removedByUser} = $userId
+        SELECT ${removed.boardId} FROM ${removed} WHERE ${removed.removedByUser} = $userId
       )
     """)
+  }
 
-  private def pendingFriendsSpec(userId: Int) =
+  private def pendingFriendsSpec(userId: Int) = {
+    val pending = ConnectionPending.Table.alias("cp")
+    val sharedBoard = SharedBoard.Table.alias("sb")
+
     Spec[SharedBoard].where(sql"""
-      (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
-      AND ${SharedBoard.Table.id} IN (
-        SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
+      (${sharedBoard} = $userId OR ${sharedBoard.user2Id} = $userId)
+      AND ${sharedBoard.id} IN (
+        SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
       )
     """)
+  }
   
   private def numberPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
