@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 import 'friend_action_sender.dart';
@@ -15,20 +13,19 @@ class ApiFriendActionSender implements FriendActionSender {
     this.useHttps = true,
   });
 
-  Uri _uri(String path) {
+  Uri _uri(String path, int currentUserId, int targetUserId) {
     final authority = port == null ? host : '$host:$port';
-    return useHttps ? Uri.https(authority, path) : Uri.http(authority, path);
+    final query = {
+      'currentUid': '$currentUserId',
+      'targetUid': '$targetUserId',
+    };
+    return useHttps
+        ? Uri.https(authority, path, query)
+        : Uri.http(authority, path, query);
   }
 
   Future<void> _send(String path, int currentUserId, int targetUserId) async {
-    final response = await http.post(
-      _uri(path),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'currentUserId': currentUserId,
-        'targetUserId': targetUserId,
-      }),
-    );
+    final response = await http.post(_uri(path, currentUserId, targetUserId));
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('Failed to POST $path: ${response.statusCode}');

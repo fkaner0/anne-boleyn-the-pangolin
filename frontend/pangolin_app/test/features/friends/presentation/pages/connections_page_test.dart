@@ -167,7 +167,7 @@ void main() {
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Jess'));
+    await tester.tap(find.text('Message Jess'));
     await tester.pumpAndSettle();
 
     expect(find.text('Upload image'), findsOneWidget);
@@ -198,7 +198,7 @@ void main() {
 
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Jess'));
+    await tester.tap(find.text('Message Jess'));
     await tester.pumpAndSettle();
 
     expect(
