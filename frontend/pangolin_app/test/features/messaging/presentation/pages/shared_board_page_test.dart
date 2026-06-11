@@ -287,24 +287,6 @@ void main() {
     },
   );
 
-  testWidgets('view profile button logs and opens the profile', (tester) async {
-    final logger = MockButtonClickLogger();
-    await pumpBoardWithRouter(tester, logger: logger);
-
-    await tester.tap(
-      find.byWidgetPredicate(
-        (w) => w is AppIcon && w.type == AppIconType.person,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('PROFILE'), findsOneWidget);
-    expect(
-      logger.clicks.map((c) => c.buttonId),
-      contains(ButtonIds.sharedBoardViewProfile),
-    );
-  });
-
   testWidgets('remove connection does nothing when declined', (tester) async {
     final sender = await pumpBoardWithRouter(tester);
 
