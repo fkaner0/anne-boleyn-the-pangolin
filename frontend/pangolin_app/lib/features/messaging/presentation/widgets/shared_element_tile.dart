@@ -55,7 +55,9 @@ class SharedElementTile extends StatelessWidget {
                       color: colorScheme.surfaceContainerHighest,
                       child: Text(
                         element.content,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
             ),

@@ -164,10 +164,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: topicController,
+                maxLines: 2,
                 decoration: const InputDecoration(
                   labelText: 'Topic',
                   border: OutlineInputBorder(),
                 ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               TextField(
