@@ -170,7 +170,6 @@ void main() {
     await tester.tap(find.text('Jess'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Upload image'), findsOneWidget);
     expect(find.text('Grab from their wall'), findsOneWidget);
   });
 
@@ -180,7 +179,7 @@ void main() {
     await tester.tap(find.byType(ConnectionCard).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Upload image'), findsOneWidget);
+    expect(find.text('Grab from their wall'), findsOneWidget);
   });
 
   testWidgets('tapping a pending friend logs a pending connection click', (

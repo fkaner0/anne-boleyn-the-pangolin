@@ -117,6 +117,9 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     final picked = await _imagePicker.pickImage();
     if (picked == null || !mounted) return;
 
+    final message = await _promptForInitialMessage(picked);
+    if (message == null || !mounted) return; // cancelled
+
     setState(() => _uploading = true);
     try {
       final url = await _imageUploader.uploadImage(picked.bytes);
@@ -124,13 +127,90 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         senderId: _userId,
         receiverId: widget.friendUserId,
         url: url,
-        message: "THIS IS A FAKE INITIAL MESSAGE", // TODO
+        message: message,
       );
       await _loadBoard();
     } catch (_) {
       if (mounted) _showMessage('Could not send that image.');
     } finally {
       if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  Future<void> _addText() async {
+    final topicController = TextEditingController();
+    final messageController = TextEditingController();
+
+    final result = await showModalBottomSheet<TextPostResult>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add text post',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: topicController,
+                maxLines: 2,
+                decoration: const InputDecoration(
+                  labelText: 'Topic',
+                  border: OutlineInputBorder(),
+                ),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(
+                    TextPostResult(
+                      topic: topicController.text.trim(),
+                      message: messageController.text.trim(),
+                    ),
+                  );
+                },
+                child: const Text('Send'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (result == null || !mounted) return; // cancelled
+    if (result.topic.isEmpty && result.message.isEmpty) return;
+
+    try {
+      await _service.sendText(
+        senderId: _userId,
+        receiverId: widget.friendUserId,
+        text: result.topic,
+        message: result.message,
+      );
+      await _loadBoard();
+    } catch (_) {
+      if (mounted) _showMessage('Could not send that text.');
     }
   }
 
@@ -174,6 +254,64 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     ScaffoldMessenger.of(context)
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<String?> _promptForInitialMessage(PickedImage picked) async {
+    final controller = TextEditingController();
+
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add a message',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  picked.bytes,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
+                  hintText: 'Say something about this image...',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(controller.text.trim());
+                },
+                child: const Text('Send'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -227,6 +365,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         uploading: _uploading,
         onGrab: _grabFromWall,
         onUpload: _uploadImage,
+        onAddText: _addText,
       ),
     );
   }
@@ -236,44 +375,119 @@ class _BottomBar extends StatelessWidget {
   final bool uploading;
   final VoidCallback onGrab;
   final VoidCallback onUpload;
+  final VoidCallback onAddText;
 
   const _BottomBar({
     required this.uploading,
     required this.onGrab,
     required this.onUpload,
+    required this.onAddText,
   });
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed: onGrab,
-                icon: const AppIcon(AppIconType.wallpaper),
-                label: const Text('Grab from their wall'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: uploading ? null : onUpload,
-                icon: uploading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const AppIcon(AppIconType.addImage),
-                label: const Text('Upload image'),
-              ),
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: constraints.maxWidth * 0.5,
+                  child: _GrabButton(onPressed: onGrab),
+                ),
+                _IconToolButton(
+                  icon: AppIconType.addText,
+                  onPressed: onAddText,
+                ),
+                _IconToolButton(
+                  icon: AppIconType.addImage,
+                  onPressed: onUpload,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+}
+
+class _GrabButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _GrabButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.primaryContainer,
+      shape: const StadiumBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: SizedBox(
+          height: 64,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Grab from their wall',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _IconToolButton extends StatelessWidget {
+  final AppIconType icon;
+  final VoidCallback onPressed;
+
+  const _IconToolButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.primaryContainer,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: SizedBox(
+          width: 64,
+          height: 64,
+          child: Center(
+            child: AppIcon(
+              icon,
+              size: 36,
+              color: colorScheme.onPrimaryContainer,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TextPostResult {
+  final String topic;
+  final String message;
+
+  TextPostResult({required this.topic, required this.message});
 }

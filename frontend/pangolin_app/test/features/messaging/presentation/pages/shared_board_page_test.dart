@@ -13,6 +13,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -25,6 +26,7 @@ class _FakeService implements SharedBoardService {
   List<SharedElement> board = [];
   final List<String> sentImages = [];
   final List<String> sentReplies = [];
+  final List<String> sentTexts = [];
 
   @override
   Stream<void> notifications(int userId) => controller.stream;
@@ -49,7 +51,7 @@ class _FakeService implements SharedBoardService {
     required String text,
     required String message,
     int? datetime,
-  }) async {}
+  }) async => sentTexts.add(text);
 
   @override
   Future<void> sendReply({
@@ -180,9 +182,37 @@ void main() {
   testWidgets('upload image picks, uploads and sends', (tester) async {
     final service = await pumpBoard(tester);
 
-    await tester.tap(find.text('Upload image'));
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.addImage,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
     await tester.pumpAndSettle();
 
     expect(service.sentImages, hasLength(1));
+  });
+
+  testWidgets('adding a text post sends the topic and message', (tester) async {
+    final service = await pumpBoard(tester);
+
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.addText,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextField, 'Topic'), 'Big news');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Message'),
+      'you have to see this',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
+    await tester.pumpAndSettle();
+
+    expect(service.sentTexts, contains('Big news'));
   });
 }
