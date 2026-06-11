@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/features/friends/data/mock_friend_action_sender.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
@@ -98,6 +99,7 @@ void main() {
   Future<_FakeService> pumpBoard(
     WidgetTester tester, {
     List<SharedElement> board = const [],
+    MockButtonClickLogger? logger,
   }) async {
     final service = _FakeService()..board = board;
     await tester.pumpWidget(
@@ -110,7 +112,7 @@ void main() {
             service: service,
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
-            logger: MockButtonClickLogger(),
+            logger: logger ?? MockButtonClickLogger(),
           ),
         ),
       ),
@@ -199,8 +201,9 @@ void main() {
   });
 
   Future<MockFriendActionSender> pumpBoardWithRouter(
-    WidgetTester tester,
-  ) async {
+    WidgetTester tester, {
+    MockButtonClickLogger? logger,
+  }) async {
     final sender = MockFriendActionSender();
     final router = GoRouter(
       initialLocation: AppRoutes.sharedBoard,
@@ -214,12 +217,16 @@ void main() {
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
             friendActionSender: sender,
-            logger: MockButtonClickLogger(),
+            logger: logger ?? MockButtonClickLogger(),
           ),
         ),
         GoRoute(
           path: AppRoutes.connections,
           builder: (_, _) => const Text('CONNECTIONS'),
+        ),
+        GoRoute(
+          path: AppRoutes.viewProfile,
+          builder: (_, _) => const Text('PROFILE'),
         ),
       ],
     );
@@ -235,9 +242,10 @@ void main() {
   }
 
   testWidgets(
-    'remove connection confirms, sends remove, and leaves the board',
+    'remove connection confirms, sends remove, logs, and leaves the board',
     (tester) async {
-      final sender = await pumpBoardWithRouter(tester);
+      final logger = MockButtonClickLogger();
+      final sender = await pumpBoardWithRouter(tester, logger: logger);
 
       await tester.tap(find.byTooltip('Remove connection'));
       await tester.pumpAndSettle();
@@ -251,8 +259,30 @@ void main() {
       expect(sender.actions.single.currentUserId, 1);
       expect(sender.actions.single.targetUserId, 2);
       expect(find.text('CONNECTIONS'), findsOneWidget);
+      expect(
+        logger.clicks.map((c) => c.buttonId),
+        contains(ButtonIds.sharedBoardRemoveConnection),
+      );
     },
   );
+
+  testWidgets('view profile button logs and opens the profile', (tester) async {
+    final logger = MockButtonClickLogger();
+    await pumpBoardWithRouter(tester, logger: logger);
+
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.person,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('PROFILE'), findsOneWidget);
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.sharedBoardViewProfile),
+    );
+  });
 
   testWidgets('remove connection does nothing when declined', (tester) async {
     final sender = await pumpBoardWithRouter(tester);
@@ -267,7 +297,8 @@ void main() {
   });
 
   testWidgets('adding a text post sends the topic and message', (tester) async {
-    final service = await pumpBoard(tester);
+    final logger = MockButtonClickLogger();
+    final service = await pumpBoard(tester, logger: logger);
 
     await tester.tap(
       find.byWidgetPredicate(
@@ -285,5 +316,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(service.sentTexts, contains('Big news'));
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.sharedBoardAddText),
+    );
   });
 }

@@ -85,6 +85,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
   }
 
   Future<void> _ignore(PendingFriend friend) {
+    _log(ButtonIds.pendingIgnore);
     return _runAction(
       () => _sender.reject(
         currentUserId: widget.userId,
@@ -94,6 +95,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
   }
 
   Future<void> _reportAndIgnore(PendingFriend friend) async {
+    _log(ButtonIds.pendingReportAndIgnore);
     final reported = await _runAction(() async {
       await _sender.report(
         currentUserId: widget.userId,

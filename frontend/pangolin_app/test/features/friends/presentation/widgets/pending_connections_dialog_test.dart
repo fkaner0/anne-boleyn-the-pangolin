@@ -5,6 +5,7 @@ import 'package:pangolin_app/features/friends/data/mock_friend_action_sender.dar
 import 'package:pangolin_app/features/friends/domain/current_friends.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
@@ -26,7 +27,10 @@ class _FakeFriendsFetcher implements FriendsFetcher {
   }
 }
 
-Future<_FakeFriendsFetcher> _pump(WidgetTester tester) async {
+Future<_FakeFriendsFetcher> _pump(
+  WidgetTester tester, {
+  MockButtonClickLogger? logger,
+}) async {
   final sender = MockFriendActionSender();
   final fetcher = _FakeFriendsFetcher(const [
     PendingFriend(friendUserId: 11, name: 'Jess', mainImage: '', age: 24),
@@ -38,7 +42,7 @@ Future<_FakeFriendsFetcher> _pump(WidgetTester tester) async {
           userId: 7,
           friendsFetcher: fetcher,
           friendActionSender: sender,
-          logger: MockButtonClickLogger(),
+          logger: logger ?? MockButtonClickLogger(),
         ),
       ),
     ),
@@ -58,7 +62,8 @@ void main() {
   testWidgets('Ignore rejects the friend and re-fetches the pending list', (
     tester,
   ) async {
-    final fetcher = await _pump(tester);
+    final logger = MockButtonClickLogger();
+    final fetcher = await _pump(tester, logger: logger);
     expect(fetcher.pendingFetchCount, 1);
 
     await tester.tap(find.byIcon(Icons.more_vert));
@@ -73,12 +78,17 @@ void main() {
     expect(find.text('Jess (24)'), findsNothing);
     expect(find.text('No pending connections'), findsOneWidget);
     expect(find.textContaining('moderation team'), findsNothing);
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.pendingIgnore),
+    );
   });
 
   testWidgets('Report and ignore reports then rejects, then re-fetches', (
     tester,
   ) async {
-    final fetcher = await _pump(tester);
+    final logger = MockButtonClickLogger();
+    final fetcher = await _pump(tester, logger: logger);
 
     await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
@@ -95,5 +105,9 @@ void main() {
     expect(find.textContaining("Jess's request"), findsOneWidget);
     expect(find.textContaining('moderation team'), findsOneWidget);
     expect(find.text('OK'), findsOneWidget);
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.pendingReportAndIgnore),
+    );
   });
 }

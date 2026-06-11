@@ -143,6 +143,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   Future<void> _addText() async {
+    _log(ButtonIds.sharedBoardAddText);
     final topicController = TextEditingController();
     final messageController = TextEditingController();
 
@@ -262,6 +263,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   Future<void> _removeConnection() async {
+    _log(ButtonIds.sharedBoardRemoveConnection);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -374,8 +376,10 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
           const SizedBox(width: 8),
           IconButton.filledTonal(
             icon: AppIcon(AppIconType.person),
-            onPressed: () =>
-                context.push(AppRoutes.viewProfile, extra: widget.friendUserId),
+            onPressed: () {
+              _log(ButtonIds.sharedBoardViewProfile);
+              context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
+            },
           ),
         ],
       ),
