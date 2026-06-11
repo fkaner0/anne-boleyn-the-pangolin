@@ -398,7 +398,7 @@ object repo {
   private val connectionRemovedRepo = Repo[ConnectionRemovedCreator, ConnectionRemoved, Int]
 
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
-  private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
+  private val sharedBoardElementRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
   private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
 
   private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
@@ -540,7 +540,7 @@ object repo {
 
   def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
     val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
-      sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+      sharedBoardElementRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
         val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
           api.SharedBoardReply(
             datetime = reply.timestamp,
@@ -588,9 +588,27 @@ object repo {
     url = None
   )
 
-  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String)(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
-    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
-    val elem = sharedBoardElementsRepo.insertReturning(
+  private def removeAnyPending(boardId: Int, userId: Int)(using DbCon) =
+    val pending = ConnectionPending.Table 
+    sql"""
+    DELETE FROM ${pending}
+    WHERE ${pending.boardId} = ${boardId}
+      AND ${pending.pendingForUser} = ${userId}
+    """.update.run()
+
+  private def sendElement(
+    senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String
+  )(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))
+  ) = inDatabaseWithRollback {
+    val board = getBoard(senderId, receiverId) match {
+      case Some(b) => {
+        // holy side effect
+        removeAnyPending(b.id, senderId)
+        b
+      }
+      case None => makeBoard(senderId, receiverId)
+    }
+    val elem = sharedBoardElementRepo.insertReturning(
       SharedBoardElementCreator(
         boardId = board.id,
         timestamp = timestamp,
@@ -610,23 +628,31 @@ object repo {
   }
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
-  def sendReply(message: api.MessageReply) = inDatabase {
-    sharedBoardReplyRepo.insert(
-      SharedBoardReplyCreator(
-        sharedBoardElementId = message.sharedElementId,
-        text = message.text,
-        timestamp = message.datetime,
-        senderId = message.senderId,
+  def sendReply(message: api.MessageReply): IO[Option[Unit]] = inDatabaseWithRollback {    
+    sharedBoardElementRepo.findById(message.sharedElementId).map { (sharedElem) =>
+      removeAnyPending(sharedElem.boardId, message.senderId)
+      sharedBoardReplyRepo.insert(
+        SharedBoardReplyCreator(
+          sharedBoardElementId = message.sharedElementId,
+          text = message.text,
+          timestamp = message.datetime,
+          senderId = message.senderId,
+        )
       )
-    )
+    }
   }
 
   private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
     sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
   }
 
-  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
-    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
+  private def makeBoard(senderId: Int, receiverId: Int)(using DbCon): SharedBoard = {
+    val newBoard = sharedBoardRepo.insertReturning(SharedBoardCreator(senderId, receiverId))
+    connectionPendingRepo.insert(ConnectionPendingCreator(
+      boardId = newBoard.id,
+      pendingForUser = receiverId,
+    ))
+    newBoard
   }
 
   def logButtonPress(
@@ -648,7 +674,7 @@ object repo {
     val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
     val friends = sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
-      val coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
+      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- coverImages.map(_.url).sequence
@@ -671,7 +697,7 @@ object repo {
     val sharedBoards = sharedBoardRepo.findAll(pendingFriendsSpec(userId))
     sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
-      val coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
+      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- coverImages.map(_.url).sequence
@@ -691,7 +717,7 @@ object repo {
   private def currentFriendsSpec(userId: Int) =
     Spec[SharedBoard]
       .where(sql"""
-        ${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId
+        (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
       AND ${SharedBoard.Table.id} NOT IN (
         SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
         UNION
