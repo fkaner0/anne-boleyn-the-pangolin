@@ -225,24 +225,25 @@ void main() {
     return sender;
   }
 
-  testWidgets('remove connection confirms, sends remove, and leaves the board', (
-    tester,
-  ) async {
-    final sender = await pumpBoardWithRouter(tester);
+  testWidgets(
+    'remove connection confirms, sends remove, and leaves the board',
+    (tester) async {
+      final sender = await pumpBoardWithRouter(tester);
 
-    await tester.tap(find.byTooltip('Remove connection'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Remove connection'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Remove connection?'), findsOneWidget);
-    await tester.tap(find.text('Yes'));
-    await tester.pumpAndSettle();
+      expect(find.text('Remove connection?'), findsOneWidget);
+      await tester.tap(find.text('Yes'));
+      await tester.pumpAndSettle();
 
-    expect(sender.actions, hasLength(1));
-    expect(sender.actions.single.kind, FriendActionKind.remove);
-    expect(sender.actions.single.currentUserId, 1);
-    expect(sender.actions.single.targetUserId, 2);
-    expect(find.text('CONNECTIONS'), findsOneWidget);
-  });
+      expect(sender.actions, hasLength(1));
+      expect(sender.actions.single.kind, FriendActionKind.remove);
+      expect(sender.actions.single.currentUserId, 1);
+      expect(sender.actions.single.targetUserId, 2);
+      expect(find.text('CONNECTIONS'), findsOneWidget);
+    },
+  );
 
   testWidgets('remove connection does nothing when declined', (tester) async {
     final sender = await pumpBoardWithRouter(tester);
