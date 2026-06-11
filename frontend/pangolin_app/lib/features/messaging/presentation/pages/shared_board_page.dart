@@ -116,7 +116,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
 
     final picked = await _imagePicker.pickImage();
     if (picked == null || !mounted) return;
-    
+
     final message = await _promptForInitialMessage(picked);
     if (message == null || !mounted) return; // cancelled
 
@@ -137,73 +137,80 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
     }
   }
 
-Future<void> _addText() async {
-  final topicController = TextEditingController();
-  final messageController = TextEditingController();
+  Future<void> _addText() async {
+    final topicController = TextEditingController();
+    final messageController = TextEditingController();
 
-  final result = await showModalBottomSheet<TextPostResult>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) {
-      return SingleChildScrollView(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Add text post',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+    final result = await showModalBottomSheet<TextPostResult>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add text post',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            TextField(
-              controller: topicController,
-              decoration: const InputDecoration(
-                labelText: 'Topic',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: topicController,
+                decoration: const InputDecoration(
+                  labelText: 'Topic',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: messageController,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'Message',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: 'Message',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(
+                    TextPostResult(
+                      topic: topicController.text.trim(),
+                      message: messageController.text.trim(),
+                    ),
+                  );
+                },
+                child: const Text('Send'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
 
-            const SizedBox(height: 16),
+    if (result == null || !mounted) return; // cancelled
+    if (result.topic.isEmpty && result.message.isEmpty) return;
 
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop(
-                  TextPostResult(
-                    topic: topicController.text.trim(),
-                    message: messageController.text.trim(),
-                  ),
-                );
-              },
-              child: const Text('Send'),
-            ),
-          ],
-        ),
+    try {
+      await _service.sendText(
+        senderId: _userId,
+        receiverId: widget.friendUserId,
+        text: result.topic,
+        message: result.message,
       );
-    },
-  );
-}
+      await _loadBoard();
+    } catch (_) {
+      if (mounted) _showMessage('Could not send that text.');
+    }
+  }
 
   void _grabFromWall() {
     _log(ButtonIds.sharedBoardGrabFromWall);
@@ -246,69 +253,64 @@ Future<void> _addText() async {
       ..clearSnackBars()
       ..showSnackBar(SnackBar(content: Text(message)));
   }
-  
-  Future<String?> _promptForInitialMessage(PickedImage picked) async {
-  final controller = TextEditingController(
-    text: 'Check this out!',
-  );
 
-  return showModalBottomSheet<String>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    builder: (context) {
-      return SingleChildScrollView (
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Add a message',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+  Future<String?> _promptForInitialMessage(PickedImage picked) async {
+    final controller = TextEditingController(text: 'Check this out!');
+
+    return showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (context) {
+        return SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add a message',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.memory(
-                picked.bytes,
-                height: 200,
-                fit: BoxFit.cover,
+              const SizedBox(height: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  picked.bytes,
+                  height: 200,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              maxLines: 3,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                hintText: 'Say something about this image...',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                maxLines: 3,
+                textInputAction: TextInputAction.done,
+                decoration: const InputDecoration(
+                  hintText: 'Say something about this image...',
+                  border: OutlineInputBorder(),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop(controller.text.trim());
-              },
-              child: const Text('Send'),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
-      );
-    },
-  );
-}
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: () {
+                  Navigator.of(context).pop(controller.text.trim());
+                },
+                child: const Text('Send'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -458,8 +460,5 @@ class TextPostResult {
   final String topic;
   final String message;
 
-  TextPostResult({
-    required this.topic,
-    required this.message,
-  });
+  TextPostResult({required this.topic, required this.message});
 }
