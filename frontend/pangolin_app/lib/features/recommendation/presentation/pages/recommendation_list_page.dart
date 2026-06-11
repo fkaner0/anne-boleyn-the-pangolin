@@ -58,8 +58,9 @@ class _RecommendationListPageState
 
   Future<void> _loadRecommendations() async {
     try {
-      final recommendations = await _recommendationFetcher
-          .fetchRecommendations();
+      final recommendations = await _recommendationFetcher.fetchRecommendations(
+        ref.read(userIdProvider.notifier).currentUserIdThrow(),
+      );
 
       setState(() {
         _recommendations = recommendations;

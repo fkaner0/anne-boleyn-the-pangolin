@@ -1,5 +1,5 @@
 import '../domain/recommendation.dart';
 
 abstract class RecommendationFetcher {
-  Future<List<Recommendation>> fetchRecommendations();
+  Future<List<Recommendation>> fetchRecommendations(int userId);
 }

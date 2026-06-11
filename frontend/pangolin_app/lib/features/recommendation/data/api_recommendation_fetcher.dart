@@ -17,7 +17,7 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
   });
 
   @override
-  Future<List<Recommendation>> fetchRecommendations() async {
+  Future<List<Recommendation>> fetchRecommendations(int userId) async {
     String baseUrl;
     if (port == null) {
       baseUrl = host;
@@ -25,8 +25,8 @@ class ApiRecommendationFetcher implements RecommendationFetcher {
       baseUrl = '$host:$port';
     }
     final uri = useHttps
-        ? Uri.https(baseUrl, '/recommendations')
-        : Uri.http(baseUrl, '/recommendations');
+        ? Uri.https(baseUrl, '/recommendations/$userId')
+        : Uri.http(baseUrl, '/recommendations/$userId');
 
     final response = await http.get(uri);
 
