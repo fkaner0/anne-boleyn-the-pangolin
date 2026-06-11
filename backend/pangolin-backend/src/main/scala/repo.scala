@@ -431,12 +431,15 @@ object repo {
     val profile = Profile.Table.alias("profile")
     val sharedBoard = SharedBoard.Table.alias("sharedBoard")
     sql"""
-      SELECT ${profile.all}
+      SELECT *
       FROM $profile
-      LEFT JOIN $sharedBoard
-      ON ${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId
       WHERE ${profile.accountId} <> $userId
-      AND ${sharedBoard.id} IS NULL
+      AND NOT EXISTS (
+        SELECT *
+        FROM $sharedBoard
+        WHERE ${sharedBoard.user1Id} = $userId AND ${sharedBoard.user2Id} = ${profile.accountId}
+        OR ${sharedBoard.user1Id} = ${profile.accountId} AND ${sharedBoard.user2Id} = $userId
+      )
     """.query[Profile]
   }
 
