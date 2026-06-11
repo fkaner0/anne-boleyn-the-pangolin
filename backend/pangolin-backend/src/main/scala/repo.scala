@@ -714,6 +714,17 @@ object repo {
     }
   }
 
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def removeFriend(currentUserId: Int, targetUserId: Int, reason: api.DeletionReason): IO[Option[Unit]] = inDatabase {
+    getBoard(currentUserId, targetUserId).map{ (board) =>
+      connectionRemovedRepo.insert(ConnectionRemovedCreator(
+        boardId = board.id,
+        removedByUser = currentUserId,
+        reason = reason.dbString,
+      ))
+    }
+  }
+
   private def currentFriendsSpec(userId: Int) =
     Spec[SharedBoard]
       .where(sql"""
