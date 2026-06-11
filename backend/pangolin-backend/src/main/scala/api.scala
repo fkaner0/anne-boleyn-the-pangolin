@@ -205,7 +205,7 @@ object api {
     .out(emptyOutput)
 
   private val reccomendationsEndpoint = endpoint.get
-    .in("recommendations")
+    .in("recommendations" / path[Int]("userId"))
     .out(jsonBody[Vector[Recommendation]])
 
   private val sharedBoardEndpoint = endpoint.get
@@ -251,8 +251,8 @@ object api {
   private val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
   val recommendationsRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    reccomendationsEndpoint.serverLogic { _ =>
-      repo.getRecommendations.map(_.map(_.map(_.toRecommendation)))
+    reccomendationsEndpoint.serverLogicSuccess { userId =>
+      repo.getRecommendations(userId).map(_.map(_.toRecommendation))
     },
   )
 

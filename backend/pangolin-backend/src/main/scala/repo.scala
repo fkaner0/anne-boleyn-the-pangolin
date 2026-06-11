@@ -19,6 +19,7 @@ import org.postgresql.ds.PGSimpleDataSource
 // import org.postgresql.geometric.*
 import com.augustnagro.magnum.pg.PgCodec.given
 import com.augustnagro.magnum.SortOrder
+import com.augustnagro.magnum.Query
 
 object repo {
 
@@ -422,8 +423,24 @@ object repo {
   private def userHobbyInfoSpec(accountId: Int) = Spec[UserHobbyInfo]
     .where(sql"${UserHobbyInfo.Table.accountId} = $accountId")
 
-  val getRecommendations = inDatabase {
-    profileRepo.findAll.asRight
+  def getRecommendations(userId: Int) = inDatabase {
+    recommendationsQuery(userId).run()
+  }
+
+  private def recommendationsQuery(userId: Int): Query[Profile] = {
+    val profile = Profile.Table.alias("profile")
+    val sharedBoard = SharedBoard.Table.alias("sharedBoard")
+    sql"""
+      SELECT *
+      FROM $profile
+      WHERE ${profile.accountId} <> $userId
+      AND NOT EXISTS (
+        SELECT *
+        FROM $sharedBoard
+        WHERE ${sharedBoard.user1Id} = $userId AND ${sharedBoard.user2Id} = ${profile.accountId}
+        OR ${sharedBoard.user1Id} = ${profile.accountId} AND ${sharedBoard.user2Id} = $userId
+      )
+    """.query[Profile]
   }
 
   /// Yes, this should be a much better query. Believe in the power of query optimisation!

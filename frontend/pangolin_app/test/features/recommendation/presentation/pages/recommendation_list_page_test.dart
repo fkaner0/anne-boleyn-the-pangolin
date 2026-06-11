@@ -56,7 +56,7 @@ void main() {
   }
 
   testWidgets('shows fetched recommendations', (tester) async {
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer(
+    when(() => mockFetcher.fetchRecommendations(any())).thenAnswer(
       (_) async => const [
         Recommendation(
           userId: 0,
@@ -74,11 +74,13 @@ void main() {
 
     expect(find.text('Alice (30)'), findsOneWidget);
     expect(find.text('London'), findsOneWidget);
-    verify(() => mockFetcher.fetchRecommendations()).called(1);
+    verify(() => mockFetcher.fetchRecommendations(1)).called(1);
   });
 
   testWidgets('shows empty state', (tester) async {
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer((_) async => []);
+    when(
+      () => mockFetcher.fetchRecommendations(any()),
+    ).thenAnswer((_) async => []);
 
     await pumpList(tester, fetcher: mockFetcher);
     await tester.pumpAndSettle();
@@ -88,7 +90,7 @@ void main() {
 
   testWidgets('shows error state', (tester) async {
     when(
-      () => mockFetcher.fetchRecommendations(),
+      () => mockFetcher.fetchRecommendations(any()),
     ).thenAnswer((_) async => throw Exception('Fetch failed'));
 
     await pumpList(tester, fetcher: mockFetcher);
@@ -104,7 +106,7 @@ void main() {
     configureDependencies(BackendMode.mock);
     final logger = MockButtonClickLogger();
 
-    when(() => mockFetcher.fetchRecommendations()).thenAnswer(
+    when(() => mockFetcher.fetchRecommendations(any())).thenAnswer(
       (_) async => const [
         Recommendation(
           userId: 5,
