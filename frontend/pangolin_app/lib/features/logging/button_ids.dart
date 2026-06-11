@@ -27,6 +27,10 @@ class ButtonIds {
       'pending_connection'; // Any pending connection card in the popup
   static const String pendingConnectionsClose =
       'pending_connections_close'; // Close button on the pending popup
+  static const pendingIgnore =
+      'pending_ignore'; // Ignore action on a pending connection
+  static const pendingReportAndIgnore =
+      'pending_report_and_ignore'; // Report and ignore action on a pending connection
   static const sharedBoardElement =
       'shared_board_element'; // Shared board element tap
   static const sharedBoardGrabFromWall =
@@ -35,6 +39,12 @@ class ButtonIds {
       'shared_board_upload_image'; // Shared board upload image
   static const sharedBoardSendReply =
       'shared_board_send_reply'; // Shared board send reply
+  static const sharedBoardAddText =
+      'shared_board_add_text'; // Shared board add text post
+  static const sharedBoardRemoveConnection =
+      'shared_board_remove_connection'; // Shared board remove connection
+  static const sharedBoardViewProfile =
+      'shared_board_view_profile'; // Shared board view profile button
   static const connectionsEditProfile =
       'connections_edit_profile'; // Edit profile button on connections page
   static const connectionsRecommendations =

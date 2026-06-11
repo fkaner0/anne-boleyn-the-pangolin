@@ -89,8 +89,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
     _openBoard(selected.friendUserId, selected.name);
   }
 
-  void _openBoard(int friendUserId, String friendName) {
-    context.push(AppRoutes.sharedBoard, extra: friendUserId);
+  Future<void> _openBoard(int friendUserId, String friendName) async {
+    await context.push(AppRoutes.sharedBoard, extra: friendUserId);
+    if (mounted) _load();
   }
 
   @override

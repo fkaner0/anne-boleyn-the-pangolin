@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
+import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
@@ -18,12 +19,15 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
+enum _ConnectionAction { remove, reportAndBlock, cancel }
+
 class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
   final ProfileFetcher? profileFetcher;
   final SharedBoardService? service;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
+  final FriendActionSender? friendActionSender;
   final ButtonClickLogger? logger;
 
   const SharedBoardPage({
@@ -33,6 +37,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
     this.service,
     this.imagePicker,
     this.imageUploader,
+    this.friendActionSender,
     this.logger,
   });
 
@@ -49,6 +54,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       widget.imageUploader ?? getIt<ImageUploader>();
   late final ProfileFetcher _profileFetcher =
       widget.profileFetcher ?? getIt<ProfileFetcher>();
+  late final FriendActionSender _friendActionSender =
+      widget.friendActionSender ?? getIt<FriendActionSender>();
   late final int _userId;
   late final Future<String> _friendName;
   String _friendDisplayName = 'Them';
@@ -138,6 +145,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   Future<void> _addText() async {
+    _log(ButtonIds.sharedBoardAddText);
     final topicController = TextEditingController();
     final messageController = TextEditingController();
 
@@ -256,6 +264,103 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
+  Future<void> _removeConnection() async {
+    _log(ButtonIds.sharedBoardRemoveConnection);
+    final choice = await showDialog<_ConnectionAction>(
+      context: context,
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final dangerStyle = FilledButton.styleFrom(
+          foregroundColor: colorScheme.error,
+        );
+        return AlertDialog(
+          title: const Text('Manage connection'),
+          content: Text('What would you like to do with $_friendDisplayName?'),
+          actions: [
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.remove),
+              style: dangerStyle,
+              child: const Text('Remove'),
+            ),
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.reportAndBlock),
+              style: dangerStyle,
+              child: const Text('Report and Block'),
+            ),
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.cancel),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    switch (choice) {
+      case _ConnectionAction.remove:
+        await _leaveConnection(
+          () => _friendActionSender.remove(
+            currentUserId: _userId,
+            targetUserId: widget.friendUserId,
+          ),
+        );
+      case _ConnectionAction.reportAndBlock:
+        await _leaveConnection(
+          () => _friendActionSender.report(
+            currentUserId: _userId,
+            targetUserId: widget.friendUserId,
+          ),
+          confirmReport: true,
+        );
+      case _ConnectionAction.cancel:
+      case null:
+        return;
+    }
+  }
+
+  Future<void> _leaveConnection(
+    Future<void> Function() action, {
+    bool confirmReport = false,
+  }) async {
+    try {
+      await action();
+    } catch (_) {
+      if (mounted) _showMessage('Could not complete that action.');
+      return;
+    }
+
+    if (!mounted) return;
+    if (confirmReport) {
+      await _showReportConfirmation(_friendDisplayName);
+      if (!mounted) return;
+    }
+    context.go(AppRoutes.connections);
+  }
+
+  Future<void> _showReportConfirmation(String name) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(
+          "$name has been sent to our moderation team for review, "
+          "if they've broken our Code of Conduct, they'll be banned. "
+          "We've blocked them for you.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<String?> _promptForInitialMessage(PickedImage picked) async {
     final controller = TextEditingController();
 
@@ -324,9 +429,17 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
         ),
         actions: [
           IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.personRemove),
+            tooltip: 'Remove connection',
+            onPressed: _removeConnection,
+          ),
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
             icon: AppIcon(AppIconType.person),
-            onPressed: () =>
-                context.push(AppRoutes.viewProfile, extra: widget.friendUserId),
+            onPressed: () {
+              _log(ButtonIds.sharedBoardViewProfile);
+              context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
+            },
           ),
         ],
       ),
