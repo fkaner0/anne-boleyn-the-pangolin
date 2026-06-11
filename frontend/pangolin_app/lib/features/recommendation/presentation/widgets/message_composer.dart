@@ -46,6 +46,7 @@ class _MessageComposerState extends State<MessageComposer> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         TextField(
@@ -72,6 +73,8 @@ class _MessageComposerState extends State<MessageComposer> {
             icon: const AppIcon(AppIconType.send),
             label: const Text('Send'),
             style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

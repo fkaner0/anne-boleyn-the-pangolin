@@ -31,7 +31,7 @@ class ProfileHeaderBar extends StatelessWidget {
             children: [
               Text(location, style: const TextStyle(fontSize: 18)),
               const SizedBox(width: 8),
-              IconButton(
+              IconButton.filledTonal(
                 onPressed: onBackPressed,
                 icon: const AppIcon(AppIconType.back),
                 tooltip: 'Back',

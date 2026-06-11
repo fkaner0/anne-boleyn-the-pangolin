@@ -278,27 +278,30 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               )
             : const Text('Create your wall'),
         centerTitle: true,
-        leading: IconButton(
+        leading: IconButton.filledTonal(
           icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
         ),
         actions: [
-          IconButton(
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.textBackground),
             tooltip: 'Background colour',
             onPressed: _showBackgroundColourPicker,
           ),
-          IconButton(
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.preview),
             tooltip: _preview ? 'Hide Preview' : 'Preview',
             onPressed: _togglePreview,
           ),
-          IconButton(
+          const SizedBox(width: 8),
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.save),
             tooltip: 'Save',
             onPressed: _saving ? null : _onSavePressed,
           ),
+          const SizedBox(width: 8),
         ],
         bottom: _saving
             ? const PreferredSize(

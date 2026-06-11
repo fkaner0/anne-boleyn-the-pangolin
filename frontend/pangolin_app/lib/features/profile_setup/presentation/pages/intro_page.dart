@@ -163,7 +163,7 @@ class _IntroPageState extends State<IntroPage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('About me'),
-        leading: IconButton(
+        leading: IconButton.filledTonal(
           icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () {},

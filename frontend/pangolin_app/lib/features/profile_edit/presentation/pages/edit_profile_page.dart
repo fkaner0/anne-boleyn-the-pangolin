@@ -253,7 +253,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         automaticallyImplyLeading: false,
         title: const Text('Edit Profile'),
         actions: [
-          IconButton(
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.check),
             tooltip: 'Save',
             onPressed: _loading || _saving ? null : _save,
