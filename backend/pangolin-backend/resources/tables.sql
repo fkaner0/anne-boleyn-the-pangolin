@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS buttonLog (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   userId integer NOT NULL,
   buttonId text NOT NULL,
-  pressTimestamp bigint NOT NULL
+  pressTimestamp bigint NOT NULL,
+  username text,
+  name text
 );
 
 CREATE TABLE sharedBoard (

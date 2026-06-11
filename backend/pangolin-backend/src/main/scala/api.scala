@@ -201,6 +201,8 @@ object api {
   private val buttonLogEndpoint = endpoint.post
     .in("debug" / "button-click")
     .in(jsonBody[ButtonLog])
+    .errorOut(stringBody)
+    .out(emptyOutput)
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
