@@ -19,6 +19,8 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
+enum _ConnectionAction { remove, reportAndBlock, cancel }
+
 class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
   final ProfileFetcher? profileFetcher;
@@ -264,41 +266,99 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
 
   Future<void> _removeConnection() async {
     _log(ButtonIds.sharedBoardRemoveConnection);
-    final confirmed = await showDialog<bool>(
+    final choice = await showDialog<_ConnectionAction>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Remove connection?'),
-        content: Text(
-          'Are you sure you want to remove $_friendDisplayName? '
-          'This will end your shared board.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
-          ),
-        ],
-      ),
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final dangerStyle = FilledButton.styleFrom(
+          foregroundColor: colorScheme.error,
+        );
+        return AlertDialog(
+          title: const Text('Manage connection'),
+          content: Text('What would you like to do with $_friendDisplayName?'),
+          actions: [
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.remove),
+              style: dangerStyle,
+              child: const Text('Remove'),
+            ),
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.reportAndBlock),
+              style: dangerStyle,
+              child: const Text('Report and Block'),
+            ),
+            FilledButton.tonal(
+              onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.cancel),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
     );
 
-    if (confirmed != true || !mounted) return;
+    if (!mounted) return;
 
+    switch (choice) {
+      case _ConnectionAction.remove:
+        await _leaveConnection(
+          () => _friendActionSender.remove(
+            currentUserId: _userId,
+            targetUserId: widget.friendUserId,
+          ),
+        );
+      case _ConnectionAction.reportAndBlock:
+        await _leaveConnection(
+          () => _friendActionSender.report(
+            currentUserId: _userId,
+            targetUserId: widget.friendUserId,
+          ),
+          confirmReport: true,
+        );
+      case _ConnectionAction.cancel:
+      case null:
+        return;
+    }
+  }
+
+  Future<void> _leaveConnection(
+    Future<void> Function() action, {
+    bool confirmReport = false,
+  }) async {
     try {
-      await _friendActionSender.remove(
-        currentUserId: _userId,
-        targetUserId: widget.friendUserId,
-      );
+      await action();
     } catch (_) {
-      if (mounted) _showMessage('Could not remove that connection.');
+      if (mounted) _showMessage('Could not complete that action.');
       return;
     }
 
     if (!mounted) return;
+    if (confirmReport) {
+      await _showReportConfirmation(_friendDisplayName);
+      if (!mounted) return;
+    }
     context.go(AppRoutes.connections);
+  }
+
+  Future<void> _showReportConfirmation(String name) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(
+          "$name has been sent to our moderation team for review, "
+          "if they've broken our Code of Conduct, they'll be banned. "
+          "We've blocked them for you.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<String?> _promptForInitialMessage(PickedImage picked) async {

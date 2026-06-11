@@ -250,8 +250,8 @@ void main() {
       await tester.tap(find.byTooltip('Remove connection'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Remove connection?'), findsOneWidget);
-      await tester.tap(find.text('Yes'));
+      expect(find.text('Manage connection'), findsOneWidget);
+      await tester.tap(find.text('Remove'));
       await tester.pumpAndSettle();
 
       expect(sender.actions, hasLength(1));
@@ -263,6 +263,27 @@ void main() {
         logger.clicks.map((c) => c.buttonId),
         contains(ButtonIds.sharedBoardRemoveConnection),
       );
+    },
+  );
+
+  testWidgets(
+    'report and block reports, shows the message, and leaves the board',
+    (tester) async {
+      final sender = await pumpBoardWithRouter(tester);
+
+      await tester.tap(find.byTooltip('Remove connection'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Report and Block'));
+      await tester.pumpAndSettle();
+
+      expect(sender.actions.single.kind, FriendActionKind.report);
+      expect(sender.actions.single.targetUserId, 2);
+      expect(find.textContaining('moderation team'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('CONNECTIONS'), findsOneWidget);
     },
   );
 
@@ -289,7 +310,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Remove connection'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('No'));
+    await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
 
     expect(sender.actions, isEmpty);
