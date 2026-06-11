@@ -728,12 +728,14 @@ object repo {
       val friendId = if user1Id == userId then user2Id else user1Id
       val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
+        lastMessage <- lastMessageFromBoardId(boardId, friendId)
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- coverImages.map(_.url).sequence
       } yield api.PendingFriend(
         friendUserId = friendProfile.accountId,
         name = friendProfile.name,
         mainImage = friendProfile.profileImageUrl,
+        messagePreview = lastMessage,
         age = friendProfile.age,
         location = friendProfile.location,
         bio = friendProfile.bio,
@@ -742,6 +744,21 @@ object repo {
       case Some(x) => x
     }
   }
+
+  private def lastMessageFromBoardId(boardId: Int, senderId: Int)(using DbCon): Option[String] = {
+    val sharedBoardReply = SharedBoardReply.Table.alias("reply")
+    val sharedBoardElement = SharedBoardElement.Table.alias("elem")
+
+    sql"""
+    SELECT ${sharedBoardReply.text}
+    FROM ${sharedBoardReply}
+    INNER JOIN ${sharedBoardElement} ON (${sharedBoardElement.id} = ${sharedBoardReply.sharedBoardElementId})
+    WHERE ${sharedBoardElement.boardId} = $boardId
+    AND ${sharedBoardReply.senderId} = $senderId
+    ORDER BY ${sharedBoardReply.timestamp} DESC
+    LIMIT 1
+    """
+  }.query[String].run().headOption
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
   def removeFriend(currentUserId: Int, targetUserId: Int, reason: api.DeletionReason): IO[Option[Unit]] = inDatabase {
