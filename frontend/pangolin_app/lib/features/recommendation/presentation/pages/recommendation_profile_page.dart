@@ -9,6 +9,7 @@ import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
 import '../../domain/profile.dart';
 import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
@@ -95,8 +96,7 @@ class RecommendationProfilePage extends ConsumerWidget {
                   },
                 ),
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                  child: BedroomWallViewport(
                     child: BedroomWallView(
                       profile: profile,
                       stickerCatalog: stickerCatalog,

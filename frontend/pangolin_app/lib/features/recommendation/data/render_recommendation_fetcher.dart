@@ -18,7 +18,7 @@ class RenderRecommendationFetcher implements RecommendationFetcher {
        );
 
   @override
-  Future<List<Recommendation>> fetchRecommendations() {
-    return _delegate.fetchRecommendations();
+  Future<List<Recommendation>> fetchRecommendations(int userId) {
+    return _delegate.fetchRecommendations(userId);
   }
 }

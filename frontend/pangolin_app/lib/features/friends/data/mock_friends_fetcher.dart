@@ -28,16 +28,19 @@ class MockFriendsFetcher implements FriendsFetcher {
         friendUserId: 5,
         name: 'Jess Wong',
         mainImage: 'https://via.placeholder.com/200?text=Jess',
+        age: 24,
       ),
       PendingFriend(
         friendUserId: 6,
         name: 'Diego Alvarez',
         mainImage: 'https://via.placeholder.com/200?text=Diego',
+        age: 29,
       ),
       PendingFriend(
         friendUserId: 7,
         name: 'Mei Tan',
         mainImage: 'https://via.placeholder.com/200?text=Mei',
+        age: 22,
       ),
     ];
   }

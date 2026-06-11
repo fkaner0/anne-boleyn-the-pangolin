@@ -4,10 +4,10 @@ import '../domain/recommendation.dart';
 
 class MockRecommendationFetcher implements RecommendationFetcher {
   @override
-  Future<List<Recommendation>> fetchRecommendations() async {
+  Future<List<Recommendation>> fetchRecommendations(int userId) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
-    return const [
+    final recommendations = [
       Recommendation(
         userId: 0,
         name: 'Tim Johnson',
@@ -33,5 +33,6 @@ class MockRecommendationFetcher implements RecommendationFetcher {
         imageUrl: 'https://via.placeholder.com/150',
       ),
     ];
+    return recommendations.where((rec) => rec.userId != userId).toList();
   }
 }

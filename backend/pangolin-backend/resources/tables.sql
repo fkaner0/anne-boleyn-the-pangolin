@@ -68,7 +68,9 @@ CREATE TABLE IF NOT EXISTS buttonLog (
   id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
   userId integer NOT NULL,
   buttonId text NOT NULL,
-  pressTimestamp bigint NOT NULL
+  pressTimestamp bigint NOT NULL,
+  username text,
+  name text
 );
 
 CREATE TABLE sharedBoard (
@@ -96,4 +98,17 @@ CREATE TABLE sharedBoardReply (
   timestamp bigint NOT NULL,
   senderId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   read boolean
+);
+
+CREATE TABLE connectionPending (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  boardId integer NOT NULL REFERENCES sharedBoard (id) ON DELETE CASCADE,
+  pendingForUser integer NOT NULL REFERENCES account (id) ON DELETE CASCADE
+);
+
+CREATE TABLE connectionRemoved (
+  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
+  boardId integer NOT NULL REFERENCES sharedBoard (id) ON DELETE CASCADE,
+  removedByUser integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
+  reason text
 );

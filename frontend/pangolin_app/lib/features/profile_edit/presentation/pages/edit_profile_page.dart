@@ -23,7 +23,6 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
@@ -254,7 +253,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
         automaticallyImplyLeading: false,
         title: const Text('Edit Profile'),
         actions: [
-          IconButton(
+          IconButton.filledTonal(
             icon: const AppIcon(AppIconType.check),
             tooltip: 'Save',
             onPressed: _loading || _saving ? null : _save,
@@ -333,7 +332,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           const SectionTitle('Other Interests'),
           const SizedBox(height: 16),
           _InterestGroup(
-            label: 'Sub-interests',
+            label: 'Niche hobby interests',
             interests: _builder.subInterests,
             onAdd: () => _addInterest(_builder.addSubInterest),
             onRemove: (interest) =>
@@ -341,7 +340,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           ),
           const SizedBox(height: 20),
           _InterestGroup(
-            label: 'Other interests',
+            label: 'Non-hobby interests',
             interests: _builder.otherInterests,
             onAdd: () => _addInterest(_builder.addOtherInterest),
             onRemove: (interest) =>
@@ -469,7 +468,7 @@ class _WallCutoutPreview extends StatelessWidget {
                   fit: StackFit.expand,
                   children: [
                     ColoredBox(
-                      color: context.paletteColors.surfaceMuted,
+                      color: Color(profile.wallBackgroundHexARGB),
                       child: IgnorePointer(
                         child: OverflowBox(
                           alignment: Alignment.topCenter,

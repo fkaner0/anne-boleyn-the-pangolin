@@ -16,15 +16,20 @@ import 'package:pangolin_app/features/messaging/presentation/pages/shared_board_
 import 'package:pangolin_app/router/app_router.dart';
 
 import '../../../../support/auth_test_support.dart';
+import '../../../../support/fake_shared_board_service.dart';
 
 class _FakeFriendsFetcher implements FriendsFetcher {
   final CurrentFriends current;
   final List<PendingFriend> pending;
+  int currentFetchCount = 0;
 
-  const _FakeFriendsFetcher(this.current, {this.pending = const []});
+  _FakeFriendsFetcher(this.current, {this.pending = const []});
 
   @override
-  Future<CurrentFriends> fetchCurrentFriends(int userId) async => current;
+  Future<CurrentFriends> fetchCurrentFriends(int userId) async {
+    currentFetchCount++;
+    return current;
+  }
 
   @override
   Future<List<PendingFriend>> fetchPendingFriends(int userId) async => pending;
@@ -44,19 +49,22 @@ void main() {
     configureDependencies(BackendMode.mock);
   });
 
-  Future<void> pumpPage(
+  Future<_FakeFriendsFetcher> pumpPage(
     WidgetTester tester,
     CurrentFriends data, {
     MockButtonClickLogger? logger,
     List<PendingFriend> pending = const [],
+    FakeSharedBoardService? boardService,
   }) async {
+    final fetcher = _FakeFriendsFetcher(data, pending: pending);
     final router = GoRouter(
       initialLocation: AppRoutes.connections,
       routes: [
         GoRoute(
           path: AppRoutes.connections,
           builder: (_, _) => ConnectionsPage(
-            friendsFetcher: _FakeFriendsFetcher(data, pending: pending),
+            friendsFetcher: fetcher,
+            boardService: boardService,
             logger: logger,
           ),
         ),
@@ -75,6 +83,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    return fetcher;
   }
 
   testWidgets('shows connections in a grid with their names', (tester) async {
@@ -167,10 +176,9 @@ void main() {
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Jess'));
+    await tester.tap(find.text('Message Jess'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Upload image'), findsOneWidget);
     expect(find.text('Grab from their wall'), findsOneWidget);
   });
 
@@ -180,7 +188,7 @@ void main() {
     await tester.tap(find.byType(ConnectionCard).first);
     await tester.pumpAndSettle();
 
-    expect(find.text('Upload image'), findsOneWidget);
+    expect(find.text('Grab from their wall'), findsOneWidget);
   });
 
   testWidgets('tapping a pending friend logs a pending connection click', (
@@ -198,7 +206,7 @@ void main() {
 
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Jess'));
+    await tester.tap(find.text('Message Jess'));
     await tester.pumpAndSettle();
 
     expect(
@@ -220,5 +228,32 @@ void main() {
       logger.clicks.map((click) => click.buttonId),
       contains(ButtonIds.pendingConnectionsClose),
     );
+  });
+
+  testWidgets('refetches the connections when returning from a board', (
+    tester,
+  ) async {
+    final fetcher = await pumpPage(tester, _sample());
+    expect(fetcher.currentFetchCount, 1);
+
+    await tester.tap(find.byType(ConnectionCard).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+
+    expect(fetcher.currentFetchCount, 2);
+  });
+
+  testWidgets('refetches the connections on an sse notification', (
+    tester,
+  ) async {
+    final board = FakeSharedBoardService();
+    final fetcher = await pumpPage(tester, _sample(), boardService: board);
+    expect(fetcher.currentFetchCount, 1);
+
+    board.fireNotification();
+    await tester.pumpAndSettle();
+
+    expect(fetcher.currentFetchCount, 2);
   });
 }

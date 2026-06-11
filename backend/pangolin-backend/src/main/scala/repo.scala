@@ -19,6 +19,7 @@ import org.postgresql.ds.PGSimpleDataSource
 // import org.postgresql.geometric.*
 import com.augustnagro.magnum.pg.PgCodec.given
 import com.augustnagro.magnum.SortOrder
+import com.augustnagro.magnum.Query
 
 object repo {
 
@@ -254,6 +255,43 @@ object repo {
     val Table = TableInfo[UserHobbyInfoCreator, UserHobbyInfo, Int]
   }
   
+  /// MESSAGING BOARDS ///
+
+  case class ConnectionRemovedCreator(
+    boardId: Int,
+    removedByUser: Int, // user id
+    reason: String,
+  )
+
+  @Table(PostgresDbType)
+  case class ConnectionRemoved(
+    @Id id: Int,
+    boardId: Int,
+    removedByUser: Int, // user id
+    // reason should be an enum really. haven't decided what goes in it yet tho
+    reason: String,
+  )
+
+  object ConnectionRemoved {
+    val Table = TableInfo[ConnectionRemovedCreator, ConnectionRemoved, Int]
+  }
+
+  case class ConnectionPendingCreator(
+    boardId: Int,
+    pendingForUser: Int, // user id
+  )
+
+  @Table(PostgresDbType)
+  case class ConnectionPending(
+    @Id id: Int,
+    boardId: Int,
+    pendingForUser: Int, // user id
+  )
+
+  object ConnectionPending {
+    val Table = TableInfo[ConnectionPendingCreator, ConnectionPending, Int]
+  }
+  
   case class SharedBoardCreator(
     user1Id: Int,
     user2Id: Int,
@@ -320,6 +358,8 @@ object repo {
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
+    username: String,
+    name: String,
   )
 
   @Table(PostgresDbType)
@@ -328,6 +368,8 @@ object repo {
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
+    username: String,
+    name: String,
   )
 
   object ButtonLog {
@@ -357,8 +399,11 @@ object repo {
   private val userHobbyInfoRepo = Repo[UserHobbyInfoCreator, UserHobbyInfo, Int]
   private val accountRepo = Repo[AccountCreator, Account, Int]
 
+  private val connectionPendingRepo = Repo[ConnectionPendingCreator, ConnectionPending, Int]
+  private val connectionRemovedRepo = Repo[ConnectionRemovedCreator, ConnectionRemoved, Int]
+
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
-  private val sharedBoardElementsRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
+  private val sharedBoardElementRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
   private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
 
   private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
@@ -378,8 +423,24 @@ object repo {
   private def userHobbyInfoSpec(accountId: Int) = Spec[UserHobbyInfo]
     .where(sql"${UserHobbyInfo.Table.accountId} = $accountId")
 
-  val getRecommendations = inDatabase {
-    profileRepo.findAll.asRight
+  def getRecommendations(userId: Int) = inDatabase {
+    recommendationsQuery(userId).run()
+  }
+
+  private def recommendationsQuery(userId: Int): Query[Profile] = {
+    val profile = Profile.Table.alias("profile")
+    val sharedBoard = SharedBoard.Table.alias("sharedBoard")
+    sql"""
+      SELECT *
+      FROM $profile
+      WHERE ${profile.accountId} <> $userId
+      AND NOT EXISTS (
+        SELECT *
+        FROM $sharedBoard
+        WHERE ${sharedBoard.user1Id} = $userId AND ${sharedBoard.user2Id} = ${profile.accountId}
+        OR ${sharedBoard.user1Id} = ${profile.accountId} AND ${sharedBoard.user2Id} = $userId
+      )
+    """.query[Profile]
   }
 
   /// Yes, this should be a much better query. Believe in the power of query optimisation!
@@ -498,34 +559,37 @@ object repo {
     sharedBoardRepo.insert(SharedBoardCreator(user1Id, user2Id))
   }
 
-  def getSharedBoard(user1Id: Int, user2Id: Int) = {
-    inDatabase {
-      val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
-        sharedBoardElementsRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
-          val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
-            api.SharedBoardReply(
-              datetime = reply.timestamp,
-              senderId = reply.senderId,
-              text = reply.text,
-            )
-          }
-          api.SharedBoardElement(
-            sharedElemId = element.id,
-            datetime = element.timestamp,
-            messages = replies,
-            url = element.url,
-            text = element.text,
-            read = element.read,
+  def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
+    val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+      sharedBoardElementRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
+        val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
+          api.SharedBoardReply(
+            datetime = reply.timestamp,
+            senderId = reply.senderId,
+            text = reply.text,
           )
         }
+        api.SharedBoardElement(
+          sharedElemId = element.id,
+          datetime = element.timestamp,
+          messages = replies,
+          url = element.url,
+          text = element.text,
+          read = element.read,
+        )
       }
-      elements.map(api.SharedBoard(_))
     }
+    elements.map(api.SharedBoard(_))
   }
 
-  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
-  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement].where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
-  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply].where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
+    .where(sql"${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id OR ${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id")
+  private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
+    .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
+    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
+  private def repliesSpec(elementId: Int) = Spec[SharedBoardReply]
+    .where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
+    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc)
 
   def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
     senderId = message.senderId,
@@ -545,9 +609,27 @@ object repo {
     url = None
   )
 
-  private def sendElement(senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String)(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))) = inDatabase {
-    val board = getBoard(senderId, receiverId).getOrElse(insertBoard(senderId, receiverId))
-    val elem = sharedBoardElementsRepo.insertReturning(
+  private def removeAnyPending(boardId: Int, userId: Int)(using DbCon) =
+    val pending = ConnectionPending.Table 
+    sql"""
+    DELETE FROM ${pending}
+    WHERE ${pending.boardId} = ${boardId}
+      AND ${pending.pendingForUser} = ${userId}
+    """.update.run()
+
+  private def sendElement(
+    senderId: Int, receiverId: Int, timestamp: Long, text: Option[String], url: Option[String], message: String
+  )(using (text.type, url.type) <:< ((Some[String], None.type) | (None.type, Some[String]))
+  ) = inDatabaseWithRollback {
+    val board = getBoard(senderId, receiverId) match {
+      case Some(b) => {
+        // holy side effect
+        removeAnyPending(b.id, senderId)
+        b
+      }
+      case None => makeBoard(senderId, receiverId)
+    }
+    val elem = sharedBoardElementRepo.insertReturning(
       SharedBoardElementCreator(
         boardId = board.id,
         timestamp = timestamp,
@@ -566,44 +648,58 @@ object repo {
     )
   }
 
-  def sendReply(message: api.MessageReply) = inDatabase {
-    sharedBoardReplyRepo.insert(
-      SharedBoardReplyCreator(
-        sharedBoardElementId = message.sharedElementId,
-        text = message.text,
-        timestamp = message.datetime,
-        senderId = message.senderId,
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def sendReply(message: api.MessageReply): IO[Option[Unit]] = inDatabaseWithRollback {    
+    sharedBoardElementRepo.findById(message.sharedElementId).map { (sharedElem) =>
+      removeAnyPending(sharedElem.boardId, message.senderId)
+      sharedBoardReplyRepo.insert(
+        SharedBoardReplyCreator(
+          sharedBoardElementId = message.sharedElementId,
+          text = message.text,
+          timestamp = message.datetime,
+          senderId = message.senderId,
+        )
       )
-    )
+    }
   }
 
   private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
     sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
   }
 
-  private def insertBoard(user1Id: Int, user2Id: Int)(using DbCon): SharedBoard = {
-    sharedBoardRepo.insertReturning(SharedBoardCreator(user1Id, user2Id))
+  private def makeBoard(senderId: Int, receiverId: Int)(using DbCon): SharedBoard = {
+    val newBoard = sharedBoardRepo.insertReturning(SharedBoardCreator(senderId, receiverId))
+    connectionPendingRepo.insert(ConnectionPendingCreator(
+      boardId = newBoard.id,
+      pendingForUser = receiverId,
+    ))
+    newBoard
   }
 
   def logButtonPress(
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
-  ) = inDatabase {
-    buttonLogRepo.insert(
+  ) = inDatabase { for {
+    account <- accountRepo.findById(userId).toRight("couldn't find account")
+    name <- profileRepo.findAll(Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")).headOption.toRight("couldn't find name")
+  } yield buttonLogRepo.insert(
       ButtonLogCreator(
         userId = userId,
+        username = account.username,
+        name = name.name,
         buttonId = buttonId,
         pressTimestamp = pressTimestamp,
       )
-    ).asRight
+    )
   }
 
-  def getCurrentFriends(userId: Int) = inDatabase {
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def getCurrentFriends(userId: Int): IO[Option[(Vector[api.Friend], Int)]] = inDatabase {
     val sharedBoards = sharedBoardRepo.findAll(currentFriendsSpec(userId))
-    sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
+    val friends = sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
-      val coverImages = sharedBoardElementsRepo.findAll(coverImagesSpec(boardId))
+      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- coverImages.map(_.url).sequence
@@ -616,10 +712,76 @@ object repo {
     }.collect {
       case Some(x) => x
     }
+    for {
+      nPending <- numberPendingFriends(userId).headOption
+    } yield (friends, nPending)
   }
 
-  private def currentFriendsSpec(userId: Int) = {
-    Spec[SharedBoard].where(sql"${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId")
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def getPendingFriends(userId: Int): IO[Vector[api.PendingFriend]] = inDatabase {
+    val sharedBoards = sharedBoardRepo.findAll(pendingFriendsSpec(userId))
+    sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
+      val friendId = if user1Id == userId then user2Id else user1Id
+      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
+      for {
+        friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
+        coverImageUrls <- coverImages.map(_.url).sequence
+      } yield api.PendingFriend(
+        friendUserId = friendProfile.accountId,
+        name = friendProfile.name,
+        mainImage = friendProfile.profileImageUrl,
+        age = friendProfile.age,
+        location = friendProfile.location,
+        bio = friendProfile.bio,
+      )
+    }.collect {
+      case Some(x) => x
+    }
+  }
+
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def removeFriend(currentUserId: Int, targetUserId: Int, reason: api.DeletionReason): IO[Option[Unit]] = inDatabase {
+    getBoard(currentUserId, targetUserId).map{ (board) =>
+      connectionRemovedRepo.insert(ConnectionRemovedCreator(
+        boardId = board.id,
+        removedByUser = currentUserId,
+        reason = reason.dbString,
+      ))
+    }
+  }
+
+  private def currentFriendsSpec(userId: Int) =
+    Spec[SharedBoard]
+      .where(sql"""
+        (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
+      AND ${SharedBoard.Table.id} NOT IN (
+        SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
+        UNION
+        SELECT ${ConnectionRemoved.Table.boardId} FROM ${ConnectionRemoved.Table} WHERE ${ConnectionRemoved.Table.removedByUser} = $userId
+      )
+    """)
+
+  private def pendingFriendsSpec(userId: Int) =
+    Spec[SharedBoard].where(sql"""
+      (${SharedBoard.Table.user1Id} = $userId OR ${SharedBoard.Table.user2Id} = $userId)
+      AND ${SharedBoard.Table.id} IN (
+        SELECT ${ConnectionPending.Table.boardId} FROM ${ConnectionPending.Table} WHERE ${ConnectionPending.Table.pendingForUser} = $userId
+      )
+    """)
+  
+  private def numberPendingFriends(userId: Int)(using DbCon) = {
+    val pending = ConnectionPending.Table.alias("cp")
+    val sharedBoard = SharedBoard.Table.alias("sb")
+
+    sql"""
+    SELECT COUNT(*)
+    FROM $pending
+    LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
+    WHERE ${pending.pendingForUser} = $userId
+      AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
+    """.query[Int].run()
+    // the 'AND' at the end is redundant if we make sure the database stays consistent
+    // (clearly some poor db design. sorry.)
   }
 
   private def profileFromAccountIdSpec(userId: Int) = {
@@ -628,7 +790,7 @@ object repo {
 
   private def coverImagesSpec(boardId: Int) = {
     Spec[SharedBoardElement]
-      .where(sql"${SharedBoardElement.Table.id} = $boardId")
+      .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
       .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
       .limit(4)

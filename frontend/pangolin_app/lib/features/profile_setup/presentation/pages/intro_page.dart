@@ -14,7 +14,7 @@ import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
-class AboutMePage extends StatefulWidget {
+class IntroPage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
   final ImageFilePicker? imagePicker;
   final ImageUploader? imageUploader;
@@ -22,7 +22,7 @@ class AboutMePage extends StatefulWidget {
   final VoidCallback? onNext;
   final VoidCallback? onBack;
 
-  const AboutMePage({
+  const IntroPage({
     super.key,
     required this.profileBuilder,
     this.imagePicker,
@@ -33,10 +33,10 @@ class AboutMePage extends StatefulWidget {
   });
 
   @override
-  State<AboutMePage> createState() => _AboutMePageState();
+  State<IntroPage> createState() => _IntroPageState();
 }
 
-class _AboutMePageState extends State<AboutMePage> {
+class _IntroPageState extends State<IntroPage> {
   late final ImageFilePicker _imagePicker =
       widget.imagePicker ?? getIt<ImageFilePicker>();
   late final ImageUploader _imageUploader =
@@ -163,7 +163,7 @@ class _AboutMePageState extends State<AboutMePage> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text('About me'),
-        leading: IconButton(
+        leading: IconButton.filledTonal(
           icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () {},

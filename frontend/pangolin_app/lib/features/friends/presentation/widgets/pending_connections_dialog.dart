@@ -3,21 +3,30 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/config/service_locator.dart';
+import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
 import 'package:pangolin_app/features/friends/domain/pending_friend.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
+import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+
+enum _PendingAction { ignore, reportAndIgnore }
 
 class PendingConnectionsDialog extends StatefulWidget {
   final int userId;
   final FriendsFetcher friendsFetcher;
+  final FriendActionSender? friendActionSender;
+  final SharedBoardService? boardService;
   final ButtonClickLogger? logger;
 
   const PendingConnectionsDialog({
     super.key,
     required this.userId,
     required this.friendsFetcher,
+    this.friendActionSender,
+    this.boardService,
     this.logger,
   });
 
@@ -26,7 +35,13 @@ class PendingConnectionsDialog extends StatefulWidget {
       _PendingConnectionsDialogState();
 }
 
-class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
+class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
+    with BoardNotificationsListener<PendingConnectionsDialog> {
+  late final FriendActionSender _sender =
+      widget.friendActionSender ?? getIt<FriendActionSender>();
+  late final SharedBoardService _boardService =
+      widget.boardService ?? getIt<SharedBoardService>();
+
   bool _loading = true;
   String? _error;
   List<PendingFriend> _pending = const [];
@@ -35,6 +50,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
   void initState() {
     super.initState();
     _load();
+    listenToBoardNotifications(_boardService, widget.userId, _load);
   }
 
   Future<void> _load() async {
@@ -74,6 +90,71 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
   void _select(PendingFriend friend) {
     _log(ButtonIds.pendingConnection);
     Navigator.of(context).pop(friend);
+  }
+
+  Future<void> _ignore(PendingFriend friend) {
+    _log(ButtonIds.pendingIgnore);
+    return _runAction(
+      () => _sender.reject(
+        currentUserId: widget.userId,
+        targetUserId: friend.friendUserId,
+      ),
+    );
+  }
+
+  Future<void> _reportAndIgnore(PendingFriend friend) async {
+    _log(ButtonIds.pendingReportAndIgnore);
+    final reported = await _runAction(() async {
+      await _sender.report(
+        currentUserId: widget.userId,
+        targetUserId: friend.friendUserId,
+      );
+      await _sender.reject(
+        currentUserId: widget.userId,
+        targetUserId: friend.friendUserId,
+      );
+    });
+
+    if (reported && mounted) {
+      await _showReportConfirmation(friend.name);
+    }
+  }
+
+  Future<void> _showReportConfirmation(String name) {
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        content: Text(
+          "$name's request has been sent to our moderation team for review, "
+          "if they've broken our Code of Conduct, they'll be banned. "
+          "We've blocked them for you.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<bool> _runAction(Future<void> Function() action) async {
+    try {
+      await action();
+      if (!mounted) return false;
+      await _load();
+      return true;
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            const SnackBar(content: Text('Could not complete that action.')),
+          );
+      }
+      return false;
+    }
   }
 
   @override
@@ -132,7 +213,12 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
       separatorBuilder: (_, _) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final friend = _pending[index];
-        return _PendingCard(friend: friend, onTap: () => _select(friend));
+        return _PendingCard(
+          friend: friend,
+          onMessage: () => _select(friend),
+          onIgnore: () => _ignore(friend),
+          onReportAndIgnore: () => _reportAndIgnore(friend),
+        );
       },
     );
   }
@@ -140,43 +226,85 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog> {
 
 class _PendingCard extends StatelessWidget {
   final PendingFriend friend;
-  final VoidCallback onTap;
+  final VoidCallback onMessage;
+  final VoidCallback onIgnore;
+  final VoidCallback onReportAndIgnore;
 
-  const _PendingCard({required this.friend, required this.onTap});
+  const _PendingCard({
+    required this.friend,
+    required this.onMessage,
+    required this.onIgnore,
+    required this.onReportAndIgnore,
+  });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final title = friend.age == null
+        ? friend.name
+        : '${friend.name} (${friend.age})';
 
     return Material(
       color: colorScheme.surfaceContainerHighest,
       borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              _Avatar(url: friend.mainImage),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  friend.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Avatar(url: friend.mainImage),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-              AppIcon(
-                AppIconType.chevronRight,
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ],
-          ),
+                PopupMenuButton<_PendingAction>(
+                  icon: AppIcon(
+                    AppIconType.moreVert,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                  tooltip: 'More',
+                  onSelected: (action) {
+                    switch (action) {
+                      case _PendingAction.ignore:
+                        onIgnore();
+                      case _PendingAction.reportAndIgnore:
+                        onReportAndIgnore();
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: _PendingAction.ignore,
+                      child: Text('Ignore'),
+                    ),
+                    PopupMenuItem(
+                      value: _PendingAction.reportAndIgnore,
+                      child: Text('Report and ignore'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            FilledButton.icon(
+              onPressed: onMessage,
+              icon: const AppIcon(AppIconType.message, size: 20),
+              label: Text('Message ${friend.name}'),
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,9 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pangolin_app/features/friends/data/mock_friend_action_sender.dart';
+import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
@@ -13,6 +16,8 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
+import 'package:pangolin_app/router/app_router.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -25,6 +30,7 @@ class _FakeService implements SharedBoardService {
   List<SharedElement> board = [];
   final List<String> sentImages = [];
   final List<String> sentReplies = [];
+  final List<String> sentTexts = [];
 
   @override
   Stream<void> notifications(int userId) => controller.stream;
@@ -49,7 +55,7 @@ class _FakeService implements SharedBoardService {
     required String text,
     required String message,
     int? datetime,
-  }) async {}
+  }) async => sentTexts.add(text);
 
   @override
   Future<void> sendReply({
@@ -93,6 +99,7 @@ void main() {
   Future<_FakeService> pumpBoard(
     WidgetTester tester, {
     List<SharedElement> board = const [],
+    MockButtonClickLogger? logger,
   }) async {
     final service = _FakeService()..board = board;
     await tester.pumpWidget(
@@ -105,7 +112,7 @@ void main() {
             service: service,
             imagePicker: _FakePicker(),
             imageUploader: MockImageUploader(),
-            logger: MockButtonClickLogger(),
+            logger: logger ?? MockButtonClickLogger(),
           ),
         ),
       ),
@@ -180,9 +187,159 @@ void main() {
   testWidgets('upload image picks, uploads and sends', (tester) async {
     final service = await pumpBoard(tester);
 
-    await tester.tap(find.text('Upload image'));
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.addImage,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
     await tester.pumpAndSettle();
 
     expect(service.sentImages, hasLength(1));
+  });
+
+  Future<MockFriendActionSender> pumpBoardWithRouter(
+    WidgetTester tester, {
+    MockButtonClickLogger? logger,
+  }) async {
+    final sender = MockFriendActionSender();
+    final router = GoRouter(
+      initialLocation: AppRoutes.sharedBoard,
+      routes: [
+        GoRoute(
+          path: AppRoutes.sharedBoard,
+          builder: (_, _) => SharedBoardPage(
+            friendUserId: 2,
+            profileFetcher: const _FakeProfileFetcher('Sally'),
+            service: _FakeService(),
+            imagePicker: _FakePicker(),
+            imageUploader: MockImageUploader(),
+            friendActionSender: sender,
+            logger: logger ?? MockButtonClickLogger(),
+          ),
+        ),
+        GoRoute(
+          path: AppRoutes.connections,
+          builder: (_, _) => const Text('CONNECTIONS'),
+        ),
+        GoRoute(
+          path: AppRoutes.viewProfile,
+          builder: (_, _) => const Text('PROFILE'),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(1)],
+        child: MaterialApp.router(routerConfig: router),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return sender;
+  }
+
+  testWidgets(
+    'remove connection confirms, sends remove, logs, and leaves the board',
+    (tester) async {
+      final logger = MockButtonClickLogger();
+      final sender = await pumpBoardWithRouter(tester, logger: logger);
+
+      await tester.tap(find.byTooltip('Remove connection'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Manage connection'), findsOneWidget);
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      expect(sender.actions, hasLength(1));
+      expect(sender.actions.single.kind, FriendActionKind.remove);
+      expect(sender.actions.single.currentUserId, 1);
+      expect(sender.actions.single.targetUserId, 2);
+      expect(find.text('CONNECTIONS'), findsOneWidget);
+      expect(
+        logger.clicks.map((c) => c.buttonId),
+        contains(ButtonIds.sharedBoardRemoveConnection),
+      );
+    },
+  );
+
+  testWidgets(
+    'report and block reports, shows the message, and leaves the board',
+    (tester) async {
+      final sender = await pumpBoardWithRouter(tester);
+
+      await tester.tap(find.byTooltip('Remove connection'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Report and Block'));
+      await tester.pumpAndSettle();
+
+      expect(sender.actions.single.kind, FriendActionKind.report);
+      expect(sender.actions.single.targetUserId, 2);
+      expect(find.textContaining('moderation team'), findsOneWidget);
+
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('CONNECTIONS'), findsOneWidget);
+    },
+  );
+
+  testWidgets('view profile button logs and opens the profile', (tester) async {
+    final logger = MockButtonClickLogger();
+    await pumpBoardWithRouter(tester, logger: logger);
+
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.person,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('PROFILE'), findsOneWidget);
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.sharedBoardViewProfile),
+    );
+  });
+
+  testWidgets('remove connection does nothing when declined', (tester) async {
+    final sender = await pumpBoardWithRouter(tester);
+
+    await tester.tap(find.byTooltip('Remove connection'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(sender.actions, isEmpty);
+    expect(find.text('CONNECTIONS'), findsNothing);
+  });
+
+  testWidgets('adding a text post sends the topic and message', (tester) async {
+    final logger = MockButtonClickLogger();
+    final service = await pumpBoard(tester, logger: logger);
+
+    await tester.tap(
+      find.byWidgetPredicate(
+        (w) => w is AppIcon && w.type == AppIconType.addText,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextField, 'Topic'), 'Big news');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Message'),
+      'you have to see this',
+    );
+    await tester.tap(find.widgetWithText(FilledButton, 'Send'));
+    await tester.pumpAndSettle();
+
+    expect(service.sentTexts, contains('Big news'));
+    expect(
+      logger.clicks.map((c) => c.buttonId),
+      contains(ButtonIds.sharedBoardAddText),
+    );
   });
 }

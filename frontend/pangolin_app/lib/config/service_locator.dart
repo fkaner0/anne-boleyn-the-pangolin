@@ -3,7 +3,9 @@ import 'package:pangolin_app/config/env.dart';
 import 'package:pangolin_app/features/auth/data/authoriser.dart';
 import 'package:pangolin_app/features/auth/data/mock_authoriser.dart';
 import 'package:pangolin_app/features/auth/data/render_authoriser.dart';
+import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/friends/data/friends_fetcher.dart';
+import 'package:pangolin_app/features/friends/data/render_friend_action_sender.dart';
 import 'package:pangolin_app/features/friends/data/render_friends_fetcher.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/recommendation/data/recommendation_fetcher.dart';
@@ -18,6 +20,7 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 
+import 'package:pangolin_app/features/friends/data/mock_friend_action_sender.dart';
 import 'package:pangolin_app/features/friends/data/mock_friends_fetcher.dart';
 import 'package:pangolin_app/features/messaging/data/mock_shared_board_service.dart';
 import 'package:pangolin_app/features/recommendation/data/mock_recommendation_fetcher.dart';
@@ -76,6 +79,9 @@ void configureDependencies(BackendMode backend) {
         () => MockButtonClickLogger(),
       );
       getIt.registerLazySingleton<FriendsFetcher>(() => MockFriendsFetcher());
+      getIt.registerLazySingleton<FriendActionSender>(
+        () => MockFriendActionSender(),
+      );
       getIt.registerLazySingleton<SharedBoardService>(
         () => MockSharedBoardService(),
       );
@@ -132,9 +138,15 @@ void configureDependencies(BackendMode backend) {
           useHttps: false,
         ),
       );
-      // TODO: Switch to RenderFriendsFetcher once the friends endpoints exist.
       getIt.registerLazySingleton<FriendsFetcher>(
         () => RenderFriendsFetcher(
+          host: hostLocal,
+          port: portLocal,
+          useHttps: false,
+        ),
+      );
+      getIt.registerLazySingleton<FriendActionSender>(
+        () => RenderFriendActionSender(
           host: hostLocal,
           port: portLocal,
           useHttps: false,
@@ -174,9 +186,11 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ButtonClickLogger>(
         () => RenderButtonClickLogger(host: host),
       );
-      // TODO: Switch to RenderFriendsFetcher once the friends endpoints exist.
       getIt.registerLazySingleton<FriendsFetcher>(
         () => RenderFriendsFetcher(host: host),
+      );
+      getIt.registerLazySingleton<FriendActionSender>(
+        () => RenderFriendActionSender(host: host),
       );
       getIt.registerLazySingleton<SharedBoardService>(
         () => RenderSharedBoardService(host: host),

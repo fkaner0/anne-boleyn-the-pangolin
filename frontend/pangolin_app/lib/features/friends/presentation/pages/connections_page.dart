@@ -13,6 +13,8 @@ import 'package:pangolin_app/features/friends/presentation/widgets/connection_ca
 import 'package:pangolin_app/features/friends/presentation/widgets/pending_connections_dialog.dart';
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
+import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
+import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
@@ -21,17 +23,26 @@ import 'package:pangolin_app/widgets/splodge.dart';
 
 class ConnectionsPage extends ConsumerStatefulWidget {
   final FriendsFetcher? friendsFetcher;
+  final SharedBoardService? boardService;
   final ButtonClickLogger? logger;
 
-  const ConnectionsPage({super.key, this.friendsFetcher, this.logger});
+  const ConnectionsPage({
+    super.key,
+    this.friendsFetcher,
+    this.boardService,
+    this.logger,
+  });
 
   @override
   ConsumerState<ConnectionsPage> createState() => _ConnectionsPageState();
 }
 
-class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
+class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
+    with BoardNotificationsListener<ConnectionsPage> {
   late final FriendsFetcher _friendsFetcher =
       widget.friendsFetcher ?? getIt<FriendsFetcher>();
+  late final SharedBoardService _boardService =
+      widget.boardService ?? getIt<SharedBoardService>();
   late final int _userId;
 
   bool _loading = true;
@@ -43,6 +54,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
+    listenToBoardNotifications(_boardService, _userId, _load);
   }
 
   Future<void> _load() async {
@@ -80,6 +92,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
       builder: (_) => PendingConnectionsDialog(
         userId: _userId,
         friendsFetcher: _friendsFetcher,
+        boardService: _boardService,
         logger: widget.logger,
       ),
     );
@@ -89,8 +102,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage> {
     _openBoard(selected.friendUserId, selected.name);
   }
 
-  void _openBoard(int friendUserId, String friendName) {
-    context.push(AppRoutes.sharedBoard, extra: friendUserId);
+  Future<void> _openBoard(int friendUserId, String friendName) async {
+    await context.push(AppRoutes.sharedBoard, extra: friendUserId);
+    if (mounted) _load();
   }
 
   @override

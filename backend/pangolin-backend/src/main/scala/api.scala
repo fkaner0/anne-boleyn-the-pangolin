@@ -201,9 +201,11 @@ object api {
   private val buttonLogEndpoint = endpoint.post
     .in("debug" / "button-click")
     .in(jsonBody[ButtonLog])
+    .errorOut(stringBody)
+    .out(emptyOutput)
 
   private val reccomendationsEndpoint = endpoint.get
-    .in("recommendations")
+    .in("recommendations" / path[Int]("userId"))
     .out(jsonBody[Vector[Recommendation]])
 
   private val sharedBoardEndpoint = endpoint.get
@@ -230,6 +232,7 @@ object api {
 
   private val currentFriendsEndpoint = endpoint.get
     .in("friends" / "current" / path[Int]("userId"))
+    .errorOut(stringBody)
     .out(jsonBody[CurrentFriends])
 
   private val pendingFriendsEndpoint = endpoint.get
@@ -248,8 +251,8 @@ object api {
   private val serverInterpreter = Http4sServerInterpreter[IO](http4sOptions)
 
   val recommendationsRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
-    reccomendationsEndpoint.serverLogic { _ =>
-      repo.getRecommendations.map(_.map(_.map(_.toRecommendation)))
+    reccomendationsEndpoint.serverLogicSuccess { userId =>
+      repo.getRecommendations(userId).map(_.map(_.toRecommendation))
     },
   )
 
@@ -370,16 +373,48 @@ object api {
   )
 
   private val currentFriendsRoutes = serverInterpreter.toRoutes(
-    currentFriendsEndpoint.serverLogicSuccess { userId =>
-      repo.getCurrentFriends(userId).map(CurrentFriends(_, 0))
+    currentFriendsEndpoint.serverLogic { userId =>
+      repo.getCurrentFriends(userId).map(
+        _.map((friends, nPending) => CurrentFriends(friends, nPending))
+        .toRight(s"Error finding friends for user $userId")
+      )
+      // repo.getCurrentFriends(userId).map((friends, nPending) => CurrentFriends(friends, nPending))
     }
   )
 
   private val pendingFriendsRoutes = serverInterpreter.toRoutes(
     pendingFriendsEndpoint.serverLogicSuccess { userId =>
-      IO.pure(PendingFriends(Vector.empty))
+      repo.getPendingFriends(userId).map(PendingFriends(_))
     }
   )
+
+  // bad separation of concerns but no time to care :<
+  enum DeletionReason(val endpointString: String, val dbString: String) {
+    case Reject extends DeletionReason("reject", "reject");
+    case Remove extends DeletionReason("remove", "remove");
+    case Block  extends DeletionReason("block",  "block");
+    case Report extends DeletionReason("report", "report");
+  }
+
+  private def connectionDeletionEndpoint(reason: DeletionReason) = endpoint.post
+    .in("friends" / reason.endpointString)
+    .in(query[Int]("currentUid"))
+    .in(query[Int]("targetUid"))
+    .errorOut(stringBody)
+    .out(emptyOutput)
+
+  private def connectionDeleteWithReason(reason: DeletionReason) = serverInterpreter.toRoutes(
+    connectionDeletionEndpoint(reason).serverLogic { (currentUserId, targetUserId) =>
+      repo.removeFriend(currentUserId, targetUserId, reason).map(
+        _.toRight("Error when handling connection deletion request.")
+      )
+    }
+  )
+
+  private val connectionRejectRoutes = connectionDeleteWithReason(DeletionReason.Reject)
+  private val connectionRemoveRoutes = connectionDeleteWithReason(DeletionReason.Remove)
+  // private val connectionBlockRoutes = connectionDeleteWithReason(DeletionReason.Block)
+  private val connectionReportRoutes = connectionDeleteWithReason(DeletionReason.Report)
 
   extension (image: repo.WallImage) {
     private def toApi = WallImage(
@@ -514,5 +549,8 @@ object api {
     "/" -> buttonLogRoutes,
     "/" -> currentFriendsRoutes,
     "/" -> pendingFriendsRoutes,
+    "/" -> connectionRejectRoutes,
+    "/" -> connectionRemoveRoutes,
+    "/" -> connectionReportRoutes,
   ).orNotFound
 }
