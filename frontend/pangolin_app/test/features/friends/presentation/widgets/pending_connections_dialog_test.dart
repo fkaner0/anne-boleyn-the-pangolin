@@ -8,6 +8,8 @@ import 'package:pangolin_app/features/friends/presentation/widgets/pending_conne
 import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/mock_button_click_logger.dart';
 
+import '../../../../support/fake_shared_board_service.dart';
+
 class _FakeFriendsFetcher implements FriendsFetcher {
   final List<PendingFriend> all;
   final MockFriendActionSender sender;
@@ -30,6 +32,7 @@ class _FakeFriendsFetcher implements FriendsFetcher {
 Future<_FakeFriendsFetcher> _pump(
   WidgetTester tester, {
   MockButtonClickLogger? logger,
+  FakeSharedBoardService? boardService,
 }) async {
   final sender = MockFriendActionSender();
   final fetcher = _FakeFriendsFetcher(const [
@@ -42,6 +45,7 @@ Future<_FakeFriendsFetcher> _pump(
           userId: 7,
           friendsFetcher: fetcher,
           friendActionSender: sender,
+          boardService: boardService ?? FakeSharedBoardService(),
           logger: logger ?? MockButtonClickLogger(),
         ),
       ),
@@ -57,6 +61,19 @@ void main() {
 
     expect(find.text('Jess (24)'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Message Jess'), findsOneWidget);
+  });
+
+  testWidgets('re-fetches pending friends on an sse notification', (
+    tester,
+  ) async {
+    final board = FakeSharedBoardService();
+    final fetcher = await _pump(tester, boardService: board);
+    expect(fetcher.pendingFetchCount, 1);
+
+    board.fireNotification();
+    await tester.pumpAndSettle();
+
+    expect(fetcher.pendingFetchCount, 2);
   });
 
   testWidgets('Ignore rejects the friend and re-fetches the pending list', (
