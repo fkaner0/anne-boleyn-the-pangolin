@@ -386,85 +386,99 @@ class _BottomBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _ToolButton(
-              icon: AppIconType.wallpaper,
-              label: 'Grab from their wall',
-              onPressed: onGrab,
-              iconColor: Colors.white,
-            ),
-            _ToolButton(
-              icon: AppIconType.addText,
-              label: 'Text',
-              onPressed: onAddText,
-            ),
-            _ToolButton(
-              icon: AppIconType.addImage,
-              label: 'Image',
-              onPressed: onUpload,
-            ),
-          ],
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: constraints.maxWidth * 0.5,
+                  child: _GrabButton(onPressed: onGrab),
+                ),
+                _IconToolButton(
+                  icon: AppIconType.addText,
+                  onPressed: onAddText,
+                ),
+                _IconToolButton(
+                  icon: AppIconType.addImage,
+                  onPressed: onUpload,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _ToolButton extends StatelessWidget {
-  final AppIconType icon;
-  final String label;
+class _GrabButton extends StatelessWidget {
   final VoidCallback onPressed;
-  final Color? iconColor;
 
-  const _ToolButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-    this.iconColor,
-  });
+  const _GrabButton({required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Material(
-          color: colorScheme.primaryContainer,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onPressed,
-            child: SizedBox(
-              width: 64,
-              height: 64,
-              child: Center(
-                child: AppIcon(
-                  icon,
-                  size: 36,
-                  color: iconColor ?? colorScheme.onPrimaryContainer,
+    return Material(
+      color: colorScheme.primaryContainer,
+      shape: const StadiumBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: SizedBox(
+          height: 64,
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Grab from their wall',
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        SizedBox(
-          width: 72,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 12),
+      ),
+    );
+  }
+}
+
+class _IconToolButton extends StatelessWidget {
+  final AppIconType icon;
+  final VoidCallback onPressed;
+
+  const _IconToolButton({required this.icon, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Material(
+      color: colorScheme.primaryContainer,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onPressed,
+        child: SizedBox(
+          width: 64,
+          height: 64,
+          child: Center(
+            child: AppIcon(
+              icon,
+              size: 36,
+              color: colorScheme.onPrimaryContainer,
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
