@@ -73,6 +73,10 @@ void main() {
           builder: (_, state) =>
               SharedBoardPage(friendUserId: state.extra as int),
         ),
+        GoRoute(
+          path: AppRoutes.viewProfile,
+          builder: (_, _) => const Text('PROFILE'),
+        ),
       ],
     );
 
@@ -176,10 +180,30 @@ void main() {
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Message Jess'));
+    await tester.tap(find.text('Reply'));
     await tester.pumpAndSettle();
 
     expect(find.text('Grab from their wall'), findsOneWidget);
+  });
+
+  testWidgets('tapping a pending friend profile area opens their profile', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      _sample(),
+      pending: const [
+        PendingFriend(friendUserId: 11, name: 'Jess', mainImage: ''),
+      ],
+    );
+
+    await tester.tap(find.text('2 pending connections'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Jess'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PROFILE'), findsOneWidget);
   });
 
   testWidgets('tapping a connection opens the shared board', (tester) async {
@@ -206,7 +230,7 @@ void main() {
 
     await tester.tap(find.text('2 pending connections'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Message Jess'));
+    await tester.tap(find.text('Reply'));
     await tester.pumpAndSettle();
 
     expect(
