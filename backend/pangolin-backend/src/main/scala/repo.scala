@@ -357,6 +357,8 @@ object repo {
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
+    username: String,
+    name: String,
   )
 
   @Table(PostgresDbType)
@@ -365,6 +367,8 @@ object repo {
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
+    username: String,
+    name: String,
   )
 
   object ButtonLog {
@@ -659,14 +663,18 @@ object repo {
     userId: Int,
     buttonId: String,
     pressTimestamp: Long,
-  ) = inDatabase {
-    buttonLogRepo.insert(
+  ) = inDatabase { for {
+    account <- accountRepo.findById(userId).toRight("couldn't find account")
+    name <- profileRepo.findAll(Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")).headOption.toRight("couldn't find name")
+  } yield buttonLogRepo.insert(
       ButtonLogCreator(
         userId = userId,
+        username = account.username,
+        name = name.name,
         buttonId = buttonId,
         pressTimestamp = pressTimestamp,
       )
-    ).asRight
+    )
   }
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
@@ -711,6 +719,17 @@ object repo {
       )
     }.collect {
       case Some(x) => x
+    }
+  }
+
+  /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
+  def removeFriend(currentUserId: Int, targetUserId: Int, reason: api.DeletionReason): IO[Option[Unit]] = inDatabase {
+    getBoard(currentUserId, targetUserId).map{ (board) =>
+      connectionRemovedRepo.insert(ConnectionRemovedCreator(
+        boardId = board.id,
+        removedByUser = currentUserId,
+        reason = reason.dbString,
+      ))
     }
   }
 
