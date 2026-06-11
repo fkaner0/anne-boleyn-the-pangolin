@@ -201,6 +201,8 @@ object api {
   private val buttonLogEndpoint = endpoint.post
     .in("debug" / "button-click")
     .in(jsonBody[ButtonLog])
+    .errorOut(stringBody)
+    .out(emptyOutput)
 
   private val reccomendationsEndpoint = endpoint.get
     .in("recommendations")
@@ -386,6 +388,34 @@ object api {
     }
   )
 
+  // bad separation of concerns but no time to care :<
+  enum DeletionReason(val endpointString: String, val dbString: String) {
+    case Reject extends DeletionReason("reject", "reject");
+    case Remove extends DeletionReason("remove", "remove");
+    case Block  extends DeletionReason("block",  "block");
+    case Report extends DeletionReason("report", "report");
+  }
+
+  private def connectionDeletionEndpoint(reason: DeletionReason) = endpoint.post
+    .in("friends" / reason.endpointString)
+    .in(query[Int]("currentUid"))
+    .in(query[Int]("targetUid"))
+    .errorOut(stringBody)
+    .out(emptyOutput)
+
+  private def connectionDeleteWithReason(reason: DeletionReason) = serverInterpreter.toRoutes(
+    connectionDeletionEndpoint(reason).serverLogic { (currentUserId, targetUserId) =>
+      repo.removeFriend(currentUserId, targetUserId, reason).map(
+        _.toRight("Error when handling connection deletion request.")
+      )
+    }
+  )
+
+  private val connectionRejectRoutes = connectionDeleteWithReason(DeletionReason.Reject)
+  private val connectionRemoveRoutes = connectionDeleteWithReason(DeletionReason.Remove)
+  // private val connectionBlockRoutes = connectionDeleteWithReason(DeletionReason.Block)
+  private val connectionReportRoutes = connectionDeleteWithReason(DeletionReason.Report)
+
   extension (image: repo.WallImage) {
     private def toApi = WallImage(
       url = image.url,
@@ -519,5 +549,8 @@ object api {
     "/" -> buttonLogRoutes,
     "/" -> currentFriendsRoutes,
     "/" -> pendingFriendsRoutes,
+    "/" -> connectionRejectRoutes,
+    "/" -> connectionRemoveRoutes,
+    "/" -> connectionReportRoutes,
   ).orNotFound
 }
