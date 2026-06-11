@@ -255,7 +255,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage> {
   }
 
   Future<String?> _promptForInitialMessage(PickedImage picked) async {
-    final controller = TextEditingController(text: 'Check this out!');
+    final controller = TextEditingController();
 
     return showModalBottomSheet<String>(
       context: context,
