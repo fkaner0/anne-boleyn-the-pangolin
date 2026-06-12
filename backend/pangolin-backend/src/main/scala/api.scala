@@ -140,6 +140,11 @@ object api {
     datetime: Long,
   )  derives ReadWriter
 
+  case class MessageRead(
+    sharedElementId: Int,
+    userId: Int,
+  ) derives ReadWriter
+
   case class ButtonLog(
     userId: Int,
     buttonId: String,
@@ -171,12 +176,6 @@ object api {
     age: Int,
     location: String,
     bio: String,
-  ) derives ReadWriter
-
-  case class LastRead(
-    senderId: Int,
-    receiverId: Int,
-    datetime: Long,
   ) derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
@@ -238,6 +237,10 @@ object api {
     .in("message" / "listen" / path[Int]("receiverId"))
     .out(serverSentEventsBody[IO])
 
+  private val messageReadEndpoint = endpoint.post
+    .in("message" / "read")
+    .in(jsonBody[MessageRead])
+
   private val currentFriendsEndpoint = endpoint.get
     .in("friends" / "current" / path[Int]("userId"))
     .errorOut(stringBody)
@@ -246,9 +249,6 @@ object api {
   private val pendingFriendsEndpoint = endpoint.get
     .in("friends" / "pending" / path[Int]("userId"))
     .out(jsonBody[PendingFriends])
-
-  private val lastReadEndpoint = endpoint.post
-    .in(jsonBody[LastRead])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -377,6 +377,15 @@ object api {
     }
   )
 
+  private val messageReadRoutes = serverInterpreter.toRoutes(
+    messageReadEndpoint.serverLogicSuccess { messageRead =>
+      repo.setElementRepliesAsRead(
+        elementId = messageRead.sharedElementId,
+        receiverId = messageRead.userId,
+      )
+    }
+  )
+
   private val buttonLogRoutes: HttpRoutes[IO] = serverInterpreter.toRoutes(
     buttonLogEndpoint.serverLogic { case ButtonLog(userId, buttonId, datetime) => 
       repo.logButtonPress(userId, buttonId, datetime)
@@ -426,16 +435,6 @@ object api {
   private val connectionRemoveRoutes = connectionDeleteWithReason(DeletionReason.Remove)
   // private val connectionBlockRoutes = connectionDeleteWithReason(DeletionReason.Block)
   private val connectionReportRoutes = connectionDeleteWithReason(DeletionReason.Report)
-
-  private val lastReadRoutes = serverInterpreter.toRoutes(
-    lastReadEndpoint.serverLogicSuccess { lastRead => 
-      repo.setLastRead(
-        senderId = lastRead.senderId,
-        receiverId = lastRead.receiverId,
-        timestamp = lastRead.datetime,
-      )
-    }
-  )
 
   extension (image: repo.WallImage) {
     private def toApi = WallImage(
@@ -567,12 +566,12 @@ object api {
     "/" -> messageImageRoutes(topic),
     "/" -> messageReplyRoutes(topic),
     "/" -> messageListenSseRoutes(topic),
+    "/" -> messageReadRoutes,
     "/" -> buttonLogRoutes,
     "/" -> currentFriendsRoutes,
     "/" -> pendingFriendsRoutes,
     "/" -> connectionRejectRoutes,
     "/" -> connectionRemoveRoutes,
     "/" -> connectionReportRoutes,
-    "/" -> lastReadRoutes,
   ).orNotFound
 }

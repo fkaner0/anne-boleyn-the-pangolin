@@ -390,10 +390,6 @@ object repo {
     timestamp: Long,
   )
 
-  object LastRead {
-    val Table = TableInfo[LastReadCreator, LastRead, Int]
-  }
-
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -725,7 +721,7 @@ object repo {
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
         coverImageUrls <- sharedBoardElementRepo.findAll(coverImagesSpec(boardId)).map(_.url).sequence
-        unreadMessages <- getUnreadMessages(boardId = boardId, senderId = friendId, receiverId = userId) 
+        unreadMessages <- getBoardUnreadReplies(boardId = boardId, senderId = friendId) 
       } yield api.Friend(
         friendUserId = friendProfile.accountId,
         name = friendProfile.name,
@@ -741,15 +737,7 @@ object repo {
     } yield (friends, nPending)
   }
 
-  private def getUnreadMessages(boardId: Int, senderId: Int, receiverId: Int)(using DbCon): Option[Int] = {
-
-    val lastRead = sql"""
-      SELECT MAX(${LastRead.Table.timestamp})
-      FROM ${LastRead.Table}
-      WHERE ${LastRead.Table.userId} = $receiverId
-      AND ${LastRead.Table.boardId} = $boardId
-    """.query[Int].run().headOption.getOrElse(0)
-
+  private def getBoardUnreadReplies(boardId: Int, senderId: Int)(using DbCon): Option[Int] = {
     val element = SharedBoardElement.Table.alias("element")
     val reply = SharedBoardReply.Table.alias("reply")
     sql"""
@@ -758,20 +746,8 @@ object repo {
       JOIN $element ON ${reply.sharedBoardElementId} = ${element.id}
       WHERE ${element.boardId} = $boardId
       AND ${reply.senderId} = $senderId
-      AND ${reply.timestamp} > $lastRead
+      AND NOT ${reply.read}
     """.query[Int].run().headOption
-  }
-
-  def setLastRead(senderId: Int, receiverId: Int, timestamp: Long): IO[Unit] = inDatabase {
-    sharedBoardRepo.findAll(sharedBoardSpec(senderId, receiverId)).headOption.map { board =>
-      lastReadRepo.insert(
-        LastReadCreator(
-          userId = receiverId,
-          boardId = board.id,
-          timestamp = timestamp
-        )
-      )
-    }
   }
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
@@ -870,6 +846,16 @@ object repo {
     """.query[Int].run()
     // the 'AND' at the end is redundant if we make sure the database stays consistent
     // (clearly some poor db design. sorry.)
+  }
+
+  def setElementRepliesAsRead(elementId: Int, receiverId: Int): IO[Unit] = inDatabase {
+    val reply = SharedBoardReply.Table
+    sql"""
+      UPDATE $reply
+      SET ${reply.read} = ${true}
+      WHERE ${reply.sharedBoardElementId} = $elementId
+      AND ${reply.senderId} <> $receiverId
+    """.update.run()
   }
 
   private def profileFromAccountIdSpec(userId: Int) = {
