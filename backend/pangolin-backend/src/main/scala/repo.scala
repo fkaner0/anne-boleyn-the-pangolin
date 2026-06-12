@@ -376,20 +376,6 @@ object repo {
     val table = TableInfo[ButtonLogCreator, ButtonLog, Int]
   }
 
-  case class LastReadCreator(
-    userId: Int,
-    boardId: Int,
-    timestamp: Long,
-  )
-
-  @Table(PostgresDbType)
-  case class LastRead(
-    @Id id: Int,
-    userId: Int,
-    boardId: Int,
-    timestamp: Long,
-  )
-
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -419,7 +405,6 @@ object repo {
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
   private val sharedBoardElementRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
   private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
-  private val lastReadRepo = Repo[LastReadCreator, LastRead, Int]
 
   private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
