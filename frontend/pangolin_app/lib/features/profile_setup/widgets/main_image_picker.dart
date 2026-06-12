@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 
 class MainImagePicker extends StatelessWidget {
   final ImageProvider? image;
@@ -31,7 +32,11 @@ class MainImagePicker extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (image != null)
-              Image(image: image!, fit: BoxFit.cover)
+              Image(
+                image: image!,
+                fit: BoxFit.cover,
+                loadingBuilder: imageLoadingPlaceholder,
+              )
             else
               const Center(child: AppIcon(AppIconType.add, size: 48)),
             if (uploading)

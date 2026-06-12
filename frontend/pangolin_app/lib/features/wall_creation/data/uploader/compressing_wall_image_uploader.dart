@@ -11,6 +11,7 @@ class CompressingImageUploader implements ImageUploader {
 
   @override
   Future<String> uploadImage(Uint8List bytes) async {
+    await Future<void>.delayed(Duration.zero);
     final compressed = await _compressor.compress(bytes);
     return _inner.uploadImage(compressed);
   }
