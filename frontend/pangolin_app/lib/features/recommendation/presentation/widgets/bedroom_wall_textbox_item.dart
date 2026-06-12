@@ -54,8 +54,7 @@ class BedroomWallTextBoxItem extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: textbox.backgroundHexARGB != null
                           ? Color(textbox.backgroundHexARGB!)
-                          : colorScheme.surface,
-                      border: Border.all(color: colorScheme.outline),
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(8 * scale),
                     ),
                     child: Text(

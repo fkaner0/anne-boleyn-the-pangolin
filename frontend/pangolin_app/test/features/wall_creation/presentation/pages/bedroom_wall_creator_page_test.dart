@@ -171,6 +171,7 @@ void main() {
 
     expect(profile.textboxes, hasLength(1));
     expect(profile.textboxes.single.body, 'Hello wall');
+    expect(profile.textboxes.single.fontHexARGB, 0xFF000000);
     expect(profile.stickers, hasLength(1));
     expect(profile.stickers.single.name, 'pangolin');
   });
