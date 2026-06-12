@@ -156,6 +156,7 @@ object api {
     name: String,
     coverImages: Vector[String],
     mainImage: String,
+    unreadMessages: Int,
   ) derives ReadWriter
 
   case class PendingFriends(
@@ -170,6 +171,12 @@ object api {
     age: Int,
     location: String,
     bio: String,
+  ) derives ReadWriter
+
+  case class LastRead(
+    senderId: Int,
+    receiverId: Int,
+    datetime: Long,
   ) derives ReadWriter
 
   private val profileViewEndpoint = endpoint.get
@@ -239,6 +246,9 @@ object api {
   private val pendingFriendsEndpoint = endpoint.get
     .in("friends" / "pending" / path[Int]("userId"))
     .out(jsonBody[PendingFriends])
+
+  private val lastReadEndpoint = endpoint.post
+    .in(jsonBody[LastRead])
 
   private val http4sOptions: Http4sServerOptions[IO] = Http4sServerOptions
     .customiseInterceptors[IO]
@@ -417,6 +427,16 @@ object api {
   // private val connectionBlockRoutes = connectionDeleteWithReason(DeletionReason.Block)
   private val connectionReportRoutes = connectionDeleteWithReason(DeletionReason.Report)
 
+  private val lastReadRoutes = serverInterpreter.toRoutes(
+    lastReadEndpoint.serverLogicSuccess { lastRead => 
+      repo.setLastRead(
+        senderId = lastRead.senderId,
+        receiverId = lastRead.receiverId,
+        timestamp = lastRead.datetime,
+      )
+    }
+  )
+
   extension (image: repo.WallImage) {
     private def toApi = WallImage(
       url = image.url,
@@ -553,5 +573,6 @@ object api {
     "/" -> connectionRejectRoutes,
     "/" -> connectionRemoveRoutes,
     "/" -> connectionReportRoutes,
+    "/" -> lastReadRoutes,
   ).orNotFound
 }

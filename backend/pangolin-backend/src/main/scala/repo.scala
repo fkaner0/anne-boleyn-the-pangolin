@@ -376,6 +376,24 @@ object repo {
     val table = TableInfo[ButtonLogCreator, ButtonLog, Int]
   }
 
+  case class LastReadCreator(
+    userId: Int,
+    boardId: Int,
+    timestamp: Long,
+  )
+
+  @Table(PostgresDbType)
+  case class LastRead(
+    @Id id: Int,
+    userId: Int,
+    boardId: Int,
+    timestamp: Long,
+  )
+
+  object LastRead {
+    val Table = TableInfo[LastReadCreator, LastRead, Int]
+  }
+
   private val dataSource: javax.sql.DataSource = {
     val ds = PGSimpleDataSource()
     ds.setDatabaseName("pangolindb")
@@ -405,6 +423,7 @@ object repo {
   private val sharedBoardRepo = Repo[SharedBoardCreator, SharedBoard, Int]
   private val sharedBoardElementRepo = Repo[SharedBoardElementCreator, SharedBoardElement, Int]
   private val sharedBoardReplyRepo = Repo[SharedBoardReplyCreator, SharedBoardReply, Int]
+  private val lastReadRepo = Repo[LastReadCreator, LastRead, Int]
 
   private val buttonLogRepo = Repo[ButtonLogCreator, ButtonLog, Int]
 
@@ -560,7 +579,7 @@ object repo {
   }
 
   def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
-    val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+    val elements = sharedBoardRepo.findAll(sharedBoardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
       sharedBoardElementRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
         val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
           api.SharedBoardReply(
@@ -582,7 +601,7 @@ object repo {
     elements.map(api.SharedBoard(_))
   }
 
-  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
+  private def sharedBoardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
     .where(sql"""
       (${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id)
       OR
@@ -668,7 +687,7 @@ object repo {
   }
 
   private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
-    sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+    sharedBoardRepo.findAll(sharedBoardSpec(user1Id, user2Id)).headOption
   }
 
   private def makeBoard(senderId: Int, receiverId: Int)(using DbCon): SharedBoard = {
@@ -703,15 +722,16 @@ object repo {
     val sharedBoards = getAllCurrentFriends(userId)
     val friends = sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
-      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
-        coverImageUrls <- coverImages.map(_.url).sequence
+        coverImageUrls <- sharedBoardElementRepo.findAll(coverImagesSpec(boardId)).map(_.url).sequence
+        unreadMessages <- getUnreadMessages(boardId = boardId, senderId = friendId, receiverId = userId) 
       } yield api.Friend(
         friendUserId = friendProfile.accountId,
         name = friendProfile.name,
         coverImages = coverImageUrls,
         mainImage = friendProfile.profileImageUrl,
+        unreadMessages = unreadMessages,
       )
     }.collect {
       case Some(x) => x
@@ -719,6 +739,39 @@ object repo {
     for {
       nPending <- numberPendingFriends(userId).headOption
     } yield (friends, nPending)
+  }
+
+  private def getUnreadMessages(boardId: Int, senderId: Int, receiverId: Int)(using DbCon): Option[Int] = {
+
+    val lastRead = sql"""
+      SELECT MAX(${LastRead.Table.timestamp})
+      FROM ${LastRead.Table}
+      WHERE ${LastRead.Table.userId} = $receiverId
+      AND ${LastRead.Table.boardId} = $boardId
+    """.query[Int].run().headOption.getOrElse(0)
+
+    val element = SharedBoardElement.Table.alias("element")
+    val reply = SharedBoardReply.Table.alias("reply")
+    sql"""
+      SELECT COUNT(${reply.id})
+      FROM $reply
+      JOIN $element ON ${reply.sharedBoardElementId} = ${element.id}
+      WHERE ${element.boardId} = $boardId
+      AND ${reply.senderId} = $senderId
+      AND ${reply.timestamp} > $lastRead
+    """.query[Int].run().headOption
+  }
+
+  def setLastRead(senderId: Int, receiverId: Int, timestamp: Long): IO[Unit] = inDatabase {
+    sharedBoardRepo.findAll(sharedBoardSpec(senderId, receiverId)).headOption.map { board =>
+      lastReadRepo.insert(
+        LastReadCreator(
+          userId = receiverId,
+          boardId = board.id,
+          timestamp = timestamp
+        )
+      )
+    }
   }
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
