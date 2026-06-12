@@ -4,7 +4,7 @@ import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/recommendation.dart';
 
 class InfoBox extends StatelessWidget {
-  static const double _cardHeight = 110;
+  static const double _cardHeight = 170;
 
   final String name;
   final int? age;
@@ -76,7 +76,7 @@ class InfoBox extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
                       age == null ? name : '$name ($age)',
@@ -98,7 +98,7 @@ class InfoBox extends StatelessWidget {
                     Flexible(
                       child: Text(
                         bio,
-                        maxLines: 2,
+                        maxLines: 4,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

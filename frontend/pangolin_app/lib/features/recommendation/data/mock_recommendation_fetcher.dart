@@ -32,6 +32,16 @@ class MockRecommendationFetcher implements RecommendationFetcher {
         bio: 'willing to try anything new and messy',
         imageUrl: 'https://via.placeholder.com/150',
       ),
+      Recommendation(
+        userId: 3,
+        name: 'Marcus Lee',
+        age: 31,
+        location: 'Shoreditch, London',
+        bio:
+            'Avid potter and watercolourist who loves long countryside walks, '
+            'vintage cameras, and very strong coffee.',
+        imageUrl: 'https://via.placeholder.com/150',
+      ),
     ];
     return recommendations.where((rec) => rec.userId != userId).toList();
   }
