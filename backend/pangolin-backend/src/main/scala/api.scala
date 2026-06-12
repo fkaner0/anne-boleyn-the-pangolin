@@ -359,7 +359,7 @@ object api {
 
   private def messageListenSseRoutes(topic: Topic[IO, (Int, Int)]) = serverInterpreter.toRoutes(
     messageListenSseEndpoint.serverLogicSuccess { receiverId =>
-      IO.pure {
+      IO {
         topic.subscribeUnbounded
           .filter((id1, id2) => id1 == receiverId || id2 == receiverId)
           .map(_ => ServerSentEvent())
