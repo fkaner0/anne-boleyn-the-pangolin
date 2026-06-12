@@ -62,12 +62,14 @@ class _RecommendationListPageState
         ref.read(userIdProvider.notifier).currentUserIdThrow(),
       );
 
+      if (!mounted) return;
       setState(() {
         _recommendations = recommendations;
         _isLoading = false;
         _errorMessage = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _errorMessage = 'Error: $e';
         _isLoading = false;
