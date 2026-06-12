@@ -3,14 +3,50 @@ import 'package:flutter/material.dart';
 class CodeOfConductDialog extends StatelessWidget {
   const CodeOfConductDialog({super.key});
 
-  static const String _body =
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do '
-      'eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim '
-      'ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut '
-      'aliquip ex ea commodo consequat. Duis aute irure dolor in '
-      'reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla '
-      'pariatur. Excepteur sint occaecat cupidatat non proident, sunt in '
-      'culpa qui officia deserunt mollit anim id est laborum.';
+  static const List<({String title, String body})> _rules = [
+    (
+      title: 'Protect privacy',
+      body:
+          'Avoid posting any personal information. Any posts that include an '
+          'email address, phone number, address or other personal information '
+          'will be removed.',
+    ),
+    (
+      title: 'Stay on topic',
+      body:
+          'We welcome debate and discussion, but please keep comments '
+          'relevant to the original post, and don\'t repeat the same message '
+          'across multiple unrelated posts. Off-topic posts or comments are '
+          'likely to be removed.',
+    ),
+    (
+      title: 'Be respectful',
+      body:
+          'Please avoid posting any hateful, defamatory, obscene, '
+          'discriminatory or harassing comments, images or videos, or anything '
+          'that could be deemed offensive to others. Such comments and posts '
+          'will be removed, and will most likely result in you being banned or '
+          'blocked.',
+    ),
+    (
+      title: 'Don\'t advertise or self-promote',
+      body:
+          'Avoid making posts or comments that serve as advertisements for '
+          'yourself or others. We\'ll remove any links, images, messages, and '
+          'so on that advertise or promote the goods or services of '
+          'individuals, businesses or causes and such postings will most '
+          'likely result in you being banned or blocked.',
+    ),
+    (
+      title: 'Don\'t infringe intellectual property',
+      body:
+          'Avoid posting anything that isn\'t your original creative content '
+          'or that you don\'t have a lawful right to post. Infringed branded '
+          'logos, graphics, copyrighted text, images or videos that come to '
+          'our attention will be removed, and you risk being banned or '
+          'blocked.',
+    ),
+  ];
 
   static Future<bool?> show(BuildContext context) {
     return showDialog<bool>(
@@ -53,12 +89,28 @@ class CodeOfConductDialog extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.all(16),
                   child: SingleChildScrollView(
-                    child: Text(
-                      _body,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final (index, rule) in _rules.indexed) ...[
+                          if (index > 0) const SizedBox(height: 16),
+                          Text(
+                            '${index + 1}. ${rule.title}',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            rule.body,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ),
