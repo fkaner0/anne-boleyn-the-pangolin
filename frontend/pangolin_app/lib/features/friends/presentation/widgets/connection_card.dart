@@ -111,17 +111,18 @@ class _CollageBackground extends StatelessWidget {
   }
 
   Widget _splitRow(List<Widget> children) => Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: _expanded(children),
-      );
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: _expanded(children),
+  );
 
   Widget _splitColumn(List<Widget> children) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: _expanded(children),
-      );
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: _expanded(children),
+  );
 
-  List<Widget> _expanded(List<Widget> children) =>
-      [for (final child in children) Expanded(child: child)];
+  List<Widget> _expanded(List<Widget> children) => [
+    for (final child in children) Expanded(child: child),
+  ];
 }
 
 class _EmptyCollage extends StatelessWidget {
