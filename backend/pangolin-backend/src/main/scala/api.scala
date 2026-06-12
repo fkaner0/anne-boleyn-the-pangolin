@@ -107,13 +107,14 @@ object api {
     messages: Vector[SharedBoardReply],
     url: Option[String],
     text: Option[String],
-    read: Boolean,
+    unread: Int,
   ) derives ReadWriter
 
   case class SharedBoardReply(
     datetime: Long,
     senderId: Int,
     text: String,
+    read: Boolean,
   ) derives ReadWriter
 
   case class MessageImage(

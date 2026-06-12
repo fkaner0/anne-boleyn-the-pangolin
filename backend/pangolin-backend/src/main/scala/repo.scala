@@ -582,6 +582,7 @@ object repo {
             datetime = reply.timestamp,
             senderId = reply.senderId,
             text = reply.text,
+            read = reply.read,
           )
         }
         api.SharedBoardElement(
@@ -590,7 +591,7 @@ object repo {
           messages = replies,
           url = element.url,
           text = element.text,
-          read = element.read,
+          unread = replies.count(!_.read),
         )
       }
     }
