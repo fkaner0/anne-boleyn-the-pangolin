@@ -112,10 +112,3 @@ CREATE TABLE connectionRemoved (
   removedByUser integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
   reason text
 );
-
-CREATE TABLE lastRead (
-  id integer PRIMARY KEY NOT NULL GENERATED ALWAYS AS IDENTITY,
-  userId integer NOT NULL REFERENCES account (id) ON DELETE CASCADE,
-  boardId integer NOT NULL REFERENCES sharedBoard (id) ON DELETE CASCADE,
-  timestamp bigint NOT NULL
-);

@@ -4,7 +4,6 @@ DROP TABLE connectionRemoved;
 DROP TABLE sharedBoardReply;
 DROP TABLE sharedBoardElement;
 DROP TABLE sharedBoard;
-DROP TABLE lastRead;
 
 DROP TABLE wallImage;
 DROP TABLE wallTextbox;
