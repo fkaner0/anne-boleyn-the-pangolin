@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 class ImagePlaceholderBox extends StatelessWidget {
@@ -7,6 +9,31 @@ class ImagePlaceholderBox extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
+    );
+  }
+}
+
+class UploadingImagePlaceholder extends StatelessWidget {
+  final Uint8List? bytes;
+
+  const UploadingImagePlaceholder({super.key, this.bytes});
+
+  @override
+  Widget build(BuildContext context) {
+    final preview = bytes;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (preview != null)
+          Image.memory(preview, fit: BoxFit.cover)
+        else
+          const ImagePlaceholderBox(),
+        const ColoredBox(
+          color: Color(0x66000000),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      ],
     );
   }
 }

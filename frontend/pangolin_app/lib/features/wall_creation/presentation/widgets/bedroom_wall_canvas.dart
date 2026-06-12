@@ -67,7 +67,7 @@ class BedroomWallCanvas extends StatelessWidget {
 
   Widget _imageChild(CanvasImageItem item) {
     if (item.uploading) {
-      return const ImagePlaceholderBox();
+      return UploadingImagePlaceholder(bytes: item.bytes);
     }
 
     final bytes = item.bytes;
