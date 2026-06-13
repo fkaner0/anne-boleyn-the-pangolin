@@ -259,7 +259,7 @@ class BedroomWallCreatorController {
               title: '',
               body: item.text,
               font: item.font,
-              fontHexARGB: item.textColor?.toARGB32(),
+              fontHexARGB: item.textColor?.toARGB32() ?? 0xFF000000,
               backgroundHexARGB: item.backgroundColor?.toARGB32(),
               position: _positionFor(item.transform, 1.0),
             ),

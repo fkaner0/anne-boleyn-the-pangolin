@@ -354,7 +354,7 @@ class _EditableCanvasTextItemState extends State<EditableCanvasTextItem> {
 
     // Resolve the display colour: prefer explicit colour, fall back to theme.
     final resolvedTextColor = _textColor ?? colorScheme.onSurface;
-    final resolvedBackgroundColor = _backgroundColor ?? colorScheme.surface;
+    final resolvedBackgroundColor = _backgroundColor ?? Colors.transparent;
 
     final textStyle = TextStyle(
       inherit: false,

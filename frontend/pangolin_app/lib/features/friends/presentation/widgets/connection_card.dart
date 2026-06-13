@@ -32,7 +32,10 @@ class ConnectionCard extends StatelessWidget {
                 Positioned.fill(
                   child: ClipPath(
                     clipper: SplodgeClipper(variant: variant),
-                    child: _CollageBackground(images: friend.coverImages),
+                    child: _CollageBackground(
+                      images: friend.coverImages,
+                      friendName: friend.name,
+                    ),
                   ),
                 ),
                 Positioned(
@@ -60,35 +63,101 @@ class ConnectionCard extends StatelessWidget {
 }
 
 class _CollageBackground extends StatelessWidget {
-  final List<String> images;
+  static const int _maxImages = 4;
 
-  const _CollageBackground({required this.images});
+  final List<String> images;
+  final String friendName;
+
+  const _CollageBackground({required this.images, required this.friendName});
 
   @override
   Widget build(BuildContext context) {
     final muted = context.paletteColors.surfaceMuted;
 
     if (images.isEmpty) {
-      return ColoredBox(color: muted);
+      return _EmptyCollage(friendName: friendName);
     }
 
+    return ColoredBox(color: muted, child: _layout(muted));
+  }
+
+  Widget _layout(Color muted) {
+    final urls = images.take(_maxImages).toList();
+
+    switch (urls.length) {
+      case 1:
+        return _tile(urls[0], muted);
+      case 2:
+        return _splitRow([_tile(urls[0], muted), _tile(urls[1], muted)]);
+      case 3:
+        return _splitRow([
+          _tile(urls[0], muted),
+          _splitColumn([_tile(urls[1], muted), _tile(urls[2], muted)]),
+        ]);
+      default:
+        return _splitColumn([
+          _splitRow([_tile(urls[0], muted), _tile(urls[1], muted)]),
+          _splitRow([_tile(urls[2], muted), _tile(urls[3], muted)]),
+        ]);
+    }
+  }
+
+  Widget _tile(String url, Color muted) {
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => ColoredBox(color: muted),
+    );
+  }
+
+  Widget _splitRow(List<Widget> children) => Row(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: _expanded(children),
+  );
+
+  Widget _splitColumn(List<Widget> children) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: _expanded(children),
+  );
+
+  List<Widget> _expanded(List<Widget> children) => [
+    for (final child in children) Expanded(child: child),
+  ];
+}
+
+class _EmptyCollage extends StatelessWidget {
+  final String friendName;
+
+  const _EmptyCollage({required this.friendName});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ColoredBox(
-      color: muted,
-      child: GridView.count(
-        crossAxisCount: 2,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        mainAxisSpacing: 2,
-        crossAxisSpacing: 2,
-        children: [
-          for (final url in images)
-            Image.network(
-              url,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  ColoredBox(color: muted),
-            ),
-        ],
+      color: context.paletteColors.surfaceMuted,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppIcon(
+                AppIconType.wallpaper,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Send an image to $friendName to see your collage',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

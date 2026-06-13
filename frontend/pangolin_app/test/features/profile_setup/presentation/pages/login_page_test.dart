@@ -101,9 +101,29 @@ void main() {
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Accept'));
+    await tester.pumpAndSettle();
 
     expect(authoriser.lastNewUsername, 'anne');
     expect(find.text('SIGNUP 7'), findsOneWidget);
+  });
+
+  testWidgets('declining the code of conduct keeps you on login', (
+    tester,
+  ) async {
+    final authoriser = _FakeAuthoriser(newId: 7);
+    await pumpLogin(tester, authoriser);
+
+    await tester.enterText(find.byType(TextField), 'anne');
+    await tester.pump();
+    await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Decline'));
+    await tester.pumpAndSettle();
+
+    expect(authoriser.lastNewUsername, isNull);
+    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+    expect(find.text('SIGNUP 7'), findsNothing);
   });
 
   testWidgets('logging in stores the id and goes to recommendations', (
@@ -129,6 +149,8 @@ void main() {
     await tester.enterText(find.byType(TextField), 'anne');
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Accept'));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('username is taken'), findsOneWidget);
@@ -156,6 +178,8 @@ void main() {
     await tester.enterText(find.byType(TextField), 'anne');
     await tester.pump();
     await tester.tap(find.widgetWithText(FilledButton, 'Sign up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Accept'));
     await tester.pump();
 
     expect(find.byType(CircularProgressIndicator), findsWidgets);

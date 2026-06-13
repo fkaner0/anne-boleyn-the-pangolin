@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/auth/data/authoriser.dart';
 import 'package:pangolin_app/features/auth/auth_provider.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/code_of_conduct_dialog.dart';
 import 'package:pangolin_app/router/app_router.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -37,6 +38,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _submit() async {
     if (!_canSubmit) return;
+
+    final accepted = await CodeOfConductDialog.show(context);
+    if (accepted != true || !mounted) return;
+
     final username = _usernameController.text.trim();
     setState(() => _busy = true);
 
