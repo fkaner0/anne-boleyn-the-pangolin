@@ -18,6 +18,7 @@ import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 class ConnectionsPage extends ConsumerStatefulWidget {
@@ -48,12 +49,20 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   String? _error;
   CurrentFriends? _data;
 
+  final PangolinMascotController _mascot = PangolinMascotController();
+
   @override
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
     listenToBoardNotifications(_boardService, _userId, _load);
+  }
+
+  @override
+  void dispose() {
+    _mascot.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -121,7 +130,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         title: const Text('Connections'),
         automaticallyImplyLeading: false,
       ),
-      bottomNavigationBar: IslandNavBar(
+      bottomNavigationBar: PangolinNavBar(
+        mascotController: _mascot,
         current: IslandNavTab.friends,
         onEditProfile: () {
           _log(ButtonIds.connectionsEditProfile);
@@ -135,7 +145,10 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           _log(ButtonIds.connectionsFriends);
         },
       ),
-      body: SafeArea(child: _buildBody()),
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _mascot.handleScrollNotification,
+        child: SafeArea(child: _buildBody()),
+      ),
     );
   }
 

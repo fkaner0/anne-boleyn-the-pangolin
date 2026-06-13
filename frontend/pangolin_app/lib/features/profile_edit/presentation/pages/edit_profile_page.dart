@@ -25,6 +25,7 @@ import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
@@ -78,6 +79,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   Uint8List? _mainImageBytes;
 
+  final PangolinMascotController _mascot = PangolinMascotController();
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +90,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   void dispose() {
+    _mascot.dispose();
     _nameController.dispose();
     _ageController.dispose();
     _locationController.dispose();
@@ -266,8 +270,12 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               )
             : null,
       ),
-      body: SafeArea(child: _buildBody()),
-      bottomNavigationBar: IslandNavBar(
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _mascot.handleScrollNotification,
+        child: SafeArea(child: _buildBody()),
+      ),
+      bottomNavigationBar: PangolinNavBar(
+        mascotController: _mascot,
         current: IslandNavTab.editProfile,
         onEditProfile: () {},
         onRecommendations: () => MainTabNavigation.goToRecommendations(context),

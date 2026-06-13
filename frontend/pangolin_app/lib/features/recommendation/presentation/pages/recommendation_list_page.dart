@@ -11,6 +11,7 @@ import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
@@ -41,10 +42,18 @@ class _RecommendationListPageState
   late final RecommendationFetcher _recommendationFetcher =
       widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
 
+  final PangolinMascotController _mascot = PangolinMascotController();
+
   @override
   void initState() {
     super.initState();
     _loadRecommendations();
+  }
+
+  @override
+  void dispose() {
+    _mascot.dispose();
+    super.dispose();
   }
 
   void _log(String buttonId) {
@@ -84,7 +93,8 @@ class _RecommendationListPageState
         title: const Text('Your recommendations'),
         automaticallyImplyLeading: false,
       ),
-      bottomNavigationBar: IslandNavBar(
+      bottomNavigationBar: PangolinNavBar(
+        mascotController: _mascot,
         current: IslandNavTab.recommendations,
         onEditProfile: () {
           _log(ButtonIds.recommendationListEditProfile);
@@ -98,39 +108,42 @@ class _RecommendationListPageState
           MainTabNavigation.goToFriends(context);
         },
       ),
-      body: Builder(
-        builder: (context) {
-          if (_isLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _mascot.handleScrollNotification,
+        child: Builder(
+          builder: (context) {
+            if (_isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (_errorMessage != null) {
-            return Center(child: Text(_errorMessage!));
-          }
+            if (_errorMessage != null) {
+              return Center(child: Text(_errorMessage!));
+            }
 
-          if (_recommendations.isEmpty) {
-            return const Center(child: Text('No recommendations available'));
-          }
+            if (_recommendations.isEmpty) {
+              return const Center(child: Text('No recommendations available'));
+            }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: _recommendations.length,
-            itemBuilder: (context, index) {
-              final recommendation = _recommendations[index];
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _recommendations.length,
+              itemBuilder: (context, index) {
+                final recommendation = _recommendations[index];
 
-              return RecommendationListItem(
-                recommendation: recommendation,
-                onTap: () {
-                  _log(ButtonIds.recommendationList);
-                  context.push(
-                    AppRoutes.viewProfile,
-                    extra: recommendation.userId,
-                  );
-                },
-              );
-            },
-          );
-        },
+                return RecommendationListItem(
+                  recommendation: recommendation,
+                  onTap: () {
+                    _log(ButtonIds.recommendationList);
+                    context.push(
+                      AppRoutes.viewProfile,
+                      extra: recommendation.userId,
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
