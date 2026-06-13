@@ -14,6 +14,7 @@ import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
+import '../widgets/example_boards_dialog.dart';
 import '../widgets/sticker_picker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -25,6 +26,9 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final VoidCallback? onSaved;
   final VoidCallback? onBack;
 
+  final bool showExampleBoards;
+  final VoidCallback? onExampleBoardsShown;
+
   const BedroomWallCreatorPage({
     super.key,
     this.controller,
@@ -33,6 +37,8 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.onSave,
     this.onSaved,
     this.onBack,
+    this.showExampleBoards = false,
+    this.onExampleBoardsShown,
   });
 
   @override
@@ -67,6 +73,18 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   bool _dragOverBin = false;
   int? _draggingItemId;
   bool _preview = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showExampleBoards) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        widget.onExampleBoardsShown?.call();
+        ExampleBoardsDialog.show(context);
+      });
+    }
+  }
 
   @override
   void dispose() {
