@@ -78,6 +78,7 @@ flutter:
     - assets/icons/wall_addition_icons/
     - assets/icons/menu_bar_icons/
     - assets/icons/header/
+    - assets/guys/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
