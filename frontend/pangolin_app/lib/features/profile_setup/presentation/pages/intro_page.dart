@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/field_label.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/profile_setup_header.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/profile_text_field.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
@@ -161,132 +162,159 @@ class _IntroPageState extends State<IntroPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBodyBehindAppBar: widget.primaryActionAsSave,
-      appBar: AppBar(
-        backgroundColor: widget.primaryActionAsSave ? Colors.transparent : null,
-        elevation: widget.primaryActionAsSave ? 0 : null,
-        scrolledUnderElevation: widget.primaryActionAsSave ? 0 : null,
-        surfaceTintColor: widget.primaryActionAsSave
-            ? Colors.transparent
-            : null,
-        centerTitle: true,
-        title: widget.primaryActionAsSave ? null : const Text('About me'),
-        leading: IconButton.filledTonal(
-          icon: const AppIcon(AppIconType.back),
-          tooltip: 'Back',
-          onPressed: widget.onBack ?? () {},
-        ),
-        actions: [
-          if (widget.primaryActionAsSave)
-            IconButton.filledTonal(
-              icon: const AppIcon(AppIconType.save),
-              tooltip: 'Save',
-              onPressed: _canSubmit ? _next : null,
-            )
-          else
+    if (!widget.primaryActionAsSave) {
+      return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text('About me'),
+          leading: IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.back),
+            tooltip: 'Back',
+            onPressed: widget.onBack ?? () {},
+          ),
+          actions: [
             TextButton(
               onPressed: _canSubmit ? _next : null,
               child: const Text('Next'),
             ),
-        ],
-      ),
+          ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _formChildren(context),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final headerHeight = ProfileSetupHeader.heightFor(context);
+    return Scaffold(
       body: SafeArea(
-        top: !widget.primaryActionAsSave,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            widget.primaryActionAsSave ? kToolbarHeight + 8 : 24,
-            24,
-            24,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              FieldLabel('Preview'),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
+        top: false,
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                24,
+                headerHeight + kToolbarHeight,
+                24,
+                24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _formChildren(context),
+              ),
+            ),
+            Positioned(
+              top: headerHeight,
+              left: 8,
+              right: 8,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton.filledTonal(
+                    icon: const AppIcon(AppIconType.back),
+                    tooltip: 'Back',
+                    onPressed: widget.onBack ?? () {},
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: InfoBox(
-                  name: _name,
-                  age: _age,
-                  location: _location,
-                  bio: _bio,
-                  image: _mainImageProvider,
-                ),
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Name'),
-              ProfileTextField(
-                controller: _nameController,
-                hintText: 'Your name',
-                onChanged: (value) {
-                  _builder.setName(value);
-                  setState(() => _name = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Age'),
-              ProfileTextField(
-                controller: _ageController,
-                hintText: 'Your age',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  final age = int.tryParse(value);
-                  if (age != null) _builder.setAge(age);
-                  setState(() => _age = age);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Rough location'),
-              ProfileTextField(
-                controller: _locationController,
-                hintText: 'Where you are based',
-                onChanged: (value) {
-                  _builder.setLocation(value);
-                  setState(() => _location = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Main image'),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'Put something related to your art!',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  IconButton.filledTonal(
+                    icon: const AppIcon(AppIconType.save),
+                    tooltip: 'Save',
+                    onPressed: _canSubmit ? _next : null,
                   ),
-                ),
+                ],
               ),
-              MainImagePicker(
-                image: _mainImageProvider,
-                uploading: _uploadingImage,
-                onTap: _uploadingImage ? null : _pickMainImage,
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Short Bio'),
-              ProfileTextField(
-                controller: _bioController,
-                hintText: 'Summarise your vibe!',
-                minLines: 3,
-                maxLines: 5,
-                maxLength: 100,
-                onChanged: (value) {
-                  _builder.setBio(value);
-                  setState(() => _bio = value);
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  List<Widget> _formChildren(BuildContext context) {
+    return [
+      FieldLabel('Preview'),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InfoBox(
+          name: _name,
+          age: _age,
+          location: _location,
+          bio: _bio,
+          image: _mainImageProvider,
+        ),
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Name'),
+      ProfileTextField(
+        controller: _nameController,
+        hintText: 'Your name',
+        onChanged: (value) {
+          _builder.setName(value);
+          setState(() => _name = value);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Age'),
+      ProfileTextField(
+        controller: _ageController,
+        hintText: 'Your age',
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        onChanged: (value) {
+          final age = int.tryParse(value);
+          if (age != null) _builder.setAge(age);
+          setState(() => _age = age);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Rough location'),
+      ProfileTextField(
+        controller: _locationController,
+        hintText: 'Where you are based',
+        onChanged: (value) {
+          _builder.setLocation(value);
+          setState(() => _location = value);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Main image'),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          'Put something related to your art!',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      MainImagePicker(
+        image: _mainImageProvider,
+        uploading: _uploadingImage,
+        onTap: _uploadingImage ? null : _pickMainImage,
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Short Bio'),
+      ProfileTextField(
+        controller: _bioController,
+        hintText: 'Summarise your vibe!',
+        minLines: 3,
+        maxLines: 5,
+        maxLength: 100,
+        onChanged: (value) {
+          _builder.setBio(value);
+          setState(() => _bio = value);
+        },
+      ),
+    ];
   }
 }

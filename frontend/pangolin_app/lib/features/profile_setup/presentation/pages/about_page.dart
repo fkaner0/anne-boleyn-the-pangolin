@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/features/profile_setup/widgets/add_chip_button.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/profile_setup_header.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/section_title.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
@@ -76,103 +77,116 @@ class _AboutPageState extends State<AboutPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final headerHeight = ProfileSetupHeader.heightFor(context);
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _onNext,
-        label: const Text('Next'),
-      ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Text(
-                  'This information will be used to find compatible people',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const SectionTitle('Hobby'),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  initialValue: builder.hobby,
-                  hint: const Text('Select a hobby'),
-                  decoration: const InputDecoration(),
-                  validator: (val) =>
-                      val == null ? 'Please select a hobby' : null,
-                  onChanged: (val) {
-                    if (val != null) builder.setHobby(val);
-                  },
-                  onSaved: (val) {
-                    if (val != null) builder.setHobby(val);
-                  },
-                  items: ["Painting", "Pottery", "Photography", "Knitting"]
-                      .map((h) => DropdownMenuItem(value: h, child: Text(h)))
-                      .toList(),
-                ),
-                _divider,
-                const SectionTitle('Passion-meter'),
-                const SizedBox(height: 8),
-                FormField<double>(
-                  initialValue: builder.passionLevel ?? 0.5,
-                  onSaved: (val) {
-                    if (val != null) builder.setPassionLevel(val);
-                  },
-                  builder: (field) {
-                    return PassionMeter(
-                      value: field.value ?? 0.5,
+        top: false,
+        child: Stack(
+          children: [
+            Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(24, headerHeight + 56, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    Text(
+                      'This information will be used to find compatible people',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    const SectionTitle('Hobby'),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: builder.hobby,
+                      hint: const Text('Select a hobby'),
+                      decoration: const InputDecoration(),
+                      validator: (val) =>
+                          val == null ? 'Please select a hobby' : null,
                       onChanged: (val) {
-                        field.didChange(val);
-                        builder.setPassionLevel(val);
+                        if (val != null) builder.setHobby(val);
                       },
-                    );
-                  },
-                ),
-                _divider,
+                      onSaved: (val) {
+                        if (val != null) builder.setHobby(val);
+                      },
+                      items: ["Painting", "Pottery", "Photography", "Knitting"]
+                          .map(
+                            (h) => DropdownMenuItem(value: h, child: Text(h)),
+                          )
+                          .toList(),
+                    ),
+                    _divider,
+                    const SectionTitle('Passion-meter'),
+                    const SizedBox(height: 8),
+                    FormField<double>(
+                      initialValue: builder.passionLevel ?? 0.5,
+                      onSaved: (val) {
+                        if (val != null) builder.setPassionLevel(val);
+                      },
+                      builder: (field) {
+                        return PassionMeter(
+                          value: field.value ?? 0.5,
+                          onChanged: (val) {
+                            field.didChange(val);
+                            builder.setPassionLevel(val);
+                          },
+                        );
+                      },
+                    ),
+                    _divider,
 
-                // --- Additional Info (optional, collapsible) ---
-                _AdditionalInfoSection(
-                  expanded: _additionalInfoExpanded,
-                  onToggle: () => setState(
-                    () => _additionalInfoExpanded = !_additionalInfoExpanded,
-                  ),
-                  subInterests: builder.subInterests,
-                  otherInterests: builder.otherInterests,
-                  onAddSubInterest: () => _showAddInterestDialog(
-                    context,
-                    _newSubInterestController,
-                    () {
-                      final text = _newSubInterestController.text.trim();
-                      if (text.isNotEmpty) {
-                        setState(() => builder.addSubInterest(text));
-                        _newSubInterestController.clear();
-                      }
-                    },
-                  ),
-                  onRemoveSubInterest: (interest) =>
-                      setState(() => builder.removeSubInterest(interest)),
-                  onAddOtherInterest: () => _showAddInterestDialog(
-                    context,
-                    _newOtherInterestController,
-                    () {
-                      final text = _newOtherInterestController.text.trim();
-                      if (text.isNotEmpty) {
-                        setState(() => builder.addOtherInterest(text));
-                        _newOtherInterestController.clear();
-                      }
-                    },
-                  ),
-                  onRemoveOtherInterest: (interest) =>
-                      setState(() => builder.removeOtherInterest(interest)),
+                    // --- Additional Info (optional, collapsible) ---
+                    _AdditionalInfoSection(
+                      expanded: _additionalInfoExpanded,
+                      onToggle: () => setState(
+                        () =>
+                            _additionalInfoExpanded = !_additionalInfoExpanded,
+                      ),
+                      subInterests: builder.subInterests,
+                      otherInterests: builder.otherInterests,
+                      onAddSubInterest: () => _showAddInterestDialog(
+                        context,
+                        _newSubInterestController,
+                        () {
+                          final text = _newSubInterestController.text.trim();
+                          if (text.isNotEmpty) {
+                            setState(() => builder.addSubInterest(text));
+                            _newSubInterestController.clear();
+                          }
+                        },
+                      ),
+                      onRemoveSubInterest: (interest) =>
+                          setState(() => builder.removeSubInterest(interest)),
+                      onAddOtherInterest: () => _showAddInterestDialog(
+                        context,
+                        _newOtherInterestController,
+                        () {
+                          final text = _newOtherInterestController.text.trim();
+                          if (text.isNotEmpty) {
+                            setState(() => builder.addOtherInterest(text));
+                            _newOtherInterestController.clear();
+                          }
+                        },
+                      ),
+                      onRemoveOtherInterest: (interest) =>
+                          setState(() => builder.removeOtherInterest(interest)),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              top: headerHeight,
+              right: 16,
+              child: FilledButton(
+                onPressed: _onNext,
+                child: const Text('Next'),
+              ),
+            ),
+          ],
         ),
       ),
     );

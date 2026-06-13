@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 
-const double _ballSize = 26;
-
 class ProfileSetupHeader extends StatelessWidget {
   static const String _bannerAsset = 'assets/icons/header/header.png';
+  static const double _bannerAspectRatio = 2557 / 476;
+  static const double clipStartOffset = -30;
   static const double _bannerShift = 30;
-  static const Alignment _pillAlignment = Alignment(0, -0.6);
+  static const double _progressTopFraction = 0.02;
+  static const double _progressHeightFraction = 0.50;
+
+  static double heightFor(BuildContext context) =>
+      MediaQuery.sizeOf(context).width / _bannerAspectRatio + clipStartOffset;
 
   final int currentStep;
   final List<String> steps;
@@ -19,9 +23,10 @@ class ProfileSetupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
+    final bannerHeight = size.width / _bannerAspectRatio;
+    final barHeight = bannerHeight * _progressHeightFraction;
 
     return Stack(
-      alignment: _pillAlignment,
       children: [
         Transform.translate(
           offset: const Offset(0, -_bannerShift),
@@ -31,9 +36,22 @@ class ProfileSetupHeader extends StatelessWidget {
             fit: BoxFit.fitWidth,
           ),
         ),
-        SizedBox(
-          width: size.width * 0.66,
-          child: _ProgressBubbles(currentStep: currentStep, steps: steps),
+        Positioned(
+          top: bannerHeight * _progressTopFraction,
+          left: 0,
+          right: 0,
+          height: barHeight,
+          child: Center(
+            child: SizedBox(
+              width: size.width * 0.66,
+              child: _ProgressBubbles(
+                currentStep: currentStep,
+                steps: steps,
+                ballSize: (barHeight * 0.6).clamp(14.0, 64.0),
+                labelFontSize: (barHeight * 0.18).clamp(8.0, 16.0),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -43,8 +61,15 @@ class ProfileSetupHeader extends StatelessWidget {
 class _ProgressBubbles extends StatelessWidget {
   final int currentStep;
   final List<String> steps;
+  final double ballSize;
+  final double labelFontSize;
 
-  const _ProgressBubbles({required this.currentStep, required this.steps});
+  const _ProgressBubbles({
+    required this.currentStep,
+    required this.steps,
+    required this.ballSize,
+    required this.labelFontSize,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +93,14 @@ class _ProgressBubbles extends StatelessWidget {
             index: i + 1,
             color: colorFor(i),
             isActive: i == currentStep,
+            ballSize: ballSize,
+            labelFontSize: labelFontSize,
           ),
           if (i < steps.length - 1)
             Expanded(
               child: Container(
                 height: 2,
-                margin: const EdgeInsets.only(top: _ballSize / 2 - 1),
+                margin: EdgeInsets.only(top: ballSize / 2 - 1),
                 color: i < currentStep ? completedColor : uncompletedColor,
               ),
             ),
@@ -88,12 +115,16 @@ class _StepIndicator extends StatelessWidget {
   final int index;
   final Color color;
   final bool isActive;
+  final double ballSize;
+  final double labelFontSize;
 
   const _StepIndicator({
     required this.label,
     required this.index,
     required this.color,
     required this.isActive,
+    required this.ballSize,
+    required this.labelFontSize,
   });
 
   @override
@@ -108,14 +139,14 @@ class _StepIndicator extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: _ballSize,
-          height: _ballSize,
+          width: ballSize,
+          height: ballSize,
           decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           child: Center(
             child: Text(
               '$index',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: ballSize * 0.45,
                 fontWeight: FontWeight.bold,
                 color: numberColor,
               ),
@@ -132,7 +163,7 @@ class _StepIndicator extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: labelFontSize,
               color: colorScheme.onSurface,
               fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
             ),

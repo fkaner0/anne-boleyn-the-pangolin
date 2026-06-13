@@ -95,10 +95,17 @@ class _SignupShellState extends ConsumerState<SignupShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            ProfileSetupHeader(currentStep: _step, steps: _steps),
-            Expanded(child: _buildStep()),
+            Positioned.fill(child: _buildStep()),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: ProfileSetupHeader(currentStep: _step, steps: _steps),
+              ),
+            ),
           ],
         ),
       ),
@@ -114,6 +121,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
         onSave: _goNext,
         onBack: _goBack,
         primaryActionAsNext: true,
+        topInset: ProfileSetupHeader.heightFor(context),
       ),
       2 => IntroPage(
         profileBuilder: _profileBuilder,

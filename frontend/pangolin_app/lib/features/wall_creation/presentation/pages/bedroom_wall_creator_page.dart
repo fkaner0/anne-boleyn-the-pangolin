@@ -25,6 +25,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final VoidCallback? onSaved;
   final VoidCallback? onBack;
   final bool primaryActionAsNext;
+  final double topInset;
 
   const BedroomWallCreatorPage({
     super.key,
@@ -35,6 +36,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.onSaved,
     this.onBack,
     this.primaryActionAsNext = false,
+    this.topInset = 0,
   });
 
   @override
@@ -264,132 +266,138 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      extendBodyBehindAppBar: widget.primaryActionAsNext,
-      appBar: AppBar(
-        backgroundColor: _dragOverBin
-            ? Theme.of(context).colorScheme.errorContainer
-            : (widget.primaryActionAsNext ? Colors.transparent : null),
-        elevation: widget.primaryActionAsNext ? 0 : null,
-        scrolledUnderElevation: widget.primaryActionAsNext ? 0 : null,
-        surfaceTintColor: widget.primaryActionAsNext
-            ? Colors.transparent
-            : null,
-        title: _interacting
-            ? AppIcon(
-                AppIconType.delete,
-                size: _dragOverBin ? 32 : 26,
-                color: _dragOverBin
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              )
-            : widget.primaryActionAsNext
-            ? null
-            : const Text('Create your wall'),
-        centerTitle: true,
-        leading: IconButton.filledTonal(
-          icon: const AppIcon(AppIconType.back),
-          tooltip: 'Back',
-          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
-        ),
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.textBackground),
-            tooltip: 'Background colour',
-            onPressed: _showBackgroundColourPicker,
+    return Padding(
+      padding: EdgeInsets.only(top: widget.topInset),
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        extendBodyBehindAppBar: widget.primaryActionAsNext,
+        appBar: AppBar(
+          backgroundColor: _dragOverBin
+              ? Theme.of(context).colorScheme.errorContainer
+              : (widget.primaryActionAsNext ? Colors.transparent : null),
+          elevation: widget.primaryActionAsNext ? 0 : null,
+          scrolledUnderElevation: widget.primaryActionAsNext ? 0 : null,
+          surfaceTintColor: widget.primaryActionAsNext
+              ? Colors.transparent
+              : null,
+          title: _interacting
+              ? AppIcon(
+                  AppIconType.delete,
+                  size: _dragOverBin ? 32 : 26,
+                  color: _dragOverBin
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                )
+              : widget.primaryActionAsNext
+              ? null
+              : const Text('Create your wall'),
+          centerTitle: true,
+          leading: IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.back),
+            tooltip: 'Back',
+            onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
           ),
-          const SizedBox(width: 8),
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.preview),
-            tooltip: _preview ? 'Hide Preview' : 'Preview',
-            onPressed: _togglePreview,
-          ),
-          const SizedBox(width: 8),
-          if (widget.primaryActionAsNext)
-            TextButton(
-              onPressed: _saving ? null : _onSavePressed,
-              child: const Text('Next'),
-            )
-          else
+          actions: [
             IconButton.filledTonal(
-              icon: const AppIcon(AppIconType.save),
-              tooltip: 'Save',
-              onPressed: _saving ? null : _onSavePressed,
+              icon: const AppIcon(AppIconType.textBackground),
+              tooltip: 'Background colour',
+              onPressed: _showBackgroundColourPicker,
             ),
-          const SizedBox(width: 8),
-        ],
-        bottom: _saving
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(4),
-                child: LinearProgressIndicator(minHeight: 4),
+            const SizedBox(width: 8),
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.preview),
+              tooltip: _preview ? 'Hide Preview' : 'Preview',
+              onPressed: _togglePreview,
+            ),
+            const SizedBox(width: 8),
+            if (widget.primaryActionAsNext)
+              FilledButton(
+                onPressed: _saving ? null : _onSavePressed,
+                child: const Text('Next'),
               )
-            : null,
-      ),
-      body: SafeArea(
-        top: !widget.primaryActionAsNext,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: BedroomWallViewport(
-                viewportKey: _viewportKey,
-                controller: _scrollController,
-                child: BedroomWallCanvas(
-                  backgroundColor: _controller.backgroundColor,
-                  canvas: _controller.canvas,
-                  stickerCatalog: _controller.stickerCatalog,
-                  fontCatalog: _controller.fontCatalog,
-                  items: _controller.items,
-                  prompts: _preview ? const [] : _controller.prompts,
-                  onItemTransform: (id, transform) {
-                    setState(() => _controller.updateTransform(id, transform));
-                  },
-                  onTextChanged: _controller.updateText,
-                  onFontChanged: (id, font) {
-                    setState(() => _controller.updateTextFont(id, font));
-                  },
-                  onTextColorChanged: (id, color) {
-                    setState(
-                      () => _controller.updateTextboxTextColor(id, color),
-                    );
-                  },
-                  onTextBackgroundColorChanged: (id, color) {
-                    setState(
-                      () => _controller.updateTextboxBackgroundColor(id, color),
-                    );
-                  },
-                  onPromptAddImage: _addImageFromPrompt,
-                  onPromptAddTextBox: _addTextBoxFromPrompt,
-                  onItemInteractionChanged: _onItemInteractionChanged,
-                  onItemDragUpdate: _onItemDragUpdate,
-                  editable: !_preview,
-                ),
+            else
+              IconButton.filledTonal(
+                icon: const AppIcon(AppIconType.save),
+                tooltip: 'Save',
+                onPressed: _saving ? null : _onSavePressed,
               ),
-            ),
-            if (!_preview)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 16,
-                child: IgnorePointer(
-                  ignoring: _interacting,
-                  child: AnimatedOpacity(
-                    opacity: _interacting ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Column(
-                      children: [
-                        PromptGenerator(onCreate: _addTextBoxWithText),
-                        CreatorToolBar(
-                          onAddTextBox: _addTextBox,
-                          onAddImage: _addImage,
-                          onAddSticker: _addSticker,
-                        ),
-                      ],
-                    ),
+            const SizedBox(width: 8),
+          ],
+          bottom: _saving
+              ? const PreferredSize(
+                  preferredSize: Size.fromHeight(4),
+                  child: LinearProgressIndicator(minHeight: 4),
+                )
+              : null,
+        ),
+        body: SafeArea(
+          top: !widget.primaryActionAsNext,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BedroomWallViewport(
+                  viewportKey: _viewportKey,
+                  controller: _scrollController,
+                  child: BedroomWallCanvas(
+                    backgroundColor: _controller.backgroundColor,
+                    canvas: _controller.canvas,
+                    stickerCatalog: _controller.stickerCatalog,
+                    fontCatalog: _controller.fontCatalog,
+                    items: _controller.items,
+                    prompts: _preview ? const [] : _controller.prompts,
+                    onItemTransform: (id, transform) {
+                      setState(
+                        () => _controller.updateTransform(id, transform),
+                      );
+                    },
+                    onTextChanged: _controller.updateText,
+                    onFontChanged: (id, font) {
+                      setState(() => _controller.updateTextFont(id, font));
+                    },
+                    onTextColorChanged: (id, color) {
+                      setState(
+                        () => _controller.updateTextboxTextColor(id, color),
+                      );
+                    },
+                    onTextBackgroundColorChanged: (id, color) {
+                      setState(
+                        () =>
+                            _controller.updateTextboxBackgroundColor(id, color),
+                      );
+                    },
+                    onPromptAddImage: _addImageFromPrompt,
+                    onPromptAddTextBox: _addTextBoxFromPrompt,
+                    onItemInteractionChanged: _onItemInteractionChanged,
+                    onItemDragUpdate: _onItemDragUpdate,
+                    editable: !_preview,
                   ),
                 ),
               ),
-          ],
+              if (!_preview)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 16,
+                  child: IgnorePointer(
+                    ignoring: _interacting,
+                    child: AnimatedOpacity(
+                      opacity: _interacting ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Column(
+                        children: [
+                          PromptGenerator(onCreate: _addTextBoxWithText),
+                          CreatorToolBar(
+                            onAddTextBox: _addTextBox,
+                            onAddImage: _addImage,
+                            onAddSticker: _addSticker,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
