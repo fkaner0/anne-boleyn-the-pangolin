@@ -77,17 +77,9 @@ class _AboutPageState extends State<AboutPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('About your craft'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.save),
-            tooltip: 'Save',
-            onPressed: _onNext,
-          ),
-        ],
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _onNext,
+        label: const Text('Next'),
       ),
       body: SafeArea(
         child: Form(

@@ -24,6 +24,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final VoidCallback? onSave;
   final VoidCallback? onSaved;
   final VoidCallback? onBack;
+  final bool primaryActionAsNext;
 
   const BedroomWallCreatorPage({
     super.key,
@@ -33,6 +34,7 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.onSave,
     this.onSaved,
     this.onBack,
+    this.primaryActionAsNext = false,
   });
 
   @override
@@ -276,6 +278,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.onSurfaceVariant,
               )
+            : widget.primaryActionAsNext
+            ? null
             : const Text('Create your wall'),
         centerTitle: true,
         leading: IconButton.filledTonal(
@@ -296,11 +300,17 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
             onPressed: _togglePreview,
           ),
           const SizedBox(width: 8),
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.save),
-            tooltip: 'Save',
-            onPressed: _saving ? null : _onSavePressed,
-          ),
+          if (widget.primaryActionAsNext)
+            TextButton(
+              onPressed: _saving ? null : _onSavePressed,
+              child: const Text('Next'),
+            )
+          else
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.save),
+              tooltip: 'Save',
+              onPressed: _saving ? null : _onSavePressed,
+            ),
           const SizedBox(width: 8),
         ],
         bottom: _saving

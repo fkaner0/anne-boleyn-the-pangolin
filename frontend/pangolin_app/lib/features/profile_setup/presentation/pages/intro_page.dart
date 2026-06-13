@@ -21,6 +21,7 @@ class IntroPage extends StatefulWidget {
   final BedroomWallCreatorController? wallController;
   final VoidCallback? onNext;
   final VoidCallback? onBack;
+  final bool primaryActionAsSave;
 
   const IntroPage({
     super.key,
@@ -30,6 +31,7 @@ class IntroPage extends StatefulWidget {
     this.wallController,
     this.onNext,
     this.onBack,
+    this.primaryActionAsSave = false,
   });
 
   @override
@@ -162,17 +164,24 @@ class _IntroPageState extends State<IntroPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text('About me'),
+        title: widget.primaryActionAsSave ? null : const Text('About me'),
         leading: IconButton.filledTonal(
           icon: const AppIcon(AppIconType.back),
           tooltip: 'Back',
           onPressed: widget.onBack ?? () {},
         ),
         actions: [
-          TextButton(
-            onPressed: _canSubmit ? _next : null,
-            child: const Text('Next'),
-          ),
+          if (widget.primaryActionAsSave)
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.save),
+              tooltip: 'Save',
+              onPressed: _canSubmit ? _next : null,
+            )
+          else
+            TextButton(
+              onPressed: _canSubmit ? _next : null,
+              child: const Text('Next'),
+            ),
         ],
       ),
       body: SafeArea(
