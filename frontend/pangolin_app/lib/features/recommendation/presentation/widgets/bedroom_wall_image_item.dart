@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import '../../domain/profile_image.dart';
 import 'wiggle_hint.dart';
 
@@ -40,8 +41,8 @@ class BedroomWallImageItem extends StatelessWidget {
               child: SizedBox(
                 width: width,
                 height: height,
-                child: Image.network(
-                  image.url,
+                child: LoadingNetworkImage(
+                  url: image.url,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(

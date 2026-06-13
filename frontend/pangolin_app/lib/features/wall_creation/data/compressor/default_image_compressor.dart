@@ -3,6 +3,11 @@ import 'package:image/image.dart' as img;
 
 import 'image_compressor.dart';
 
+ImageCompressor createImageCompressor({
+  int maxDimension = 2048,
+  int quality = 85,
+}) => DefaultImageCompressor(maxDimension: maxDimension, quality: quality);
+
 class DefaultImageCompressor implements ImageCompressor {
   final int maxDimension;
   final int quality;

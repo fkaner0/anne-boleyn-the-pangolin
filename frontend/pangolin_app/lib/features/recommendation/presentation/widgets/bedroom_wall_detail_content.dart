@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import '../../domain/profile_image.dart';
 import '../../domain/profile_text.dart';
 
@@ -21,8 +22,8 @@ class BedroomWallDetailContent extends StatelessWidget {
         height: 320,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.network(
-            image!.url,
+          child: LoadingNetworkImage(
+            url: image!.url,
             width: double.infinity,
             height: double.infinity,
             fit: BoxFit.contain,

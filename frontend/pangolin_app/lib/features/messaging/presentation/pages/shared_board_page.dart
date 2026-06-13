@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
+import 'package:pangolin_app/features/messaging/domain/shared_reply.dart';
 import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_element_tile.dart';
@@ -18,6 +20,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 
 enum _ConnectionAction { remove, reportAndBlock, cancel }
@@ -78,6 +81,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   bool _loading = true;
   bool _uploading = false;
+  Uint8List? _pendingImageBytes;
 
   @override
   void initState() {
@@ -133,7 +137,10 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     final message = await _promptForInitialMessage(picked);
     if (message == null || !mounted) return; // cancelled
 
-    setState(() => _uploading = true);
+    setState(() {
+      _uploading = true;
+      _pendingImageBytes = picked.bytes;
+    });
     try {
       final url = await _imageUploader.uploadImage(picked.bytes);
       await _service.sendImage(
@@ -146,7 +153,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     } catch (_) {
       if (mounted) _showMessage('Could not send that image.');
     } finally {
-      if (mounted) setState(() => _uploading = false);
+      if (mounted) {
+        setState(() {
+          _uploading = false;
+          _pendingImageBytes = null;
+        });
+      }
     }
   }
 
@@ -254,6 +266,16 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   Future<void> _sendReply(int elementId, String text) async {
     _log(ButtonIds.sharedBoardSendReply);
 
+    final element = _elements.value[elementId];
+    if (element == null) return;
+
+    final reply = SharedReply(
+      senderId: _userId,
+      text: text,
+      datetime: DateTime.now().millisecondsSinceEpoch,
+    );
+    _elements.value = {..._elements.value, elementId: element.withReply(reply)};
+
     try {
       await _service.sendReply(
         sharedElementId: elementId,
@@ -263,6 +285,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       );
       await _loadBoard();
     } catch (_) {
+      _elements.value = {..._elements.value, elementId: element};
       if (mounted) _showMessage('Could not send that message.');
     }
   }
@@ -461,17 +484,22 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
           valueListenable: _elements,
           builder: (context, elements, _) {
             final items = elements.values.toList();
+            final pendingBytes = _pendingImageBytes;
             if (_loading && items.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (items.isEmpty) {
+            if (items.isEmpty && pendingBytes == null) {
               return const Center(child: Text('Nothing shared yet'));
             }
+            final itemCount = items.length + (pendingBytes != null ? 1 : 0);
             return ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-              itemCount: items.length,
+              itemCount: itemCount,
               separatorBuilder: (_, _) => const SizedBox(height: 36),
               itemBuilder: (context, index) {
+                if (pendingBytes != null && index == items.length) {
+                  return _UploadingImageTile(bytes: pendingBytes);
+                }
                 final element = items[index];
                 return SharedElementTile(
                   element: element,
@@ -488,7 +516,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         ),
       ),
       bottomNavigationBar: _BottomBar(
-        uploading: _uploading,
         onGrab: _grabFromWall,
         onUpload: _uploadImage,
         onAddText: _addText,
@@ -497,14 +524,39 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   }
 }
 
+class _UploadingImageTile extends StatelessWidget {
+  final Uint8List bytes;
+
+  const _UploadingImageTile({required this.bytes});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          width: double.infinity,
+          height: MediaQuery.sizeOf(context).height / 5,
+          child: UploadingImagePlaceholder(bytes: bytes),
+        ),
+      ),
+    );
+  }
+}
+
 class _BottomBar extends StatelessWidget {
-  final bool uploading;
   final VoidCallback onGrab;
   final VoidCallback onUpload;
   final VoidCallback onAddText;
 
   const _BottomBar({
-    required this.uploading,
     required this.onGrab,
     required this.onUpload,
     required this.onAddText,
