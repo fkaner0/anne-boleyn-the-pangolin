@@ -19,6 +19,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 
 enum _ConnectionAction { remove, reportAndBlock, cancel }
 
@@ -78,6 +79,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   bool _loading = true;
   bool _uploading = false;
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
   void initState() {
@@ -465,13 +467,29 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
               return const Center(child: CircularProgressIndicator());
             }
             if (items.isEmpty) {
-              return const Center(child: Text('Nothing shared yet'));
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 28,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('Nothing shared yet'),
+                    const SizedBox(height: 24),
+                    PangolinBanner(assets: _pangolinAssets),
+                  ],
+                ),
+              );
             }
             return ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-              itemCount: items.length,
+              itemCount: items.length + 1,
               separatorBuilder: (_, _) => const SizedBox(height: 36),
               itemBuilder: (context, index) {
+                if (index == items.length) {
+                  return PangolinBanner(assets: _pangolinAssets);
+                }
                 final element = items[index];
                 return SharedElementTile(
                   element: element,

@@ -7,7 +7,7 @@ import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 enum IslandNavTab { editProfile, recommendations, friends }
 
 class PangolinNavBar extends StatelessWidget {
-  static const double _mascotHeight = 220;
+  static const double _mascotHeight = PangolinMascot.navBarHeight;
   static const double _clawOverlap = 100;
 
   final PangolinMascotController mascotController;

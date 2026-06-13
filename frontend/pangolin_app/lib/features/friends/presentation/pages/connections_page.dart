@@ -18,6 +18,7 @@ import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
@@ -50,6 +51,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   CurrentFriends? _data;
 
   final PangolinMascotController _mascot = PangolinMascotController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
   void initState() {
@@ -175,22 +177,37 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         Expanded(
           child: data.friends.isEmpty
               ? const Center(child: Text('No connections yet'))
-              : GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.82,
-                  padding: const EdgeInsets.all(16),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    for (final (index, friend) in data.friends.indexed)
-                      ConnectionCard(
-                        friend: friend,
-                        variant: index % SplodgeClipper.variantCount,
-                        onTap: () {
-                          _log(ButtonIds.connectionsList);
-                          _openBoard(friend.friendUserId, friend.name);
-                        },
+              : CustomScrollView(
+                  slivers: [
+                    SliverPadding(
+                      padding: const EdgeInsets.all(16),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              childAspectRatio: 0.82,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                            ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final friend = data.friends[index];
+                          return ConnectionCard(
+                            friend: friend,
+                            variant: index % SplodgeClipper.variantCount,
+                            onTap: () {
+                              _log(ButtonIds.connectionsList);
+                              _openBoard(friend.friendUserId, friend.name);
+                            },
+                          );
+                        }, childCount: data.friends.length),
                       ),
+                    ),
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                        child: PangolinBanner(assets: _pangolinAssets),
+                      ),
+                    ),
                   ],
                 ),
         ),

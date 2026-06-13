@@ -11,6 +11,7 @@ import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
@@ -43,6 +44,7 @@ class _RecommendationListPageState
       widget.recommendationFetcher ?? getIt<RecommendationFetcher>();
 
   final PangolinMascotController _mascot = PangolinMascotController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
   void initState() {
@@ -126,8 +128,15 @@ class _RecommendationListPageState
 
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _recommendations.length,
+              itemCount: _recommendations.length + 1,
               itemBuilder: (context, index) {
+                if (index == _recommendations.length) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: PangolinBanner(assets: _pangolinAssets),
+                  );
+                }
+
                 final recommendation = _recommendations[index];
 
                 return RecommendationListItem(

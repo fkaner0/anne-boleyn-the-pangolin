@@ -133,6 +133,8 @@ class PangolinMascotController extends ChangeNotifier {
 }
 
 class PangolinMascot extends StatefulWidget {
+  static const double navBarHeight = 220;
+
   static const Map<PangolinMascotState, String> _assets = {
     PangolinMascotState.awake: 'assets/guys/nav_awake.PNG',
     PangolinMascotState.sleep: 'assets/guys/nav_sleep.PNG',

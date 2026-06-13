@@ -25,6 +25,7 @@ import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
@@ -80,6 +81,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Uint8List? _mainImageBytes;
 
   final PangolinMascotController _mascot = PangolinMascotController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
   void initState() {
@@ -398,6 +400,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             maxLength: 100,
             onChanged: (value) => setState(() => _builder.setBio(value)),
           ),
+          const SizedBox(height: 32),
+          PangolinBanner(assets: _pangolinAssets),
         ],
       ),
     );
