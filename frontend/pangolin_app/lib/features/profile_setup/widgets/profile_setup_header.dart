@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import 'package:pangolin_app/theme/palette_colors.dart';
-
-const double _ballSize = 20;
+const double _ballSize = 26;
 
 class ProfileSetupHeader extends StatelessWidget {
-  static const String _bannerAsset = 'assets/icons/header/header.svg';
-  static const double _bannerAspectRatio = 2560 / 575;
-  static const Alignment _pillAlignment = Alignment(0, -0.3);
-  static const Color _pillColor = Color(0xFFF4EBD8);
+  static const String _bannerAsset = 'assets/icons/header/header.png';
+  static const double _bannerShift = 30;
+  static const Alignment _pillAlignment = Alignment(0, -0.6);
 
   final int currentStep;
   final List<String> steps;
@@ -27,27 +23,16 @@ class ProfileSetupHeader extends StatelessWidget {
     return Stack(
       alignment: _pillAlignment,
       children: [
-        SizedBox(
-          width: double.infinity,
-          child: AspectRatio(
-            aspectRatio: _bannerAspectRatio,
-            child: SvgPicture.asset(_bannerAsset, fit: BoxFit.contain),
+        Transform.translate(
+          offset: const Offset(0, -_bannerShift),
+          child: Image.asset(
+            _bannerAsset,
+            width: double.infinity,
+            fit: BoxFit.fitWidth,
           ),
         ),
-        Container(
+        SizedBox(
           width: size.width * 0.66,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            color: _pillColor,
-            borderRadius: BorderRadius.circular(999),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.15),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
           child: _ProgressBubbles(currentStep: currentStep, steps: steps),
         ),
       ],
@@ -64,9 +49,9 @@ class _ProgressBubbles extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final completedColor = colorScheme.primary;
-    final currentColor = context.paletteColors.pangolin;
-    final uncompletedColor = colorScheme.outline;
+    final completedColor = colorScheme.primaryContainer;
+    final currentColor = colorScheme.tertiary;
+    const uncompletedColor = Colors.white;
 
     Color colorFor(int i) {
       if (i < currentStep) return completedColor;
@@ -130,20 +115,27 @@ class _StepIndicator extends StatelessWidget {
             child: Text(
               '$index',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: numberColor,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: colorScheme.onSurface,
-            fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+        const SizedBox(height: 4),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: colorScheme.onSurface,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            ),
           ),
         ),
       ],
