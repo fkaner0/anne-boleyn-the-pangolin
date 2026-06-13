@@ -162,7 +162,14 @@ class _IntroPageState extends State<IntroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: widget.primaryActionAsSave,
       appBar: AppBar(
+        backgroundColor: widget.primaryActionAsSave ? Colors.transparent : null,
+        elevation: widget.primaryActionAsSave ? 0 : null,
+        scrolledUnderElevation: widget.primaryActionAsSave ? 0 : null,
+        surfaceTintColor: widget.primaryActionAsSave
+            ? Colors.transparent
+            : null,
         centerTitle: true,
         title: widget.primaryActionAsSave ? null : const Text('About me'),
         leading: IconButton.filledTonal(
@@ -185,8 +192,14 @@ class _IntroPageState extends State<IntroPage> {
         ],
       ),
       body: SafeArea(
+        top: !widget.primaryActionAsSave,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            widget.primaryActionAsSave ? kToolbarHeight + 8 : 24,
+            24,
+            24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -8,6 +8,7 @@ const double _ballSize = 20;
 class ProfileSetupHeader extends StatelessWidget {
   static const String _bannerAsset = 'assets/icons/header/header.svg';
   static const double _bannerAspectRatio = 2560 / 575;
+  static const Alignment _pillAlignment = Alignment(0, -0.3);
   static const Color _pillColor = Color(0xFFF4EBD8);
 
   final int currentStep;
@@ -24,7 +25,7 @@ class ProfileSetupHeader extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
 
     return Stack(
-      alignment: Alignment.center,
+      alignment: _pillAlignment,
       children: [
         SizedBox(
           width: double.infinity,

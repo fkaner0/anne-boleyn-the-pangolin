@@ -266,9 +266,15 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: widget.primaryActionAsNext,
       appBar: AppBar(
         backgroundColor: _dragOverBin
             ? Theme.of(context).colorScheme.errorContainer
+            : (widget.primaryActionAsNext ? Colors.transparent : null),
+        elevation: widget.primaryActionAsNext ? 0 : null,
+        scrolledUnderElevation: widget.primaryActionAsNext ? 0 : null,
+        surfaceTintColor: widget.primaryActionAsNext
+            ? Colors.transparent
             : null,
         title: _interacting
             ? AppIcon(
@@ -321,6 +327,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
             : null,
       ),
       body: SafeArea(
+        top: !widget.primaryActionAsNext,
         child: Stack(
           children: [
             Positioned.fill(
