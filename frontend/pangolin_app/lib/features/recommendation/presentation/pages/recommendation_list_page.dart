@@ -12,6 +12,7 @@ import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
@@ -37,6 +38,8 @@ class RecommendationListPage extends ConsumerStatefulWidget {
 class _RecommendationListPageState
     extends ConsumerState<RecommendationListPage> {
   bool _isLoading = true;
+  bool _guysReady = false;
+  bool _precacheStarted = false;
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
 
@@ -50,6 +53,16 @@ class _RecommendationListPageState
   void initState() {
     super.initState();
     _loadRecommendations();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
+      if (mounted) setState(() => _guysReady = true);
+    });
   }
 
   @override
@@ -91,10 +104,6 @@ class _RecommendationListPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Your recommendations'),
-        automaticallyImplyLeading: false,
-      ),
       bottomNavigationBar: PangolinNavBar(
         mascotController: _mascot,
         current: IslandNavTab.recommendations,
@@ -110,48 +119,59 @@ class _RecommendationListPageState
           MainTabNavigation.goToFriends(context);
         },
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _mascot.handleScrollNotification,
-        child: Builder(
-          builder: (context) {
-            if (_isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: SafeArea(
+        child: Column(
+          children: [
+            const PangolinHeader(title: 'Your recommendations'),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _mascot.handleScrollNotification,
+                child: Builder(
+                  builder: (context) {
+                    if (_isLoading || !_guysReady) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
 
-            if (_errorMessage != null) {
-              return Center(child: Text(_errorMessage!));
-            }
+                    if (_errorMessage != null) {
+                      return Center(child: Text(_errorMessage!));
+                    }
 
-            if (_recommendations.isEmpty) {
-              return const Center(child: Text('No recommendations available'));
-            }
+                    if (_recommendations.isEmpty) {
+                      return const Center(
+                        child: Text('No recommendations available'),
+                      );
+                    }
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _recommendations.length + 1,
-              itemBuilder: (context, index) {
-                if (index == _recommendations.length) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 24),
-                    child: PangolinBanner(assets: _pangolinAssets),
-                  );
-                }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _recommendations.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == _recommendations.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: PangolinBanner(assets: _pangolinAssets),
+                          );
+                        }
 
-                final recommendation = _recommendations[index];
+                        final recommendation = _recommendations[index];
 
-                return RecommendationListItem(
-                  recommendation: recommendation,
-                  onTap: () {
-                    _log(ButtonIds.recommendationList);
-                    context.push(
-                      AppRoutes.viewProfile,
-                      extra: recommendation.userId,
+                        return RecommendationListItem(
+                          recommendation: recommendation,
+                          onTap: () {
+                            _log(ButtonIds.recommendationList);
+                            context.push(
+                              AppRoutes.viewProfile,
+                              extra: recommendation.userId,
+                            );
+                          },
+                        );
+                      },
                     );
                   },
-                );
-              },
-            );
-          },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -18,6 +18,15 @@ class PangolinBanner extends StatelessWidget {
   static List<String> randomTrio() =>
       (List<String>.of(_pool)..shuffle(_random)).take(3).toList();
 
+  static Future<void> precache(
+    BuildContext context,
+    List<String> assets,
+  ) async {
+    await Future.wait([
+      for (final asset in assets) precacheImage(AssetImage(asset), context),
+    ]);
+  }
+
   final List<String> assets;
 
   const PangolinBanner({super.key, required this.assets});

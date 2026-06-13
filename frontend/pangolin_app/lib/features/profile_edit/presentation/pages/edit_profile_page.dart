@@ -26,6 +26,7 @@ import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
@@ -69,6 +70,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _bioController = TextEditingController();
 
   bool _loading = true;
+  bool _guysReady = false;
+  bool _precacheStarted = false;
   String? _loadError;
   bool _saving = false;
   bool _uploadingImage = false;
@@ -88,6 +91,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     super.initState();
     final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load(userId);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
+      if (mounted) setState(() => _guysReady = true);
+    });
   }
 
   @override
@@ -254,27 +267,28 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: const Text('Edit Profile'),
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.check),
-            tooltip: 'Save',
-            onPressed: _loading || _saving ? null : _save,
-          ),
-        ],
-        bottom: _saving
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(4),
-                child: LinearProgressIndicator(minHeight: 4),
-              )
-            : null,
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _mascot.handleScrollNotification,
-        child: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        child: Column(
+          children: [
+            PangolinHeader(
+              title: 'Edit Profile',
+              actions: [
+                IconButton.filledTonal(
+                  icon: const AppIcon(AppIconType.check),
+                  tooltip: 'Save',
+                  onPressed: _loading || _saving ? null : _save,
+                ),
+              ],
+            ),
+            if (_saving) const LinearProgressIndicator(minHeight: 4),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _mascot.handleScrollNotification,
+                child: _buildBody(),
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: PangolinNavBar(
         mascotController: _mascot,
@@ -287,7 +301,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   }
 
   Widget _buildBody() {
-    if (_loading) {
+    if (_loading || !_guysReady) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_loadError != null) {

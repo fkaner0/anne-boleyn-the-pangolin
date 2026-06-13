@@ -19,6 +19,7 @@ import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
@@ -47,6 +48,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   late final int _userId;
 
   bool _loading = true;
+  bool _guysReady = false;
+  bool _precacheStarted = false;
   String? _error;
   CurrentFriends? _data;
 
@@ -59,6 +62,16 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
     listenToBoardNotifications(_boardService, _userId, _load);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
+      if (mounted) setState(() => _guysReady = true);
+    });
   }
 
   @override
@@ -128,10 +141,6 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Connections'),
-        automaticallyImplyLeading: false,
-      ),
       bottomNavigationBar: PangolinNavBar(
         mascotController: _mascot,
         current: IslandNavTab.friends,
@@ -147,15 +156,24 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           _log(ButtonIds.connectionsFriends);
         },
       ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _mascot.handleScrollNotification,
-        child: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        child: Column(
+          children: [
+            const PangolinHeader(title: 'Connections'),
+            Expanded(
+              child: NotificationListener<ScrollNotification>(
+                onNotification: _mascot.handleScrollNotification,
+                child: _buildBody(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_loading) {
+    if (_loading || !_guysReady) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null) {
