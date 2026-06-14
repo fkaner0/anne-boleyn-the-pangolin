@@ -44,26 +44,26 @@ class _IconSource {
   final String? pngAsset;
   final IconData? materialIcon;
 
-  const _IconSource({this.pngAsset, this.materialIcon}) : svgAsset = null;
+  const _IconSource({this.pngAsset, this.svgAsset, this.materialIcon});
 }
 
 const Map<AppIconType, _IconSource> _sources = {
-  AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png'),
-  AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png'),
-  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png'),
-  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png'),
-  AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png'),
-  AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png'),
-  AppIconType.preview: _IconSource(pngAsset: 'assets/icons/icons/preview.png'),
+  AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png', svgAsset: 'assets/icons/icons-svg/back.svg'),
+  AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png', svgAsset: 'assets/icons/icons-svg/add.svg'),
+  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png', svgAsset: 'assets/icons/icons-svg/save-filled.svg'),
+  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png', svgAsset: 'assets/icons/icons-svg/send-filled.svg'),
+  AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png', svgAsset: 'assets/icons/icons-svg/tick.svg'),
+  AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png', svgAsset: 'assets/icons/icons-svg/cross.svg'),
+  AppIconType.preview: _IconSource(pngAsset: 'assets/icons/icons/preview.png', svgAsset: 'assets/icons/icons-svg/preview.svg'),
   AppIconType.brokenImage: _IconSource(
-    pngAsset: 'assets/icons/icons/brokenimage.png',
+pngAsset: 'assets/icons/icons/brokenimage.png', svgAsset: 'assets/icons/icons-svg/brokenimage.svg',
   ),
-  AppIconType.refresh: _IconSource(pngAsset: 'assets/icons/icons/refresh.png'),
+  AppIconType.refresh: _IconSource(pngAsset: 'assets/icons/icons/refresh.png', svgAsset: 'assets/icons/icons-svg/refresh.svg'),
   AppIconType.addText: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addtext.png',
+pngAsset: 'assets/icons/wall_addition_icons/addtext.png', svgAsset: 'assets/icons/wall_addition_icons-svg/addtext.svg',
   ),
   AppIconType.addImage: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addimage.png',
+pngAsset: 'assets/icons/wall_addition_icons/addimage.png', svgAsset: 'assets/icons/wall_addition_icons-svg/addimage.svg',
   ),
   AppIconType.textColour: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/textcolour.png',
@@ -88,28 +88,28 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.reply: _IconSource(materialIcon: Icons.reply),
   AppIconType.personRemove: _IconSource(materialIcon: Icons.person_remove),
   AppIconType.sticker: _IconSource(
-    pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
+pngAsset: 'assets/icons/wall_addition_icons/addsticker.png', svgAsset: 'assets/icons/wall_addition_icons-svg/addsticker.svg',
   ),
   AppIconType.lightbulb: _IconSource(
-    pngAsset: 'assets/icons/icons/lightbulb.png',
+pngAsset: 'assets/icons/icons/lightbulb.png', svgAsset: 'assets/icons/icons-svg/lightbulb.svg',
   ),
   AppIconType.meFilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/mefilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/mefilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/mefilled.svg',
   ),
   AppIconType.meUnfilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/meunfilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/meunfilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/meunfilled.svg',
   ),
   AppIconType.findFilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/findfilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/findfilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/findfilled.svg',
   ),
   AppIconType.findUnfilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/findunfilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/findunfilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/findunfilled.svg',
   ),
   AppIconType.palsFilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/palsfilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/palsfilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/palsfilled.svg',
   ),
   AppIconType.palsUnfilled: _IconSource(
-    pngAsset: 'assets/icons/menu_bar_icons/palsunfilled.png',
+pngAsset: 'assets/icons/menu_bar_icons/palsunfilled.png', svgAsset: 'assets/icons/menu_bar_icons-svg/palsunfilled.svg',
   ),
 };
 
@@ -127,15 +127,17 @@ class AppIcon extends StatelessWidget {
     final resolvedColor = color ?? iconTheme.color;
     final source = _sources[type]!;
 
+    // prefers svg over png always
     final svgAsset = source.svgAsset;
     if (svgAsset != null) {
       return SvgPicture.asset(
         svgAsset,
         width: resolvedSize,
         height: resolvedSize,
-        colorFilter: resolvedColor == null
-            ? null
-            : ColorFilter.mode(resolvedColor, BlendMode.srcIn),
+        // colorFilter: resolvedColor == null
+        //     ? null
+        //     : ColorFilter.mode(resolvedColor, BlendMode.srcIn),
+        fit: BoxFit.contain,
       );
     }
 
