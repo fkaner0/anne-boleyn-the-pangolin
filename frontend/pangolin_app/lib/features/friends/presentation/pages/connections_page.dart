@@ -17,7 +17,6 @@ import 'package:pangolin_app/features/messaging/presentation/board_notifications
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
-import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -41,9 +40,7 @@ class ConnectionsPage extends ConsumerStatefulWidget {
 }
 
 class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
-    with
-        BoardNotificationsListener<ConnectionsPage>,
-        GuysPreloader<ConnectionsPage> {
+    with BoardNotificationsListener<ConnectionsPage> {
   late final FriendsFetcher _friendsFetcher =
       widget.friendsFetcher ?? getIt<FriendsFetcher>();
   late final SharedBoardService _boardService =
@@ -58,20 +55,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
-  List<String> get guysAssets => _pangolinAssets;
-
-  @override
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
     listenToBoardNotifications(_boardService, _userId, _load);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    preloadGuys();
   }
 
   @override
@@ -170,7 +158,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   }
 
   Widget _buildBody(double topInset) {
-    if (_loading || !guysReady) {
+    if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null) {

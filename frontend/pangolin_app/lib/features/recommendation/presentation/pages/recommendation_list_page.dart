@@ -10,7 +10,6 @@ import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
-import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -36,8 +35,8 @@ class RecommendationListPage extends ConsumerStatefulWidget {
       _RecommendationListPageState();
 }
 
-class _RecommendationListPageState extends ConsumerState<RecommendationListPage>
-    with GuysPreloader<RecommendationListPage> {
+class _RecommendationListPageState
+    extends ConsumerState<RecommendationListPage> {
   bool _isLoading = true;
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
@@ -49,18 +48,9 @@ class _RecommendationListPageState extends ConsumerState<RecommendationListPage>
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
-  List<String> get guysAssets => _pangolinAssets;
-
-  @override
   void initState() {
     super.initState();
     _loadRecommendations();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    preloadGuys();
   }
 
   @override
@@ -125,7 +115,7 @@ class _RecommendationListPageState extends ConsumerState<RecommendationListPage>
                 onNotification: _mascot.handleScrollNotification,
                 child: Builder(
                   builder: (context) {
-                    if (_isLoading || !guysReady) {
+                    if (_isLoading) {
                       return const Center(child: CircularProgressIndicator());
                     }
 

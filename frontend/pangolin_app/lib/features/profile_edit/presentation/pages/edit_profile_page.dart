@@ -24,7 +24,6 @@ import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
-import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -55,8 +54,7 @@ class EditProfilePage extends ConsumerStatefulWidget {
   ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends ConsumerState<EditProfilePage>
-    with GuysPreloader<EditProfilePage> {
+class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late final ProfileFetcher _profileFetcher =
       widget.profileFetcher ?? getIt<ProfileFetcher>();
   late final ProfileUpdater _profileUpdater =
@@ -87,19 +85,10 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
-  List<String> get guysAssets => _pangolinAssets;
-
-  @override
   void initState() {
     super.initState();
     final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load(userId);
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    preloadGuys();
   }
 
   @override
@@ -305,7 +294,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage>
   }
 
   Widget _buildBody(double topInset) {
-    if (_loading || !guysReady) {
+    if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_loadError != null) {

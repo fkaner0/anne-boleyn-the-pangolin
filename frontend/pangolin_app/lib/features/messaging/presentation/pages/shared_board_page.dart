@@ -19,7 +19,6 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
-import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
 
@@ -50,9 +49,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
 }
 
 class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
-    with
-        BoardNotificationsListener<SharedBoardPage>,
-        GuysPreloader<SharedBoardPage> {
+    with BoardNotificationsListener<SharedBoardPage> {
   late final SharedBoardService _service =
       widget.service ?? getIt<SharedBoardService>();
   late final ImageFilePicker _imagePicker =
@@ -83,15 +80,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   bool _loading = true;
   bool _uploading = false;
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
-
-  @override
-  List<String> get guysAssets => _pangolinAssets;
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    preloadGuys();
-  }
 
   @override
   void initState() {
@@ -480,7 +468,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       builder: (context, elements, _) {
         final items = elements.values.toList();
 
-        if ((_loading || !guysReady) && items.isEmpty) {
+        if (_loading && items.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
