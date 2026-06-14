@@ -103,7 +103,13 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _addImage() async {
-    await _controller.addImage(center: _visibleCanvasCenter());
+    await _controller.addImage(
+      center: _visibleCanvasCenter(),
+      onChanged: _onControllerChanged,
+    );
+  }
+
+  void _onControllerChanged() {
     if (mounted) setState(() {});
   }
 
@@ -119,8 +125,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _addImageFromPrompt(int promptId) async {
-    await _controller.addImageFromPrompt(promptId);
-    if (mounted) setState(() {});
+    await _controller.addImageFromPrompt(
+      promptId,
+      onChanged: _onControllerChanged,
+    );
   }
 
   void _addTextBoxFromPrompt(int promptId) {

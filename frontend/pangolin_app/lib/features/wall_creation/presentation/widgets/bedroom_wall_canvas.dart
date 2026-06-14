@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_image.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import '../../domain/canvas_item.dart';
 import '../../domain/canvas_prompt.dart';
 import '../../domain/canvas_transform.dart';
@@ -65,6 +66,10 @@ class BedroomWallCanvas extends StatelessWidget {
   }
 
   Widget _imageChild(CanvasImageItem item) {
+    if (item.uploading) {
+      return UploadingImagePlaceholder(bytes: item.bytes);
+    }
+
     final bytes = item.bytes;
     if (bytes != null) {
       return Image.memory(bytes, fit: BoxFit.cover);
@@ -72,7 +77,7 @@ class BedroomWallCanvas extends StatelessWidget {
 
     final url = item.url;
     if (url != null && url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.cover);
+      return LoadingNetworkImage(url: url, fit: BoxFit.cover);
     }
 
     return const ColoredBox(color: Color(0x22000000));

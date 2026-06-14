@@ -15,7 +15,7 @@ import 'package:pangolin_app/features/profile_setup/data/user_creator.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/gallery_image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/compressing_wall_image_uploader.dart';
-import 'package:pangolin_app/features/wall_creation/data/compressor/default_image_compressor.dart';
+import 'package:pangolin_app/features/wall_creation/data/compressor/platform_image_compressor.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
@@ -110,7 +110,7 @@ void configureDependencies(BackendMode backend) {
             port: portLocal,
             useHttps: false,
           ),
-          const DefaultImageCompressor(),
+          createImageCompressor(),
         ),
       );
       getIt.registerLazySingleton<ProfileUpdater>(
@@ -171,7 +171,7 @@ void configureDependencies(BackendMode backend) {
       getIt.registerLazySingleton<ImageUploader>(
         () => CompressingImageUploader(
           RenderImageUploader(host: host),
-          const DefaultImageCompressor(),
+          createImageCompressor(),
         ),
       );
       getIt.registerLazySingleton<ProfileUpdater>(

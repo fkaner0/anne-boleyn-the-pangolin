@@ -23,6 +23,17 @@ class SharedElement {
 
   SharedReply? get latestReply => replies.isEmpty ? null : replies.last;
 
+  SharedElement withReply(SharedReply reply) {
+    return SharedElement(
+      id: id,
+      datetime: datetime,
+      kind: kind,
+      content: content,
+      replies: [...replies, reply],
+      read: read,
+    );
+  }
+
   factory SharedElement.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String?;
     final text = json['text'] as String?;

@@ -116,19 +116,11 @@ class BedroomWallCreatorController {
     }
   }
 
-  Future<void> addImage({Offset? center}) async {
+  Future<void> addImage({Offset? center, VoidCallback? onChanged}) async {
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
 
-    _items.add(
-      CanvasImageItem(
-        id: _nextId++,
-        transform: _transformAt(center),
-        bytes: picked.bytes,
-        aspectRatio: picked.aspectRatio,
-        url: await _uploadImage(picked.bytes),
-      ),
-    );
+    await _addImageItem(picked, _transformAt(center), onChanged);
   }
 
   void addTextBoxWithText(String text, {Offset? center}) {
@@ -157,24 +149,50 @@ class BedroomWallCreatorController {
     );
   }
 
-  Future<void> addImageFromPrompt(int promptId) async {
+  Future<void> addImageFromPrompt(
+    int promptId, {
+    VoidCallback? onChanged,
+  }) async {
     final index = _prompts.indexWhere((p) => p.id == promptId);
     if (index == -1) return;
-    final prompt = _prompts[index];
+    final transform = _prompts[index].transform;
 
     final picked = await imagePicker.pickImage();
     if (picked == null) return;
 
+    _prompts.removeWhere((p) => p.id == promptId);
+    await _addImageItem(picked, transform, onChanged);
+  }
+
+  Future<void> _addImageItem(
+    PickedImage picked,
+    CanvasTransform transform,
+    VoidCallback? onChanged,
+  ) async {
+    final id = _nextId++;
     _items.add(
       CanvasImageItem(
-        id: _nextId++,
-        transform: prompt.transform,
+        id: id,
+        transform: transform,
         bytes: picked.bytes,
         aspectRatio: picked.aspectRatio,
-        url: await _uploadImage(picked.bytes),
+        uploading: true,
       ),
     );
-    _prompts.removeAt(index);
+    onChanged?.call();
+
+    final url = await _uploadImage(picked.bytes);
+    _completeImageUpload(id, url);
+    onChanged?.call();
+  }
+
+  void _completeImageUpload(int id, String? url) {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index == -1) return;
+    final item = _items[index];
+    if (item is CanvasImageItem) {
+      _items[index] = item.uploaded(url: url);
+    }
   }
 
   Future<String?> _uploadImage(Uint8List bytes) async {
