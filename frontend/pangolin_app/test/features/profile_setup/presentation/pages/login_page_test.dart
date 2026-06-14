@@ -122,7 +122,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(authoriser.lastNewUsername, isNull);
-    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+    expect(find.text('Welcome to PangoPal!'), findsOneWidget);
     expect(find.text('SIGNUP 7'), findsNothing);
   });
 
@@ -154,7 +154,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('username is taken'), findsOneWidget);
-    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+    expect(find.text('Welcome to PangoPal!'), findsOneWidget);
   });
 
   testWidgets('an unknown username keeps you on login with a message', (
@@ -168,7 +168,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining("don't have anyone"), findsOneWidget);
-    expect(find.text('Welcome to PangoPal'), findsOneWidget);
+    expect(find.text('Welcome to PangoPal!'), findsOneWidget);
   });
 
   testWidgets('shows a spinner while submitting', (tester) async {

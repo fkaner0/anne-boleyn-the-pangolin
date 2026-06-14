@@ -2,8 +2,57 @@ import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/theme/palette_colors.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 
 enum IslandNavTab { editProfile, recommendations, friends }
+
+class PangolinNavBar extends StatelessWidget {
+  static const double _mascotHeight = PangolinMascot.navBarHeight;
+  static const double _clawOverlap = 100;
+
+  final PangolinMascotController mascotController;
+  final IslandNavTab current;
+  final VoidCallback onEditProfile;
+  final VoidCallback onRecommendations;
+  final VoidCallback? onFriends;
+
+  const PangolinNavBar({
+    super.key,
+    required this.mascotController,
+    required this.current,
+    required this.onEditProfile,
+    required this.onRecommendations,
+    this.onFriends,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IslandNavBar(
+          current: current,
+          onEditProfile: onEditProfile,
+          onRecommendations: onRecommendations,
+          onFriends: onFriends,
+        ),
+        Positioned(
+          top: _clawOverlap - _mascotHeight,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Center(
+              child: PangolinMascot(
+                controller: mascotController,
+                height: _mascotHeight,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
 
 class IslandNavBar extends StatelessWidget {
   final IslandNavTab current;

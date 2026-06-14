@@ -22,6 +22,9 @@ import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_upl
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/loading_network_image.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 enum _ConnectionAction { remove, reportAndBlock, cancel }
 
@@ -37,7 +40,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   const SharedBoardPage({
     super.key,
     required this.friendUserId,
-    this.profileFetcher, // we should use a lighter-weight api (don't currently have one)
+    this.profileFetcher,
     this.service,
     this.imagePicker,
     this.imageUploader,
@@ -65,7 +68,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   late final Future<String> _friendName;
   String _friendDisplayName = 'Them';
 
-  // TODO: this does NOT belong here
   Future<String> userNameFromId(int userId) async =>
       _profileFetcher.fetchProfile(userId).then((profile) => profile.name);
 
@@ -81,13 +83,14 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   bool _loading = true;
   bool _uploading = false;
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
   Uint8List? _pendingImageBytes;
 
   @override
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
-    _friendName = userNameFromId(widget.friendUserId); // assign once, directly
+    _friendName = userNameFromId(widget.friendUserId);
     _friendName.then((name) {
       if (mounted) setState(() => _friendDisplayName = name);
     }, onError: (_) {});
@@ -135,7 +138,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     } catch (_) {}
   }
 
-  // Shared navigation target for all app bar taps.
   void _navigateToProfile() {
     _log(ButtonIds.sharedBoardViewProfile);
     context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
@@ -150,7 +152,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     if (picked == null || !mounted) return;
 
     final message = await _promptForInitialMessage(picked);
-    if (message == null || !mounted) return; // cancelled
+    if (message == null || !mounted) return;
 
     setState(() {
       _uploading = true;
@@ -242,7 +244,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       },
     );
 
-    if (result == null || !mounted) return; // cancelled
+    if (result == null || !mounted) return;
     if (result.topic.isEmpty && result.message.isEmpty) return;
 
     try {
@@ -356,6 +358,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
             targetUserId: widget.friendUserId,
           ),
         );
+        break;
       case _ConnectionAction.reportAndBlock:
         await _leaveConnection(
           () => _friendActionSender.report(
@@ -364,6 +367,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
           ),
           confirmReport: true,
         );
+        break;
       case _ConnectionAction.cancel:
       case null:
         return;
@@ -469,65 +473,19 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // flexibleSpace sits behind the toolbar in the Z-order, so all
-        // existing buttons continue to receive their taps normally. Any
-        // tap that doesn't hit a button falls through to this handler.
-        flexibleSpace: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: _navigateToProfile,
-        ),
-        title: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _navigateToProfile,
-          child: FutureBuilder<String>(
-            future: _friendName,
-            builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
-          ),
-        ),
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.personRemove),
-            tooltip: 'Remove connection',
-            onPressed: _removeConnection,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: SafeArea(
-        child: ValueListenableBuilder<Map<int, SharedElement>>(
-          valueListenable: _elements,
-          builder: (context, elements, _) {
-            final items = elements.values.toList();
-            final pendingBytes = _pendingImageBytes;
-            if (_loading && items.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (items.isEmpty && pendingBytes == null) {
-              return const Center(child: Text('Nothing shared yet'));
-            }
-            final itemCount = items.length + (pendingBytes != null ? 1 : 0);
-            return ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-              itemCount: itemCount,
-              separatorBuilder: (_, _) => const SizedBox(height: 36),
-              itemBuilder: (context, index) {
-                if (pendingBytes != null && index == items.length) {
-                  return _UploadingImageTile(bytes: pendingBytes);
-                }
-                final element = items[index];
-                return SharedElementTile(
-                  element: element,
-                  userId: _userId,
-                  friendName: _friendDisplayName,
-                  onTap: () {
-                    _log(ButtonIds.sharedBoardElement);
-                    _openChat(element.id);
-                  },
-                );
-              },
-            );
-          },
+        child: PangolinHeader(
+          title: _friendDisplayName,
+          onTap: _navigateToProfile,
+          onBack: () => Navigator.of(context).maybePop(),
+          actions: [
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.moreHoriz),
+              tooltip: 'Remove connection',
+              onPressed: _removeConnection,
+            ),
+          ],
+          bodyBuilder: (context, topInset) => _buildBoard(topInset),
         ),
       ),
       bottomNavigationBar: _BottomBar(
@@ -535,6 +493,69 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         onUpload: _uploadImage,
         onAddText: _addText,
       ),
+    );
+  }
+
+  Widget _buildBoard(double topInset) {
+    return ValueListenableBuilder<Map<int, SharedElement>>(
+      valueListenable: _elements,
+      builder: (context, elements, _) {
+        final items = elements.values.toList();
+        final pendingBytes = _pendingImageBytes;
+
+        if (_loading && items.isEmpty) {
+          return const Center(child: RollingSpinner());
+        }
+
+        if (items.isEmpty && pendingBytes == null) {
+          return LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Nothing shared yet'),
+                      const SizedBox(height: 24),
+                      PangolinBanner(assets: _pangolinAssets),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final footerIndex = items.length + (pendingBytes != null ? 1 : 0);
+
+        return ListView.separated(
+          padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
+          itemCount: footerIndex + 1,
+          separatorBuilder: (_, _) => const SizedBox(height: 36),
+          itemBuilder: (context, index) {
+            if (index == footerIndex) {
+              return PangolinBanner(assets: _pangolinAssets);
+            }
+
+            if (pendingBytes != null && index == items.length) {
+              return _UploadingImageTile(bytes: pendingBytes);
+            }
+
+            final element = items[index];
+            return SharedElementTile(
+              element: element,
+              userId: _userId,
+              friendName: _friendDisplayName,
+              onTap: () {
+                _log(ButtonIds.sharedBoardElement);
+                _openChat(element.id);
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

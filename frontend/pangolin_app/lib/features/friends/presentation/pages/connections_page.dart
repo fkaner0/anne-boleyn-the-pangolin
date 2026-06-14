@@ -18,6 +18,10 @@ import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 class ConnectionsPage extends ConsumerStatefulWidget {
@@ -48,12 +52,21 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   String? _error;
   CurrentFriends? _data;
 
+  final PangolinMascotController _mascot = PangolinMascotController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
+
   @override
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
     _load();
     listenToBoardNotifications(_boardService, _userId, _load);
+  }
+
+  @override
+  void dispose() {
+    _mascot.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -117,11 +130,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Connections'),
-        automaticallyImplyLeading: false,
-      ),
-      bottomNavigationBar: IslandNavBar(
+      bottomNavigationBar: PangolinNavBar(
+        mascotController: _mascot,
         current: IslandNavTab.friends,
         onEditProfile: () {
           _log(ButtonIds.connectionsEditProfile);
@@ -135,13 +145,22 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
           _log(ButtonIds.connectionsFriends);
         },
       ),
-      body: SafeArea(child: _buildBody()),
+      body: SafeArea(
+        child: PangolinHeader(
+          title: 'Connections',
+          bodyBuilder: (context, topInset) =>
+              NotificationListener<ScrollNotification>(
+                onNotification: _mascot.handleScrollNotification,
+                child: _buildBody(topInset),
+              ),
+        ),
+      ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(double topInset) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: RollingSpinner());
     }
     if (_error != null) {
       return Center(child: Text(_error!));
@@ -149,38 +168,52 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
     final data = _data!;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: _PendingConnectionsButton(
-            count: data.pendingCount,
-            onTap: _openPending,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 8),
+          sliver: SliverToBoxAdapter(
+            child: _PendingConnectionsButton(
+              count: data.pendingCount,
+              onTap: _openPending,
+            ),
           ),
         ),
-        Expanded(
-          child: data.friends.isEmpty
-              ? const Center(child: Text('No connections yet'))
-              : GridView.count(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.82,
-                  padding: const EdgeInsets.all(16),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  children: [
-                    for (final (index, friend) in data.friends.indexed)
-                      ConnectionCard(
-                        friend: friend,
-                        variant: index % SplodgeClipper.variantCount,
-                        onTap: () {
-                          _log(ButtonIds.connectionsList);
-                          _openBoard(friend.friendUserId, friend.name);
-                        },
-                      ),
-                  ],
-                ),
-        ),
+        if (data.friends.isEmpty)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: Text('No connections yet')),
+          )
+        else ...[
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.82,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final friend = data.friends[index];
+                return ConnectionCard(
+                  friend: friend,
+                  variant: index % SplodgeClipper.variantCount,
+                  onTap: () {
+                    _log(ButtonIds.connectionsList);
+                    _openBoard(friend.friendUserId, friend.name);
+                  },
+                );
+              }, childCount: data.friends.length),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: PangolinBanner(assets: _pangolinAssets),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -199,8 +232,16 @@ class _PendingConnectionsButton extends StatelessWidget {
         ? '1 pending connection'
         : '$count pending connections';
 
+    final empty = count == 0;
+    final background = empty
+        ? Colors.grey.shade300
+        : colorScheme.primaryContainer;
+    final foreground = empty
+        ? Colors.grey.shade700
+        : colorScheme.onPrimaryContainer;
+
     return Material(
-      color: colorScheme.primaryContainer,
+      color: background,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -209,24 +250,18 @@ class _PendingConnectionsButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              AppIcon(
-                AppIconType.peopleAlt,
-                color: colorScheme.onPrimaryContainer,
-              ),
+              AppIcon(AppIconType.peopleAlt, color: foreground),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
+                    color: foreground,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              AppIcon(
-                AppIconType.chevronRight,
-                color: colorScheme.onPrimaryContainer,
-              ),
+              AppIcon(AppIconType.chevronRight, color: foreground),
             ],
           ),
         ),

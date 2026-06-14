@@ -105,6 +105,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final size = MediaQuery.sizeOf(context);
 
     return Scaffold(
       body: SafeArea(
@@ -116,10 +117,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Welcome to PangoPal',
+                  'Welcome to PangoPal!',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.headlineSmall?.copyWith(
+                  style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Center(
+                  child: Image.asset(
+                    'assets/guys/painting.PNG',
+                    height: size.height * 0.4,
                   ),
                 ),
                 const SizedBox(height: 8),
