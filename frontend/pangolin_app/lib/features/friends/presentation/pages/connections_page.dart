@@ -232,8 +232,16 @@ class _PendingConnectionsButton extends StatelessWidget {
         ? '1 pending connection'
         : '$count pending connections';
 
+    final empty = count == 0;
+    final background = empty
+        ? Colors.grey.shade300
+        : colorScheme.primaryContainer;
+    final foreground = empty
+        ? Colors.grey.shade700
+        : colorScheme.onPrimaryContainer;
+
     return Material(
-      color: colorScheme.primaryContainer,
+      color: background,
       borderRadius: BorderRadius.circular(16),
       child: InkWell(
         onTap: onTap,
@@ -242,24 +250,18 @@ class _PendingConnectionsButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              AppIcon(
-                AppIconType.peopleAlt,
-                color: colorScheme.onPrimaryContainer,
-              ),
+              AppIcon(AppIconType.peopleAlt, color: foreground),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
                   style: TextStyle(
-                    color: colorScheme.onPrimaryContainer,
+                    color: foreground,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
-              AppIcon(
-                AppIconType.chevronRight,
-                color: colorScheme.onPrimaryContainer,
-              ),
+              AppIcon(AppIconType.chevronRight, color: foreground),
             ],
           ),
         ),
