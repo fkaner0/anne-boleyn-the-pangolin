@@ -288,14 +288,37 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
         title: _interacting ? _binDeleteIcon(colorScheme) : null,
         centerTitle: true,
-        leading: _backButton(),
+        leading: _preview
+            ? null
+            : IconButton.filledTonal(
+                icon: const AppIcon(AppIconType.back),
+                tooltip: 'Back',
+                onPressed:
+                    widget.onBack ?? () => Navigator.of(context).maybePop(),
+              ),
         actions: [
-          ..._toolActions(),
-          FilledButton(
-            onPressed: _saving ? null : _onSavePressed,
-            child: const Text('Next'),
+          Visibility(
+            visible: !_preview,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: _backgroundColourButton(),
+          ),
+          const SizedBox(width: 8),
+          _previewButton(faded: _preview),
+          const SizedBox(width: 8),
+          Visibility(
+            visible: !_preview,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: FilledButton(
+              onPressed: _saving ? null : _onSavePressed,
+              child: const Text('Next'),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -375,7 +398,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
                                   ),
                                 ),
                         ),
-                        ..._toolActions(),
+                        _backgroundColourButton(),
+                        const SizedBox(width: 8),
+                        _previewButton(),
+                        const SizedBox(width: 8),
                         IconButton.filledTonal(
                           icon: const AppIcon(AppIconType.save),
                           tooltip: 'Save',
@@ -403,20 +429,20 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
   );
 
-  List<Widget> _toolActions() => [
-    IconButton.filledTonal(
-      icon: const AppIcon(AppIconType.textBackground),
-      tooltip: 'Background colour',
-      onPressed: _showBackgroundColourPicker,
-    ),
-    const SizedBox(width: 8),
-    IconButton.filledTonal(
-      icon: const AppIcon(AppIconType.preview),
+  Widget _backgroundColourButton() => IconButton.filledTonal(
+    icon: const AppIcon(AppIconType.textBackground),
+    tooltip: 'Background colour',
+    onPressed: _showBackgroundColourPicker,
+  );
+
+  Widget _previewButton({bool faded = false}) => Opacity(
+    opacity: faded ? 0.4 : 1.0,
+    child: IconButton.filledTonal(
+      icon: const AppIcon(AppIconType.preview, color: Color(0xFFFEF9F2)),
       tooltip: _preview ? 'Hide Preview' : 'Preview',
       onPressed: _togglePreview,
     ),
-    const SizedBox(width: 8),
-  ];
+  );
 
   Widget _buildCanvasBody() {
     return Stack(

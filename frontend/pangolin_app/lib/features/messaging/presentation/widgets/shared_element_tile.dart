@@ -72,13 +72,26 @@ class SharedElementTile extends StatelessWidget {
                   horizontal: 14,
                   vertical: 10,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    for (final (index, reply) in recent.indexed) ...[
-                      if (index > 0) const SizedBox(height: 6),
-                      _message(context, reply),
-                    ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final (index, reply) in recent.indexed) ...[
+                          if (index > 0) const SizedBox(height: 6),
+                          _message(context, reply),
+                        ],
+                      ],
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: AppIcon(
+                        AppIconType.reply,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
