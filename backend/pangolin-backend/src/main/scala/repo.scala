@@ -426,27 +426,28 @@ object repo {
   }
 
   private def recommendationsQuery(userId: Int): Query[Profile] = {
-    val profile = Profile.Table.alias("profile")
-    val hobbyinfo1 = UserHobbyInfo.Table.alias("hobbyinfo1")
-    val desiredUsersHobbyInfo = UserHobbyInfo.Table.alias("hobbyinfo2")
+    val theirprofile = Profile.Table.alias("p1")
+    val theirhobby = UserHobbyInfo.Table.alias("h1")
+    val myhobby = UserHobbyInfo.Table.alias("h2")
     val sharedBoard = SharedBoard.Table.alias("sharedBoard")
     
     sql"""
-      SELECT *
-      FROM $profile
-      LEFT JOIN $hobbyinfo1 ON (${hobbyinfo1.accountId} = ${profile.accountId})
-      WHERE (${hobbyinfo1.hobby}) IN (
-        SELECT ${desiredUsersHobbyInfo.hobby}
-        FROM $desiredUsersHobbyInfo
-        WHERE ${desiredUsersHobbyInfo.accountId} = $userId
-      )
-      AND (${profile.accountId} <> $userId)
+      SELECT ${theirprofile.all} FROM $theirprofile
+      INNER JOIN $theirhobby ON (${theirhobby.accountId} = p1.accountid)
+      INNER JOIN $myhobby ON (${myhobby.accountId} = $userId)
+      WHERE
+        (${theirhobby.hobby} = ${myhobby.hobby})
+      AND
+        (${theirhobby.accountId} <> ${myhobby.accountId})
       AND NOT EXISTS (
         SELECT *
-        FROM $sharedBoard
-        WHERE ${sharedBoard.user1Id} = $userId AND ${sharedBoard.user2Id} = ${profile.accountId}
-        OR ${sharedBoard.user1Id} = ${profile.accountId} AND ${sharedBoard.user2Id} = $userId
+        FROM sharedBoard
+        WHERE
+          (sharedBoard.user1Id = ${theirhobby.accountId} AND sharedBoard.user2Id = ${myhobby.accountId})
+        OR
+          (sharedBoard.user1Id = ${myhobby.accountId} AND sharedBoard.user2Id = ${theirhobby.accountId}) 
       )
+      ORDER BY ABS(${theirhobby.passionLevel} - ${myhobby.passionLevel})
     """.query[Profile]
   }
 
