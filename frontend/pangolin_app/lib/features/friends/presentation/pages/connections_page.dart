@@ -17,6 +17,7 @@ import 'package:pangolin_app/features/messaging/presentation/board_notifications
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -40,7 +41,9 @@ class ConnectionsPage extends ConsumerStatefulWidget {
 }
 
 class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
-    with BoardNotificationsListener<ConnectionsPage> {
+    with
+        BoardNotificationsListener<ConnectionsPage>,
+        GuysPreloader<ConnectionsPage> {
   late final FriendsFetcher _friendsFetcher =
       widget.friendsFetcher ?? getIt<FriendsFetcher>();
   late final SharedBoardService _boardService =
@@ -48,13 +51,14 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   late final int _userId;
 
   bool _loading = true;
-  bool _guysReady = false;
-  bool _precacheStarted = false;
   String? _error;
   CurrentFriends? _data;
 
   final PangolinMascotController _mascot = PangolinMascotController();
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
+
+  @override
+  List<String> get guysAssets => _pangolinAssets;
 
   @override
   void initState() {
@@ -67,11 +71,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_precacheStarted) return;
-    _precacheStarted = true;
-    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
-      if (mounted) setState(() => _guysReady = true);
-    });
+    preloadGuys();
   }
 
   @override
@@ -157,23 +157,20 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         },
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const PangolinHeader(title: 'Connections'),
-            Expanded(
-              child: NotificationListener<ScrollNotification>(
+        child: PangolinHeader(
+          title: 'Connections',
+          bodyBuilder: (context, topInset) =>
+              NotificationListener<ScrollNotification>(
                 onNotification: _mascot.handleScrollNotification,
-                child: _buildBody(),
+                child: _buildBody(topInset),
               ),
-            ),
-          ],
         ),
       ),
     );
   }
 
-  Widget _buildBody() {
-    if (_loading || !_guysReady) {
+  Widget _buildBody(double topInset) {
+    if (_loading || !guysReady) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_error != null) {
@@ -182,53 +179,52 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
 
     final data = _data!;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: _PendingConnectionsButton(
-            count: data.pendingCount,
-            onTap: _openPending,
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 8),
+          sliver: SliverToBoxAdapter(
+            child: _PendingConnectionsButton(
+              count: data.pendingCount,
+              onTap: _openPending,
+            ),
           ),
         ),
-        Expanded(
-          child: data.friends.isEmpty
-              ? const Center(child: Text('No connections yet'))
-              : CustomScrollView(
-                  slivers: [
-                    SliverPadding(
-                      padding: const EdgeInsets.all(16),
-                      sliver: SliverGrid(
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              childAspectRatio: 0.82,
-                              mainAxisSpacing: 16,
-                              crossAxisSpacing: 16,
-                            ),
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final friend = data.friends[index];
-                          return ConnectionCard(
-                            friend: friend,
-                            variant: index % SplodgeClipper.variantCount,
-                            onTap: () {
-                              _log(ButtonIds.connectionsList);
-                              _openBoard(friend.friendUserId, friend.name);
-                            },
-                          );
-                        }, childCount: data.friends.length),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                        child: PangolinBanner(assets: _pangolinAssets),
-                      ),
-                    ),
-                  ],
-                ),
-        ),
+        if (data.friends.isEmpty)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: Text('No connections yet')),
+          )
+        else ...[
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.82,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final friend = data.friends[index];
+                return ConnectionCard(
+                  friend: friend,
+                  variant: index % SplodgeClipper.variantCount,
+                  onTap: () {
+                    _log(ButtonIds.connectionsList);
+                    _openBoard(friend.friendUserId, friend.name);
+                  },
+                );
+              }, childCount: data.friends.length),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+              child: PangolinBanner(assets: _pangolinAssets),
+            ),
+          ),
+        ],
       ],
     );
   }

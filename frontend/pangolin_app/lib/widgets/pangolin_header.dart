@@ -1,50 +1,65 @@
 import 'package:flutter/material.dart';
 
-class PangolinHeader extends StatelessWidget {
-  static const String _bannerAsset = 'assets/icons/header/header.png';
-  static const double _bannerAspectRatio = 2557 / 476;
+import 'package:pangolin_app/widgets/header_banner.dart';
 
-  static double bannerHeightFor(BuildContext context) =>
-      MediaQuery.sizeOf(context).width / _bannerAspectRatio;
+class PangolinHeader extends StatelessWidget {
+  static const double _actionRowExtent = 56;
 
   final String title;
   final VoidCallback? onTap;
+  final Widget? leading;
   final List<Widget> actions;
+  final bool floatActionsOverBody;
+  final Widget Function(BuildContext context, double topInset) bodyBuilder;
 
   const PangolinHeader({
     super.key,
     required this.title,
     this.onTap,
+    this.leading,
     this.actions = const [],
+    this.floatActionsOverBody = false,
+    required this.bodyBuilder,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final bannerHeight = HeaderBanner.heightFor(context);
+    final hasButtons = leading != null || actions.isNotEmpty;
+    final topInset =
+        bannerHeight +
+        (hasButtons && !floatActionsOverBody ? _actionRowExtent : 0);
 
     Widget banner = SizedBox(
-      height: bannerHeightFor(context),
+      height: bannerHeight,
       width: double.infinity,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(_bannerAsset, fit: BoxFit.fitWidth),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Center(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        maxHeight: double.infinity,
+        child: HeaderBanner(
+          overlay: Positioned(
+            top: -6,
+            left: 0,
+            right: 0,
+            height: bannerHeight,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
 
@@ -56,19 +71,17 @@ class PangolinHeader extends StatelessWidget {
       );
     }
 
-    if (actions.isEmpty) return banner;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Stack(
       children: [
-        banner,
-        Padding(
-          padding: const EdgeInsets.only(top: 8, right: 16),
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+        Positioned.fill(child: bodyBuilder(context, topInset)),
+        Positioned(top: 0, left: 0, right: 0, child: banner),
+        if (hasButtons)
+          Positioned(
+            top: bannerHeight,
+            left: 16,
+            right: 16,
+            child: Row(children: [?leading, const Spacer(), ...actions]),
           ),
-        ),
       ],
     );
   }

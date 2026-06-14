@@ -148,6 +148,7 @@ void main() {
       updater: _CapturingProfileUpdater(),
     );
 
+    await tester.ensureVisible(find.byIcon(Icons.edit));
     await tester.tap(find.byIcon(Icons.edit));
     await tester.pumpAndSettle();
 

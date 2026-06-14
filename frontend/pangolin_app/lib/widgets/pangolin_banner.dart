@@ -6,7 +6,6 @@ import 'package:pangolin_app/widgets/pangolin_mascot.dart';
 
 class PangolinBanner extends StatelessWidget {
   static const List<String> _pool = [
-    'assets/guys/drp_flag.PNG',
     'assets/guys/knitting.PNG',
     'assets/guys/pottery.PNG',
     'assets/guys/painting.PNG',
@@ -18,12 +17,10 @@ class PangolinBanner extends StatelessWidget {
   static List<String> randomTrio() =>
       (List<String>.of(_pool)..shuffle(_random)).take(3).toList();
 
-  static Future<void> precache(
-    BuildContext context,
-    List<String> assets,
-  ) async {
-    await Future.wait([
-      for (final asset in assets) precacheImage(AssetImage(asset), context),
+  static Future<void> precache(BuildContext context, List<String> assets) {
+    return Future.wait([
+      for (final asset in assets)
+        precacheImage(AssetImage(asset), context).catchError((Object _) {}),
     ]);
   }
 

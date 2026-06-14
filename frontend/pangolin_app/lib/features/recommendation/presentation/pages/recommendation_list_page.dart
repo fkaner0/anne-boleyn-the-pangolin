@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/logging/button_ids.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
+import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -35,11 +36,9 @@ class RecommendationListPage extends ConsumerStatefulWidget {
       _RecommendationListPageState();
 }
 
-class _RecommendationListPageState
-    extends ConsumerState<RecommendationListPage> {
+class _RecommendationListPageState extends ConsumerState<RecommendationListPage>
+    with GuysPreloader<RecommendationListPage> {
   bool _isLoading = true;
-  bool _guysReady = false;
-  bool _precacheStarted = false;
   String? _errorMessage;
   List<Recommendation> _recommendations = [];
 
@@ -50,6 +49,9 @@ class _RecommendationListPageState
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
+  List<String> get guysAssets => _pangolinAssets;
+
+  @override
   void initState() {
     super.initState();
     _loadRecommendations();
@@ -58,11 +60,7 @@ class _RecommendationListPageState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_precacheStarted) return;
-    _precacheStarted = true;
-    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
-      if (mounted) setState(() => _guysReady = true);
-    });
+    preloadGuys();
   }
 
   @override
@@ -120,15 +118,14 @@ class _RecommendationListPageState
         },
       ),
       body: SafeArea(
-        child: Column(
-          children: [
-            const PangolinHeader(title: 'Your recommendations'),
-            Expanded(
-              child: NotificationListener<ScrollNotification>(
+        child: PangolinHeader(
+          title: 'Your recommendations',
+          bodyBuilder: (context, topInset) =>
+              NotificationListener<ScrollNotification>(
                 onNotification: _mascot.handleScrollNotification,
                 child: Builder(
                   builder: (context) {
-                    if (_isLoading || !_guysReady) {
+                    if (_isLoading || !guysReady) {
                       return const Center(child: CircularProgressIndicator());
                     }
 
@@ -143,7 +140,7 @@ class _RecommendationListPageState
                     }
 
                     return ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: EdgeInsets.fromLTRB(16, topInset + 16, 16, 16),
                       itemCount: _recommendations.length + 1,
                       itemBuilder: (context, index) {
                         if (index == _recommendations.length) {
@@ -170,8 +167,6 @@ class _RecommendationListPageState
                   },
                 ),
               ),
-            ),
-          ],
         ),
       ),
     );

@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:pangolin_app/widgets/header_banner.dart';
+
 class ProfileSetupHeader extends StatelessWidget {
-  static const String _bannerAsset = 'assets/icons/header/header.png';
-  static const double _bannerAspectRatio = 2557 / 476;
-  static const double clipStartOffset = -30;
-  static const double _bannerShift = 30;
   static const double _progressTopFraction = 0.02;
   static const double _progressHeightFraction = 0.50;
 
   static double heightFor(BuildContext context) =>
-      MediaQuery.sizeOf(context).width / _bannerAspectRatio + clipStartOffset;
+      HeaderBanner.heightFor(context);
 
   final int currentStep;
   final List<String> steps;
@@ -23,37 +21,27 @@ class ProfileSetupHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    final bannerHeight = size.width / _bannerAspectRatio;
+    final bannerHeight = size.width / HeaderBanner.aspectRatio;
     final barHeight = bannerHeight * _progressHeightFraction;
 
-    return Stack(
-      children: [
-        Transform.translate(
-          offset: const Offset(0, -_bannerShift),
-          child: Image.asset(
-            _bannerAsset,
-            width: double.infinity,
-            fit: BoxFit.fitWidth,
-          ),
-        ),
-        Positioned(
-          top: bannerHeight * _progressTopFraction,
-          left: 0,
-          right: 0,
-          height: barHeight,
-          child: Center(
-            child: SizedBox(
-              width: size.width * 0.66,
-              child: _ProgressBubbles(
-                currentStep: currentStep,
-                steps: steps,
-                ballSize: (barHeight * 0.6).clamp(14.0, 64.0),
-                labelFontSize: (barHeight * 0.18).clamp(8.0, 16.0),
-              ),
+    return HeaderBanner(
+      overlay: Positioned(
+        top: bannerHeight * _progressTopFraction,
+        left: 0,
+        right: 0,
+        height: barHeight,
+        child: Center(
+          child: SizedBox(
+            width: size.width * 0.66,
+            child: _ProgressBubbles(
+              currentStep: currentStep,
+              steps: steps,
+              ballSize: (barHeight * 0.6).clamp(14.0, 64.0),
+              labelFontSize: (barHeight * 0.18).clamp(8.0, 16.0),
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

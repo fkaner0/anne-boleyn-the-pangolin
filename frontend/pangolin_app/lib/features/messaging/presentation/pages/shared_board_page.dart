@@ -19,6 +19,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
 
@@ -49,7 +50,9 @@ class SharedBoardPage extends ConsumerStatefulWidget {
 }
 
 class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
-    with BoardNotificationsListener<SharedBoardPage> {
+    with
+        BoardNotificationsListener<SharedBoardPage>,
+        GuysPreloader<SharedBoardPage> {
   late final SharedBoardService _service =
       widget.service ?? getIt<SharedBoardService>();
   late final ImageFilePicker _imagePicker =
@@ -78,19 +81,16 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
 
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   bool _loading = true;
-  bool _guysReady = false;
-  bool _precacheStarted = false;
   bool _uploading = false;
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
+  List<String> get guysAssets => _pangolinAssets;
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_precacheStarted) return;
-    _precacheStarted = true;
-    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
-      if (mounted) setState(() => _guysReady = true);
-    });
+    preloadGuys();
   }
 
   @override
@@ -447,21 +447,22 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            PangolinHeader(
-              title: _friendDisplayName,
-              onTap: _navigateToProfile,
-              actions: [
-                IconButton.filledTonal(
-                  icon: const AppIcon(AppIconType.personRemove),
-                  tooltip: 'Remove connection',
-                  onPressed: _removeConnection,
-                ),
-              ],
+        child: PangolinHeader(
+          title: _friendDisplayName,
+          onTap: _navigateToProfile,
+          leading: IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.back),
+            tooltip: 'Back',
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+          actions: [
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.personRemove),
+              tooltip: 'Remove connection',
+              onPressed: _removeConnection,
             ),
-            Expanded(child: _buildBoard()),
           ],
+          bodyBuilder: (context, topInset) => _buildBoard(topInset),
         ),
       ),
       bottomNavigationBar: _BottomBar(
@@ -473,32 +474,39 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     );
   }
 
-  Widget _buildBoard() {
+  Widget _buildBoard(double topInset) {
     return ValueListenableBuilder<Map<int, SharedElement>>(
       valueListenable: _elements,
       builder: (context, elements, _) {
         final items = elements.values.toList();
 
-        if ((_loading || !_guysReady) && items.isEmpty) {
+        if ((_loading || !guysReady) && items.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (items.isEmpty) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('Nothing shared yet'),
-                const SizedBox(height: 24),
-                PangolinBanner(assets: _pangolinAssets),
-              ],
+          return LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Nothing shared yet'),
+                      const SizedBox(height: 24),
+                      PangolinBanner(assets: _pangolinAssets),
+                    ],
+                  ),
+                ),
+              ),
             ),
           );
         }
 
         return ListView.separated(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+          padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
           itemCount: items.length + 1,
           separatorBuilder: (_, _) => const SizedBox(height: 36),
           itemBuilder: (context, index) {

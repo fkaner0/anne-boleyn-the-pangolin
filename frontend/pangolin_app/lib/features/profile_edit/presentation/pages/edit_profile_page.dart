@@ -24,6 +24,7 @@ import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/guys_preloader.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
@@ -54,7 +55,8 @@ class EditProfilePage extends ConsumerStatefulWidget {
   ConsumerState<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends ConsumerState<EditProfilePage> {
+class _EditProfilePageState extends ConsumerState<EditProfilePage>
+    with GuysPreloader<EditProfilePage> {
   late final ProfileFetcher _profileFetcher =
       widget.profileFetcher ?? getIt<ProfileFetcher>();
   late final ProfileUpdater _profileUpdater =
@@ -70,8 +72,6 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   final _bioController = TextEditingController();
 
   bool _loading = true;
-  bool _guysReady = false;
-  bool _precacheStarted = false;
   String? _loadError;
   bool _saving = false;
   bool _uploadingImage = false;
@@ -87,6 +87,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
+  List<String> get guysAssets => _pangolinAssets;
+
+  @override
   void initState() {
     super.initState();
     final int userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
@@ -96,11 +99,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_precacheStarted) return;
-    _precacheStarted = true;
-    PangolinBanner.precache(context, _pangolinAssets).whenComplete(() {
-      if (mounted) setState(() => _guysReady = true);
-    });
+    preloadGuys();
   }
 
   @override
@@ -268,7 +267,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
             PangolinHeader(
               title: 'Edit Profile',
@@ -279,14 +278,19 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
                   onPressed: _loading || _saving ? null : _save,
                 ),
               ],
+              bodyBuilder: (context, topInset) =>
+                  NotificationListener<ScrollNotification>(
+                    onNotification: _mascot.handleScrollNotification,
+                    child: _buildBody(topInset),
+                  ),
             ),
-            if (_saving) const LinearProgressIndicator(minHeight: 4),
-            Expanded(
-              child: NotificationListener<ScrollNotification>(
-                onNotification: _mascot.handleScrollNotification,
-                child: _buildBody(),
+            if (_saving)
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: LinearProgressIndicator(minHeight: 4),
               ),
-            ),
           ],
         ),
       ),
@@ -300,8 +304,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
-  Widget _buildBody() {
-    if (_loading || !_guysReady) {
+  Widget _buildBody(double topInset) {
+    if (_loading || !guysReady) {
       return const Center(child: CircularProgressIndicator());
     }
     if (_loadError != null) {
@@ -309,7 +313,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

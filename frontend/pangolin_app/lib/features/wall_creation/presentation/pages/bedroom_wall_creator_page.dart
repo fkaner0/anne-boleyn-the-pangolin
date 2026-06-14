@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
+import 'package:pangolin_app/widgets/header_banner.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
@@ -268,138 +269,223 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(top: widget.topInset),
-      child: Scaffold(
-        resizeToAvoidBottomInset: false,
-        extendBodyBehindAppBar: widget.primaryActionAsNext,
-        appBar: AppBar(
-          backgroundColor: _dragOverBin
-              ? Theme.of(context).colorScheme.errorContainer
-              : (widget.primaryActionAsNext ? Colors.transparent : null),
-          elevation: widget.primaryActionAsNext ? 0 : null,
-          scrolledUnderElevation: widget.primaryActionAsNext ? 0 : null,
-          surfaceTintColor: widget.primaryActionAsNext
-              ? Colors.transparent
-              : null,
-          title: _interacting
-              ? AppIcon(
-                  AppIconType.delete,
-                  size: _dragOverBin ? 32 : 26,
-                  color: _dragOverBin
-                      ? Theme.of(context).colorScheme.error
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                )
-              : widget.primaryActionAsNext
-              ? null
-              : const Text('Create your wall'),
-          centerTitle: true,
-          leading: IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.back),
-            tooltip: 'Back',
-            onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+      child: widget.primaryActionAsNext
+          ? _buildSetupScaffold(context)
+          : _buildStandaloneScaffold(context),
+    );
+  }
+
+  Widget _buildSetupScaffold(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        backgroundColor: _dragOverBin
+            ? colorScheme.errorContainer
+            : Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        title: _interacting ? _binDeleteIcon(colorScheme) : null,
+        centerTitle: true,
+        leading: _backButton(),
+        actions: [
+          ..._toolActions(),
+          FilledButton(
+            onPressed: _saving ? null : _onSavePressed,
+            child: const Text('Next'),
           ),
-          actions: [
-            IconButton.filledTonal(
-              icon: const AppIcon(AppIconType.textBackground),
-              tooltip: 'Background colour',
-              onPressed: _showBackgroundColourPicker,
-            ),
-            const SizedBox(width: 8),
-            IconButton.filledTonal(
-              icon: const AppIcon(AppIconType.preview),
-              tooltip: _preview ? 'Hide Preview' : 'Preview',
-              onPressed: _togglePreview,
-            ),
-            const SizedBox(width: 8),
-            if (widget.primaryActionAsNext)
-              FilledButton(
-                onPressed: _saving ? null : _onSavePressed,
-                child: const Text('Next'),
+          const SizedBox(width: 8),
+        ],
+        bottom: _saving
+            ? const PreferredSize(
+                preferredSize: Size.fromHeight(4),
+                child: LinearProgressIndicator(minHeight: 4),
               )
-            else
+            : null,
+      ),
+      body: SafeArea(top: false, child: _buildCanvasBody()),
+    );
+  }
+
+  Widget _buildStandaloneScaffold(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildBannerHeader(context),
+            if (_saving) const LinearProgressIndicator(minHeight: 4),
+            Expanded(child: _buildCanvasBody()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannerHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final height = HeaderBanner.heightFor(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: height,
+          width: double.infinity,
+          child: OverflowBox(
+            alignment: Alignment.topCenter,
+            maxHeight: double.infinity,
+            child: HeaderBanner(
+              overlay: Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: height,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (_dragOverBin)
+                      ColoredBox(
+                        color: colorScheme.errorContainer.withValues(
+                          alpha: 0.85,
+                        ),
+                      ),
+                    Center(
+                      child: _interacting
+                          ? _binDeleteIcon(colorScheme)
+                          : Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: Text(
+                                'Create your wall',
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
+          child: Row(
+            children: [
+              _backButton(),
+              const Spacer(),
+              ..._toolActions(),
               IconButton.filledTonal(
                 icon: const AppIcon(AppIconType.save),
                 tooltip: 'Save',
                 onPressed: _saving ? null : _onSavePressed,
               ),
-            const SizedBox(width: 8),
-          ],
-          bottom: _saving
-              ? const PreferredSize(
-                  preferredSize: Size.fromHeight(4),
-                  child: LinearProgressIndicator(minHeight: 4),
-                )
-              : null,
-        ),
-        body: SafeArea(
-          top: !widget.primaryActionAsNext,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: BedroomWallViewport(
-                  viewportKey: _viewportKey,
-                  controller: _scrollController,
-                  child: BedroomWallCanvas(
-                    backgroundColor: _controller.backgroundColor,
-                    canvas: _controller.canvas,
-                    stickerCatalog: _controller.stickerCatalog,
-                    fontCatalog: _controller.fontCatalog,
-                    items: _controller.items,
-                    prompts: _preview ? const [] : _controller.prompts,
-                    onItemTransform: (id, transform) {
-                      setState(
-                        () => _controller.updateTransform(id, transform),
-                      );
-                    },
-                    onTextChanged: _controller.updateText,
-                    onFontChanged: (id, font) {
-                      setState(() => _controller.updateTextFont(id, font));
-                    },
-                    onTextColorChanged: (id, color) {
-                      setState(
-                        () => _controller.updateTextboxTextColor(id, color),
-                      );
-                    },
-                    onTextBackgroundColorChanged: (id, color) {
-                      setState(
-                        () =>
-                            _controller.updateTextboxBackgroundColor(id, color),
-                      );
-                    },
-                    onPromptAddImage: _addImageFromPrompt,
-                    onPromptAddTextBox: _addTextBoxFromPrompt,
-                    onItemInteractionChanged: _onItemInteractionChanged,
-                    onItemDragUpdate: _onItemDragUpdate,
-                    editable: !_preview,
-                  ),
-                ),
-              ),
-              if (!_preview)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 16,
-                  child: IgnorePointer(
-                    ignoring: _interacting,
-                    child: AnimatedOpacity(
-                      opacity: _interacting ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 200),
-                      child: Column(
-                        children: [
-                          PromptGenerator(onCreate: _addTextBoxWithText),
-                          CreatorToolBar(
-                            onAddTextBox: _addTextBox,
-                            onAddImage: _addImage,
-                            onAddSticker: _addSticker,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _binDeleteIcon(ColorScheme colorScheme) => AppIcon(
+    AppIconType.delete,
+    size: _dragOverBin ? 32 : 26,
+    color: _dragOverBin ? colorScheme.error : colorScheme.onSurfaceVariant,
+  );
+
+  Widget _backButton() => IconButton.filledTonal(
+    icon: const AppIcon(AppIconType.back),
+    tooltip: 'Back',
+    onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+  );
+
+  List<Widget> _toolActions() => [
+    IconButton.filledTonal(
+      icon: const AppIcon(AppIconType.textBackground),
+      tooltip: 'Background colour',
+      onPressed: _showBackgroundColourPicker,
+    ),
+    const SizedBox(width: 8),
+    IconButton.filledTonal(
+      icon: const AppIcon(AppIconType.preview),
+      tooltip: _preview ? 'Hide Preview' : 'Preview',
+      onPressed: _togglePreview,
+    ),
+    const SizedBox(width: 8),
+  ];
+
+  Widget _buildCanvasBody() {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: BedroomWallViewport(
+            viewportKey: _viewportKey,
+            controller: _scrollController,
+            child: BedroomWallCanvas(
+              backgroundColor: _controller.backgroundColor,
+              canvas: _controller.canvas,
+              stickerCatalog: _controller.stickerCatalog,
+              fontCatalog: _controller.fontCatalog,
+              items: _controller.items,
+              prompts: _preview ? const [] : _controller.prompts,
+              onItemTransform: (id, transform) {
+                setState(() => _controller.updateTransform(id, transform));
+              },
+              onTextChanged: _controller.updateText,
+              onFontChanged: (id, font) {
+                setState(() => _controller.updateTextFont(id, font));
+              },
+              onTextColorChanged: (id, color) {
+                setState(() => _controller.updateTextboxTextColor(id, color));
+              },
+              onTextBackgroundColorChanged: (id, color) {
+                setState(
+                  () => _controller.updateTextboxBackgroundColor(id, color),
+                );
+              },
+              onPromptAddImage: _addImageFromPrompt,
+              onPromptAddTextBox: _addTextBoxFromPrompt,
+              onItemInteractionChanged: _onItemInteractionChanged,
+              onItemDragUpdate: _onItemDragUpdate,
+              editable: !_preview,
+            ),
+          ),
+        ),
+        if (!_preview)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: IgnorePointer(
+              ignoring: _interacting,
+              child: AnimatedOpacity(
+                opacity: _interacting ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: Column(
+                  children: [
+                    PromptGenerator(onCreate: _addTextBoxWithText),
+                    CreatorToolBar(
+                      onAddTextBox: _addTextBox,
+                      onAddImage: _addImage,
+                      onAddSticker: _addSticker,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

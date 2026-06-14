@@ -62,20 +62,15 @@ class RecommendationProfilePage extends ConsumerWidget {
         if (snapshot.hasError) {
           return Scaffold(
             body: SafeArea(
-              child: Column(
-                children: [
-                  ProfileHeaderBar(
-                    name: 'Profile',
-                    location: 'Error',
-                    onBackPressed: () {
-                      _log(ButtonIds.bedroomWallBack, ref);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  Expanded(
-                    child: Center(child: Text('Error: ${snapshot.error}')),
-                  ),
-                ],
+              child: ProfileHeaderBar(
+                name: 'Profile',
+                location: 'Error',
+                onBackPressed: () {
+                  _log(ButtonIds.bedroomWallBack, ref);
+                  Navigator.of(context).pop();
+                },
+                bodyBuilder: (context, topInset) =>
+                    Center(child: Text('Error: ${snapshot.error}')),
               ),
             ),
           );
@@ -85,50 +80,48 @@ class RecommendationProfilePage extends ConsumerWidget {
 
         return Scaffold(
           body: SafeArea(
-            child: Column(
-              children: [
-                ProfileHeaderBar(
-                  name: profile.name,
-                  location: profile.location,
-                  onBackPressed: () {
-                    _log(ButtonIds.bedroomWallBack, ref);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                Expanded(
-                  child: BedroomWallViewport(
-                    child: BedroomWallView(
-                      profile: profile,
-                      stickerCatalog: stickerCatalog,
-                      fontCatalog: fontCatalog,
-                      onImageTap: (image) {
-                        _log(ButtonIds.bedroomWall, ref);
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => BedroomWallDetailPage(
-                              logger: logger,
-                              profile: profile,
-                              image: image,
-                            ),
+            child: ProfileHeaderBar(
+              name: profile.name,
+              location: profile.location,
+              floatActionsOverBody: true,
+              onBackPressed: () {
+                _log(ButtonIds.bedroomWallBack, ref);
+                Navigator.of(context).pop();
+              },
+              bodyBuilder: (context, topInset) => BedroomWallViewport(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topInset),
+                  child: BedroomWallView(
+                    profile: profile,
+                    stickerCatalog: stickerCatalog,
+                    fontCatalog: fontCatalog,
+                    onImageTap: (image) {
+                      _log(ButtonIds.bedroomWall, ref);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BedroomWallDetailPage(
+                            logger: logger,
+                            profile: profile,
+                            image: image,
                           ),
-                        );
-                      },
-                      onTextTap: (textbox) {
-                        _log(ButtonIds.bedroomWall, ref);
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => BedroomWallDetailPage(
-                              logger: logger,
-                              profile: profile,
-                              textbox: textbox,
-                            ),
+                        ),
+                      );
+                    },
+                    onTextTap: (textbox) {
+                      _log(ButtonIds.bedroomWall, ref);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BedroomWallDetailPage(
+                            logger: logger,
+                            profile: profile,
+                            textbox: textbox,
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );
