@@ -808,14 +808,18 @@ object repo {
   
   private def numberPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
+    val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
     SELECT COUNT(*)
     FROM $pending
     LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
-    WHERE ${pending.pendingForUser} = $userId
-      AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
+    WHERE (${pending.pendingForUser} = $userId)
+    AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
+    AND ${sharedBoard.id} NOT IN (
+      SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId
+    )
     """.query[Int].run()
     // the 'AND' at the end is redundant if we make sure the database stays consistent
     // (clearly some poor db design. sorry.)
