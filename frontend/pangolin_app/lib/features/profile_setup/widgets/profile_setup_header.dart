@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/widgets/header_banner.dart';
 
 class ProfileSetupHeader extends StatelessWidget {
-  static const double _progressTopFraction = 0.02;
-  static const double _progressHeightFraction = 0.50;
+  static const double _progressTopFraction = 0.05;
+  static const double _progressHeightFraction = 0.55;
 
   static double heightFor(BuildContext context) =>
       HeaderBanner.heightFor(context);

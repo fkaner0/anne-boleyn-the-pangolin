@@ -34,7 +34,7 @@ class PangolinHeader extends StatelessWidget {
         maxHeight: double.infinity,
         child: HeaderBanner(
           overlay: Positioned(
-            top: -6,
+            top: -10,
             left: onBack != null ? 8 : contentInset,
             right: 8,
             height: bannerHeight,
