@@ -816,10 +816,10 @@ object repo {
     FROM $pending
     LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
     WHERE (${pending.pendingForUser} = $userId)
-    AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
     AND ${sharedBoard.id} NOT IN (
       SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId
     )
+    AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
     """.query[Int].run()
     // the 'AND' at the end is redundant if we make sure the database stays consistent
     // (clearly some poor db design. sorry.)
