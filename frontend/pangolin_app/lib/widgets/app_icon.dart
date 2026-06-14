@@ -9,6 +9,7 @@ enum AppIconType {
   check,
   close,
   preview,
+  unpreview,
   brokenImage,
   refresh,
   addText,
@@ -54,7 +55,8 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png', svgAsset: 'assets/icons/icons-svg/send-filled.svg'),
   AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png', svgAsset: 'assets/icons/icons-svg/tick.svg'),
   AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png', svgAsset: 'assets/icons/icons-svg/cross.svg'),
-  AppIconType.preview: _IconSource(pngAsset: 'assets/icons/icons/preview.png', svgAsset: 'assets/icons/icons-svg/preview.svg'),
+  AppIconType.preview: _IconSource(svgAsset: 'assets/icons/icons-svg/preview4.svg'),
+  AppIconType.unpreview: _IconSource(svgAsset: 'assets/icons/icons-svg/preview4-2.svg'),
   AppIconType.brokenImage: _IconSource(
     pngAsset: 'assets/icons/icons/brokenimage.png',
     svgAsset: 'assets/icons/icons-svg/brokenimage.svg',
@@ -98,7 +100,7 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.personRemove: _IconSource(materialIcon: Icons.person_remove),
   AppIconType.sticker: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
-    svgAsset: 'assets/icons/wall_addition_icons-svg/addsticker.svg',
+    svgAsset: 'assets/icons/wall_addition_icons-svg/addsticker2.svg',
   ),
   AppIconType.lightbulb: _IconSource(
     pngAsset: 'assets/icons/icons/lightbulb.png',

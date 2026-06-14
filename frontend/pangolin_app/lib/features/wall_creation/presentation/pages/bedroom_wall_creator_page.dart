@@ -438,7 +438,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   Widget _previewButton({bool faded = false}) => Opacity(
     opacity: faded ? 0.4 : 1.0,
     child: IconButton.filledTonal(
-      icon: const AppIcon(AppIconType.preview, color: Color(0xFFFEF9F2)),
+      icon: faded ? AppIcon(AppIconType.unpreview) : AppIcon(AppIconType.preview),
       tooltip: _preview ? 'Hide Preview' : 'Preview',
       onPressed: _togglePreview,
     ),
