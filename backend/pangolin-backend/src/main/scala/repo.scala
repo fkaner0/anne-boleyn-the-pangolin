@@ -822,7 +822,7 @@ object repo {
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
-    SELEC COUNT(*)
+    SELECT COUNT(*)
     FROM $pending
     LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
     WHERE (${pending.pendingForUser} = $userId)
