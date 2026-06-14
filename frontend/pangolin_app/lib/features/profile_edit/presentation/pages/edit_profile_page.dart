@@ -261,6 +261,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           children: [
             PangolinHeader(
               title: 'Edit Profile',
+              contentInset: 24,
               actions: [
                 IconButton.filledTonal(
                   icon: const AppIcon(AppIconType.check),

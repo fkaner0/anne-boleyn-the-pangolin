@@ -9,7 +9,7 @@ class PangolinMascotController extends ChangeNotifier {
   static const Duration _sweatRecoverDelay = Duration(milliseconds: 1500);
   static const Duration _fallLingerDelay = Duration(milliseconds: 450);
   static const double _fallThreshold = 4;
-  static const double _sweatThreshold = 9;
+  static const double _sweatThreshold = 12;
   static const Duration _minDwell = Duration(milliseconds: 250);
 
   static const int _tierGentle = 0;

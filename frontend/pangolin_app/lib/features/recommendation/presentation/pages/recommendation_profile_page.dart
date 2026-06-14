@@ -82,7 +82,6 @@ class RecommendationProfilePage extends ConsumerWidget {
             child: ProfileHeaderBar(
               name: profile.name,
               location: profile.location,
-              floatActionsOverBody: true,
               onBackPressed: () {
                 _log(ButtonIds.bedroomWallBack, ref);
                 Navigator.of(context).pop();

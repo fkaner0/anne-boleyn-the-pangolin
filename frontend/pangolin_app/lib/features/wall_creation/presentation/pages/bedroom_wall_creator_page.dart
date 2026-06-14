@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
+import 'package:pangolin_app/widgets/header_back_button.dart';
 import 'package:pangolin_app/widgets/header_banner.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
@@ -330,71 +331,65 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     final colorScheme = theme.colorScheme;
     final height = HeaderBanner.heightFor(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        SizedBox(
-          height: height,
-          width: double.infinity,
-          child: OverflowBox(
-            alignment: Alignment.topCenter,
-            maxHeight: double.infinity,
-            child: HeaderBanner(
-              overlay: Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: height,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (_dragOverBin)
-                      ColoredBox(
-                        color: colorScheme.errorContainer.withValues(
-                          alpha: 0.85,
-                        ),
-                      ),
-                    Center(
-                      child: _interacting
-                          ? _binDeleteIcon(colorScheme)
-                          : Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'Create your wall',
-                                textAlign: TextAlign.center,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.titleLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        maxHeight: double.infinity,
+        child: HeaderBanner(
+          overlay: Positioned.fill(
+            child: Stack(
+              children: [
+                if (_dragOverBin)
+                  Positioned.fill(
+                    child: ColoredBox(
+                      color: colorScheme.errorContainer.withValues(alpha: 0.85),
                     ),
-                  ],
+                  ),
+                Positioned(
+                  top: -6,
+                  left: 8,
+                  right: 8,
+                  height: height,
+                  child: OverflowBox(
+                    maxHeight: double.infinity,
+                    alignment: Alignment.center,
+                    child: Row(
+                      children: [
+                        _backButton(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _interacting
+                              ? Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _binDeleteIcon(colorScheme),
+                                )
+                              : Text(
+                                  'Create your wall',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                        ..._toolActions(),
+                        IconButton.filledTonal(
+                          icon: const AppIcon(AppIconType.save),
+                          tooltip: 'Save',
+                          onPressed: _saving ? null : _onSavePressed,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
-          child: Row(
-            children: [
-              _backButton(),
-              const Spacer(),
-              ..._toolActions(),
-              IconButton.filledTonal(
-                icon: const AppIcon(AppIconType.save),
-                tooltip: 'Save',
-                onPressed: _saving ? null : _onSavePressed,
-              ),
-            ],
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -404,9 +399,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
     color: _dragOverBin ? colorScheme.error : colorScheme.onSurfaceVariant,
   );
 
-  Widget _backButton() => IconButton.filledTonal(
-    icon: const AppIcon(AppIconType.back),
-    tooltip: 'Back',
+  Widget _backButton() => HeaderBackButton(
     onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
   );
 

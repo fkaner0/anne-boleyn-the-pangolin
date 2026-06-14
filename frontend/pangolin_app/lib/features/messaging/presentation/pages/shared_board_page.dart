@@ -439,14 +439,10 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         child: PangolinHeader(
           title: _friendDisplayName,
           onTap: _navigateToProfile,
-          leading: IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.back),
-            tooltip: 'Back',
-            onPressed: () => Navigator.of(context).maybePop(),
-          ),
+          onBack: () => Navigator.of(context).maybePop(),
           actions: [
             IconButton.filledTonal(
-              icon: const AppIcon(AppIconType.personRemove),
+              icon: const AppIcon(AppIconType.moreHoriz),
               tooltip: 'Remove connection',
               onPressed: _removeConnection,
             ),

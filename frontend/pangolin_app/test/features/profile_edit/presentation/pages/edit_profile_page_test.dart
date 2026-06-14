@@ -142,13 +142,15 @@ void main() {
   });
 
   testWidgets('tapping the wall cutout opens the wall editor', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await pumpPage(
       tester,
       fetcher: _FakeProfileFetcher(_profile()),
       updater: _CapturingProfileUpdater(),
     );
 
-    await tester.ensureVisible(find.byIcon(Icons.edit));
     await tester.tap(find.byIcon(Icons.edit));
     await tester.pumpAndSettle();
 

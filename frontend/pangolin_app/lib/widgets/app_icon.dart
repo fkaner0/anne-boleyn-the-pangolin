@@ -26,6 +26,7 @@ enum AppIconType {
   peopleAlt,
   message,
   moreVert,
+  moreHoriz,
   personRemove,
   sticker,
   lightbulb,
@@ -82,6 +83,7 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.peopleAlt: _IconSource(materialIcon: Icons.people_alt_outlined),
   AppIconType.message: _IconSource(materialIcon: Icons.chat_bubble_outline),
   AppIconType.moreVert: _IconSource(materialIcon: Icons.more_vert),
+  AppIconType.moreHoriz: _IconSource(materialIcon: Icons.more_horiz),
   AppIconType.personRemove: _IconSource(materialIcon: Icons.person_remove),
   AppIconType.sticker: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
