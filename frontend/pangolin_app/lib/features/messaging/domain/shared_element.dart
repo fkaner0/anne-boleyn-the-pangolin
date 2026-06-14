@@ -23,6 +23,22 @@ class SharedElement {
 
   SharedReply? get latestReply => replies.isEmpty ? null : replies.last;
 
+  SharedElement copyWith({
+    int? id,
+    int? datetime,
+    SharedElementKind? kind,
+    String? content,
+    List<SharedReply>? replies,
+    bool? read,
+  }) => SharedElement(
+    id: id ?? this.id,
+    datetime: datetime ?? this.datetime,
+    kind: kind ?? this.kind,
+    content: content ?? this.content,
+    replies: replies ?? this.replies,
+    read: read ?? this.read,
+  );
+
   factory SharedElement.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String?;
     final text = json['text'] as String?;
@@ -38,7 +54,7 @@ class SharedElement {
               ?.map((m) => SharedReply.fromJson(m as Map<String, dynamic>))
               .toList() ??
           const [],
-      read: ((json['unread'] as int?) ?? 0) > 0,
+      read: ((json['unread'] as int?) ?? 0) == 0,
     );
   }
 }

@@ -41,4 +41,10 @@ class FakeSharedBoardService implements SharedBoardService {
     required String text,
     int? datetime,
   }) async {}
+
+  @override
+  Future<void> markRead({
+    required int sharedElementId,
+    required int userId,
+  }) async {}
 }

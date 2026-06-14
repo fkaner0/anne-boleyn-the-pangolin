@@ -67,12 +67,7 @@ class MockSharedBoardService implements SharedBoardService {
     if (index == -1) return;
 
     final element = _elements[index];
-    _elements[index] = SharedElement(
-      id: element.id,
-      datetime: element.datetime,
-      kind: element.kind,
-      content: element.content,
-      read: element.read,
+    _elements[index] = element.copyWith(
       replies: [
         ...element.replies,
         SharedReply(
@@ -83,5 +78,15 @@ class MockSharedBoardService implements SharedBoardService {
       ],
     );
     _controller.add(null);
+  }
+
+  @override
+  Future<void> markRead({
+    required int sharedElementId,
+    required int userId,
+  }) async {
+    final index = _elements.indexWhere((e) => e.id == sharedElementId);
+    if (index == -1) return;
+    _elements[index] = _elements[index].copyWith(read: true);
   }
 }

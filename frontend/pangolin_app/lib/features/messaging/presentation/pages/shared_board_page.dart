@@ -237,6 +237,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   }
 
   void _openChat(int elementId) async {
+    _markRead(elementId);
     final name = await _friendName;
     if (!mounted) return;
     showDialog(
@@ -248,6 +249,22 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         friendName: name,
         onSendReply: (text) => _sendReply(elementId, text),
       ),
+    );
+  }
+
+  void _markRead(int elementId) {
+    final element = _elements.value[elementId];
+    if (element == null || element.read) return;
+
+    _elements.value = {
+      ..._elements.value,
+      elementId: element.copyWith(read: true),
+    };
+
+    unawaited(
+      _service
+          .markRead(sharedElementId: elementId, userId: _userId)
+          .catchError((_) {}),
     );
   }
 
