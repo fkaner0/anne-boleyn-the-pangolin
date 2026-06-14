@@ -20,6 +20,7 @@ import org.postgresql.ds.PGSimpleDataSource
 import com.augustnagro.magnum.pg.PgCodec.given
 import com.augustnagro.magnum.SortOrder
 import com.augustnagro.magnum.Query
+import com.augustnagro.magnum.SqlLiteral
 
 object repo {
 
@@ -783,17 +784,28 @@ object repo {
     val pending = ConnectionPending.Table.alias("cp")
     val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
+    val boardreply = SharedBoardReply.Table.alias("boardreply")
+    val boardelem = SharedBoardElement.Table.alias("boardelem")
 
     sql"""
-      SELECT *
+      SELECT ${sharedBoard.all}
       FROM $sharedBoard
+      LEFT JOIN $boardelem
+        ON ${boardelem.boardId} = ${sharedBoard.id}
+      LEFT JOIN $boardreply
+        ON ${boardreply.sharedBoardElementId} = ${boardelem.id}
       WHERE
         (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
       AND ${sharedBoard.id} NOT IN (
-        (SELECT ${pending.boardId} FROM $pending WHERE ${pending.pendingForUser} = $userId)
-        UNION
-        (SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId)
-      )
+            (SELECT ${pending.boardId} FROM $pending WHERE ${pending.pendingForUser} = $userId)
+        UNION ALL
+            (SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId)
+        )
+      GROUP BY ${sharedBoard.id}
+      ORDER BY GREATEST(
+        MAX(${boardelem.timestamp}),
+        MAX(${boardreply.timestamp})
+      ) DESC NULLS LAST
     """.query[SharedBoard].run()
   }
 
