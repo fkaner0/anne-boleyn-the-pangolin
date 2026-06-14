@@ -18,6 +18,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -166,14 +167,14 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byType(RollingSpinner), findsOneWidget);
     expect(find.text('look at this'), findsNothing);
 
     await tester.pump(const Duration(seconds: 1));
     await tester.pump();
 
     expect(service.fetchAttempts, 2);
-    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byType(RollingSpinner), findsNothing);
     expect(find.text('look at this'), findsOneWidget);
   });
 
