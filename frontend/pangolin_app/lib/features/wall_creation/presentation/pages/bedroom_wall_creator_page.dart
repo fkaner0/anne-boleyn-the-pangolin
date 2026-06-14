@@ -299,14 +299,6 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
         automaticallyImplyLeading: false,
         title: _interacting ? _binDeleteIcon(colorScheme) : null,
         centerTitle: true,
-        leading: _preview
-            ? null
-            : IconButton.filledTonal(
-                icon: const AppIcon(AppIconType.back),
-                tooltip: 'Back',
-                onPressed:
-                    widget.onBack ?? () => Navigator.of(context).maybePop(),
-              ),
         actions: [
           Visibility(
             visible: !_preview,

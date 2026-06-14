@@ -14,6 +14,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 
 class IntroPage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
@@ -60,6 +61,7 @@ class _IntroPageState extends State<IntroPage> {
   late final TextEditingController _ageController;
   late final TextEditingController _locationController;
   late final TextEditingController _bioController;
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   Uint8List? _mainImageBytes;
   bool _uploadingImage = false;
@@ -195,41 +197,40 @@ class _IntroPageState extends State<IntroPage> {
     return Scaffold(
       body: SafeArea(
         top: false,
-        child: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                24,
-                headerHeight + kToolbarHeight,
-                24,
-                24,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _formChildren(context),
-              ),
-            ),
-            Positioned(
-              top: headerHeight,
-              left: 8,
-              right: 8,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  IconButton.filledTonal(
-                    icon: const AppIcon(AppIconType.back),
-                    tooltip: 'Back',
-                    onPressed: widget.onBack ?? () {},
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            headerHeight + kToolbarHeight,
+            24,
+            24,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ..._formChildren(context),
+              const SizedBox(height: 36),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  onPressed: _canSubmit ? _next : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  IconButton.filledTonal(
-                    icon: const AppIcon(AppIconType.save),
-                    tooltip: 'Save',
-                    onPressed: _canSubmit ? _next : null,
-                  ),
-                ],
+                  icon: const AppIcon(AppIconType.save),
+                  label: const Text('Save'),
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              PangolinBanner(assets: _pangolinAssets),
+            ],
+          ),
         ),
       ),
     );

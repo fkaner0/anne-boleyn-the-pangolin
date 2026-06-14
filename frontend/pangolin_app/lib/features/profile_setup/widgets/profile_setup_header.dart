@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:pangolin_app/widgets/header_banner.dart';
 
 class ProfileSetupHeader extends StatelessWidget {
+  static const double _extraHeight = 16;
   static const double _progressTopFraction = 0.05;
   static const double _progressHeightFraction = 0.55;
 
   static double heightFor(BuildContext context) =>
-      HeaderBanner.heightFor(context);
+      HeaderBanner.heightFor(context, extraHeight: _extraHeight);
 
   final int currentStep;
   final List<String> steps;
@@ -25,6 +26,7 @@ class ProfileSetupHeader extends StatelessWidget {
     final barHeight = bannerHeight * _progressHeightFraction;
 
     return HeaderBanner(
+      extraHeight: _extraHeight,
       overlay: Positioned(
         top: bannerHeight * _progressTopFraction,
         left: 0,

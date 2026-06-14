@@ -13,6 +13,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import 'pages/about_page.dart';
 import 'pages/intro_page.dart';
@@ -106,6 +107,16 @@ class _SignupShellState extends ConsumerState<SignupShell> {
                 child: ProfileSetupHeader(currentStep: _step, steps: _steps),
               ),
             ),
+            if (_step > 0)
+              Positioned(
+                top: ProfileSetupHeader.heightFor(context),
+                left: 8,
+                child: IconButton.filledTonal(
+                  icon: const AppIcon(AppIconType.back),
+                  tooltip: 'Back',
+                  onPressed: _goBack,
+                ),
+              ),
           ],
         ),
       ),
