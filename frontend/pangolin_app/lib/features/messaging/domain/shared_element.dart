@@ -38,7 +38,7 @@ class SharedElement {
               ?.map((m) => SharedReply.fromJson(m as Map<String, dynamic>))
               .toList() ??
           const [],
-      read: (json['read'] as bool?) ?? false,
+      read: ((json['unread'] as int?) ?? 0) > 0,
     );
   }
 }
