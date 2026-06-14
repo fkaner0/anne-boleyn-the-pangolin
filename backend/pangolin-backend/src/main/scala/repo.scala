@@ -812,7 +812,7 @@ object repo {
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
-    SELECT COUNT(*)
+    SELEC COUNT(*)
     FROM $pending
     LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
     WHERE (${pending.pendingForUser} = $userId)
@@ -829,12 +829,14 @@ object repo {
     Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")
   }
 
+  private val numCoverImagesOnSharedBoard = 4
+
   private def coverImagesSpec(boardId: Int) = {
     Spec[SharedBoardElement]
       .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
       .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
-      .limit(4)
+      .limit(numCoverImagesOnSharedBoard)
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
