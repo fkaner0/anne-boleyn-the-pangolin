@@ -427,11 +427,20 @@ object repo {
 
   private def recommendationsQuery(userId: Int): Query[Profile] = {
     val profile = Profile.Table.alias("profile")
+    val hobbyinfo1 = UserHobbyInfo.Table.alias("hobbyinfo1")
+    val desiredUsersHobbyInfo = UserHobbyInfo.Table.alias("hobbyinfo2")
     val sharedBoard = SharedBoard.Table.alias("sharedBoard")
+    
     sql"""
       SELECT *
       FROM $profile
-      WHERE ${profile.accountId} <> $userId
+      LEFT JOIN $hobbyinfo1 ON (${hobbyinfo1.accountId} = ${profile.accountId})
+      WHERE (${hobbyinfo1.hobby}) IN (
+        SELECT ${desiredUsersHobbyInfo.hobby}
+        FROM $desiredUsersHobbyInfo
+        WHERE ${desiredUsersHobbyInfo.accountId} = $userId
+      )
+      AND (${profile.accountId} <> $userId)
       AND NOT EXISTS (
         SELECT *
         FROM $sharedBoard
