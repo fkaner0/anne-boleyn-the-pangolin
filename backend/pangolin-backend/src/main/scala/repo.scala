@@ -789,6 +789,7 @@ object repo {
 
   private def getAllPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
+    val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
@@ -798,6 +799,9 @@ object repo {
         (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
       AND ${sharedBoard.id} IN (
         SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
+      )
+      AND ${sharedBoard.id} NOT IN (
+        SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId
       )
     """.query[SharedBoard].run()
   }
