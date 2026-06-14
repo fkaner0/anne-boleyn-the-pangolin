@@ -426,18 +426,28 @@ object repo {
   }
 
   private def recommendationsQuery(userId: Int): Query[Profile] = {
-    val profile = Profile.Table.alias("profile")
+    val theirprofile = Profile.Table.alias("p1")
+    val theirhobby = UserHobbyInfo.Table.alias("h1")
+    val myhobby = UserHobbyInfo.Table.alias("h2")
     val sharedBoard = SharedBoard.Table.alias("sharedBoard")
+    
     sql"""
-      SELECT *
-      FROM $profile
-      WHERE ${profile.accountId} <> $userId
+      SELECT ${theirprofile.all} FROM $theirprofile
+      INNER JOIN $theirhobby ON (${theirhobby.accountId} = p1.accountid)
+      INNER JOIN $myhobby ON (${myhobby.accountId} = $userId)
+      WHERE
+        (${theirhobby.hobby} = ${myhobby.hobby})
+      AND
+        (${theirhobby.accountId} <> ${myhobby.accountId})
       AND NOT EXISTS (
         SELECT *
-        FROM $sharedBoard
-        WHERE ${sharedBoard.user1Id} = $userId AND ${sharedBoard.user2Id} = ${profile.accountId}
-        OR ${sharedBoard.user1Id} = ${profile.accountId} AND ${sharedBoard.user2Id} = $userId
+        FROM sharedBoard
+        WHERE
+          (sharedBoard.user1Id = ${theirhobby.accountId} AND sharedBoard.user2Id = ${myhobby.accountId})
+        OR
+          (sharedBoard.user1Id = ${myhobby.accountId} AND sharedBoard.user2Id = ${theirhobby.accountId}) 
       )
+      ORDER BY ABS(${theirhobby.passionLevel} - ${myhobby.passionLevel})
     """.query[Profile]
   }
 
@@ -789,6 +799,7 @@ object repo {
 
   private def getAllPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
+    val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
@@ -799,19 +810,26 @@ object repo {
       AND ${sharedBoard.id} IN (
         SELECT ${pending.boardId} FROM ${pending} WHERE ${pending.pendingForUser} = $userId
       )
+      AND ${sharedBoard.id} NOT IN (
+        SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId
+      )
     """.query[SharedBoard].run()
   }
   
   private def numberPendingFriends(userId: Int)(using DbCon) = {
     val pending = ConnectionPending.Table.alias("cp")
+    val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
 
     sql"""
     SELECT COUNT(*)
     FROM $pending
     LEFT JOIN $sharedBoard ON ${sharedBoard.id} = ${pending.boardId}
-    WHERE ${pending.pendingForUser} = $userId
-      AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
+    WHERE (${pending.pendingForUser} = $userId)
+    AND ${sharedBoard.id} NOT IN (
+      SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId
+    )
+    AND (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
     """.query[Int].run()
     // the 'AND' at the end is redundant if we make sure the database stays consistent
     // (clearly some poor db design. sorry.)
@@ -821,12 +839,14 @@ object repo {
     Spec[Profile].where(sql"${Profile.Table.accountId} = $userId")
   }
 
+  private val numCoverImagesOnSharedBoard = 4
+
   private def coverImagesSpec(boardId: Int) = {
     Spec[SharedBoardElement]
       .where(sql"${SharedBoardElement.Table.boardId} = $boardId")
       .where(sql"${SharedBoardElement.Table.url} IS NOT NULL")
       .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc)
-      .limit(4)
+      .limit(numCoverImagesOnSharedBoard)
   }
 
   private def inDatabase[B](f: DbCon ?=> B): IO[B] = IO.blocking {
