@@ -94,7 +94,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     _friendName.then((name) {
       if (mounted) setState(() => _friendDisplayName = name);
     }, onError: (_) {});
-    _loadBoard();
+    _loadInitialBoard();
     listenToBoardNotifications(
       _service,
       _userId,
@@ -111,16 +111,31 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     super.dispose();
   }
 
+  Future<void> _loadInitialBoard() async {
+    const maxBackoff = Duration(seconds: 8);
+    var backoff = const Duration(seconds: 1);
+    while (mounted) {
+      try {
+        final board = await _service.fetchBoard(_userId, widget.friendUserId);
+        if (!mounted) return;
+        _elements.value = {for (final element in board) element.id: element};
+        setState(() => _loading = false);
+        return;
+      } catch (_) {
+        if (!mounted) return;
+        await Future<void>.delayed(backoff);
+        final next = backoff * 2;
+        backoff = next > maxBackoff ? maxBackoff : next;
+      }
+    }
+  }
+
   Future<void> _loadBoard() async {
     try {
       final board = await _service.fetchBoard(_userId, widget.friendUserId);
       if (!mounted) return;
       _elements.value = {for (final element in board) element.id: element};
-    } catch (_) {
-      if (mounted && _loading) _showMessage('Could not load the board.');
-    } finally {
-      if (mounted && _loading) setState(() => _loading = false);
-    }
+    } catch (_) {}
   }
 
   void _navigateToProfile() {
