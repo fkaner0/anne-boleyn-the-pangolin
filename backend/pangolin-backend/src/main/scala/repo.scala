@@ -21,6 +21,7 @@ import com.augustnagro.magnum.pg.PgCodec.given
 import com.augustnagro.magnum.SortOrder
 import com.augustnagro.magnum.Query
 import com.augustnagro.magnum.SqlLiteral
+import com.augustnagro.magnum.NullOrder
 
 object repo {
 
@@ -597,12 +598,14 @@ object repo {
       OR
       (${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id)
     """)
+
   private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
     .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
-    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
+    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc, NullOrder.Last)
+
   private def repliesSpec(elementId: Int) = Spec[SharedBoardReply]
     .where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
-    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc)
+    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc, NullOrder.Last)
 
   def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
     senderId = message.senderId,
