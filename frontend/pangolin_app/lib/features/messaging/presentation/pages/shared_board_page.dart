@@ -21,6 +21,7 @@ import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 enum _ConnectionAction { remove, reportAndBlock, cancel }
 
@@ -469,7 +470,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         final items = elements.values.toList();
 
         if (_loading && items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: RollingSpinner());
         }
 
         if (items.isEmpty) {

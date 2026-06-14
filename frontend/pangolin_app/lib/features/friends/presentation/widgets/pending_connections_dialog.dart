@@ -11,6 +11,7 @@ import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 enum _PendingAction { ignore, reportAndIgnore }
 
@@ -217,7 +218,7 @@ class _PendingConnectionsDialogState extends State<PendingConnectionsDialog>
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: RollingSpinner());
     }
     if (_error != null) {
       return Center(child: Text(_error!));

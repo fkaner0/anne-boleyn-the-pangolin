@@ -28,6 +28,7 @@ import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
@@ -295,7 +296,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   Widget _buildBody(double topInset) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: RollingSpinner());
     }
     if (_loadError != null) {
       return Center(child: Text('Error: $_loadError'));

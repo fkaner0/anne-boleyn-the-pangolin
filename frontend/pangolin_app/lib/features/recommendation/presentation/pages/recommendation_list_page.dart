@@ -14,6 +14,7 @@ import 'package:pangolin_app/widgets/island_nav_bar.dart';
 import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/pangolin_mascot.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import '../../data/recommendation_fetcher.dart';
 import '../../domain/recommendation.dart';
 import '../widgets/recommendation_list_item.dart';
@@ -116,7 +117,7 @@ class _RecommendationListPageState
                 child: Builder(
                   builder: (context) {
                     if (_isLoading) {
-                      return const Center(child: CircularProgressIndicator());
+                      return const Center(child: RollingSpinner());
                     }
 
                     if (_errorMessage != null) {

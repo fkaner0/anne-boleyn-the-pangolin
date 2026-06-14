@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 class MainImagePicker extends StatelessWidget {
   final ImageProvider? image;
@@ -37,7 +38,7 @@ class MainImagePicker extends StatelessWidget {
             if (uploading)
               const ColoredBox(
                 color: Color(0x66000000),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: RollingSpinner()),
               ),
           ],
         ),

@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import '../../domain/profile.dart';
 import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
@@ -54,9 +55,7 @@ class RecommendationProfilePage extends ConsumerWidget {
       future: _load(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: Center(child: RollingSpinner()));
         }
 
         if (snapshot.hasError) {
