@@ -23,9 +23,11 @@ class SharedElementTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final replies = element.replies;
-    final recent = replies.length <= 2
-        ? replies
-        : replies.sublist(replies.length - 2);
+    final nRecent = 2;
+    final hasHiddenReplies = replies.length > nRecent;
+    final recent = hasHiddenReplies
+        ? replies.sublist(replies.length - nRecent)
+        : replies;
 
     return GestureDetector(
       onTap: onTap,
@@ -63,7 +65,14 @@ class SharedElementTile extends StatelessWidget {
                     ),
             ),
             if (recent.isNotEmpty) ...[
-              const SizedBox(height: 12),
+              if (hasHiddenReplies) ...[
+                const SizedBox(height: 4),
+                Center(child: Text("... ${replies.length} messages ...", style: TextStyle(color: colorScheme.shadow, fontStyle: FontStyle.italic, fontSize: 10))),
+                const SizedBox(height: 4),
+              ]
+              else ...[
+                const SizedBox(height: 12),
+              ],
               Container(
                 decoration: BoxDecoration(
                   color: colorScheme.surfaceContainerHighest,
