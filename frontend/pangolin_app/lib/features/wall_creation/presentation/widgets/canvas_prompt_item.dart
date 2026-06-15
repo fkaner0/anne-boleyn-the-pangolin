@@ -22,7 +22,7 @@ class CanvasPromptItem extends StatelessWidget {
 
   double get _width => baseWidth * transform.scale;
   double get _height =>
-      action == CanvasPromptAction.addImage ? _width : _width * 0.44;
+      action == CanvasPromptAction.addImage ? _width : _width * 0.34;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _ImageContent extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             maxLines: 3,
-            style: TextStyle(color: color, fontSize: 11, height: 1.3),
+            style: TextStyle(color: color, fontSize: 18, height: 1.3),
           ),
         ),
       ],
@@ -105,7 +105,7 @@ class _TextContent extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
@@ -117,6 +117,7 @@ class _TextContent extends StatelessWidget {
 
 class _DashedRectPainter extends CustomPainter {
   final Color color;
+  final double radius = 8;
 
   const _DashedRectPainter({required this.color});
 
@@ -132,40 +133,31 @@ class _DashedRectPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    _drawDashedLine(canvas, Offset.zero, Offset(size.width, 0), paint);
-    _drawDashedLine(
-      canvas,
-      Offset(size.width, 0),
-      Offset(size.width, size.height),
-      paint,
+    final rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(radius),
     );
-    _drawDashedLine(
-      canvas,
-      Offset(size.width, size.height),
-      Offset(0, size.height),
-      paint,
-    );
-    _drawDashedLine(canvas, Offset(0, size.height), Offset.zero, paint);
+
+    // Extract the path of the rounded rect and walk along it with dashes.
+    final path = Path()..addRRect(rrect);
+    _drawDashedPath(canvas, path, paint);
   }
 
-  void _drawDashedLine(Canvas canvas, Offset start, Offset end, Paint paint) {
-    final dir = end - start;
-    final len = dir.distance;
-    if (len == 0) return;
-    final unit = dir / len;
-    double pos = 0;
-    bool drawing = true;
-    while (pos < len) {
-      final seg = drawing ? _dash : _gap;
-      if (drawing) {
-        canvas.drawLine(
-          start + unit * pos,
-          start + unit * (pos + seg).clamp(0.0, len),
-          paint,
-        );
+  void _drawDashedPath(Canvas canvas, Path path, Paint paint) {
+    for (final metric in path.computeMetrics()) {
+      double pos = 0;
+      bool drawing = true;
+      while (pos < metric.length) {
+        final seg = drawing ? _dash : _gap;
+        if (drawing) {
+          canvas.drawPath(
+            metric.extractPath(pos, (pos + seg).clamp(0.0, metric.length)),
+            paint,
+          );
+        }
+        pos += seg;
+        drawing = !drawing;
       }
-      pos += seg;
-      drawing = !drawing;
     }
   }
 
