@@ -112,10 +112,13 @@ class _SignupShellState extends ConsumerState<SignupShell> {
                 top: ProfileSetupHeader.heightFor(context),
                 left: 8,
                 child: IconButton.filledTonal(
-                  icon: AppIcon(AppIconType.back, color:  Theme.of(context).colorScheme.onSecondaryContainer),
+                  icon: AppIcon(
+                    AppIconType.back,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
                   tooltip: 'Back',
                   onPressed: _goBack,
-                  color: Theme.of(context).colorScheme.secondaryContainer
+                  color: Theme.of(context).colorScheme.secondaryContainer,
                 ),
               ),
           ],

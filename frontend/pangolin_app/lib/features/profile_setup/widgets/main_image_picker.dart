@@ -39,7 +39,13 @@ class MainImagePicker extends StatelessWidget {
                 loadingBuilder: imageLoadingPlaceholder,
               )
             else
-              Center(child: AppIcon(AppIconType.add, size: 48, color: Theme.of(context).colorScheme.primaryContainer,)),
+              Center(
+                child: AppIcon(
+                  AppIconType.add,
+                  size: 48,
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                ),
+              ),
             if (uploading)
               const ColoredBox(
                 color: Color(0x66000000),

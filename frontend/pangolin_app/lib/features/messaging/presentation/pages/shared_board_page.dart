@@ -367,7 +367,8 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
         break;
       case _ConnectionAction.block:
         await _leaveConnection(
-          () => _friendActionSender.remove( // todo
+          () => _friendActionSender.remove(
+            // todo
             currentUserId: _userId,
             targetUserId: widget.friendUserId,
           ),

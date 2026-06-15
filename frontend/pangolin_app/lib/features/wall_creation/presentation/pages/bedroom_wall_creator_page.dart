@@ -176,7 +176,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   double _binZoneBottom() {
     final renderObject = _viewportKey.currentContext?.findRenderObject();
     if (renderObject is RenderBox && renderObject.hasSize) {
-      return renderObject.localToGlobal(Offset.zero).dy + 50; // TODO: HORRIBLE magic number but I'm at my wits end
+      return renderObject.localToGlobal(Offset.zero).dy +
+          50; // TODO: HORRIBLE magic number but I'm at my wits end
     }
     return MediaQuery.of(context).padding.top + kToolbarHeight;
   }
@@ -438,7 +439,9 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   Widget _previewButton({bool faded = false}) => Opacity(
     opacity: faded ? 0.4 : 1.0,
     child: IconButton.filledTonal(
-      icon: faded ? AppIcon(AppIconType.unpreview) : AppIcon(AppIconType.preview),
+      icon: faded
+          ? AppIcon(AppIconType.unpreview)
+          : AppIcon(AppIconType.preview),
       tooltip: _preview ? 'Hide Preview' : 'Preview',
       onPressed: _togglePreview,
     ),

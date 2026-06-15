@@ -49,25 +49,47 @@ class _IconSource {
 }
 
 const Map<AppIconType, _IconSource> _sources = {
-  AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png', svgAsset: 'assets/icons/icons-svg/back.svg'),
-  AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png', svgAsset: 'assets/icons/icons-svg/add.svg'),
-  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png', svgAsset: 'assets/icons/icons-svg/save-unfilled.svg'),
-  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png', svgAsset: 'assets/icons/icons-svg/send-unfilled.svg'),
-  AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png', svgAsset: 'assets/icons/icons-svg/tick.svg'),
-  AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png', svgAsset: 'assets/icons/icons-svg/cross.svg'),
-  AppIconType.preview: _IconSource(svgAsset: 'assets/icons/icons-svg/preview4.svg'),
-  AppIconType.unpreview: _IconSource(svgAsset: 'assets/icons/icons-svg/preview4-2.svg'),
+  AppIconType.back: _IconSource(
+    pngAsset: 'assets/icons/icons/back.png',
+    svgAsset: 'assets/icons/icons-svg/back.svg',
+  ),
+  AppIconType.add: _IconSource(
+    pngAsset: 'assets/icons/icons/add.png',
+    svgAsset: 'assets/icons/icons-svg/add.svg',
+  ),
+  AppIconType.save: _IconSource(
+    pngAsset: 'assets/icons/icons/save.png',
+    svgAsset: 'assets/icons/icons-svg/save-unfilled.svg',
+  ),
+  AppIconType.send: _IconSource(
+    pngAsset: 'assets/icons/icons/send.png',
+    svgAsset: 'assets/icons/icons-svg/send-unfilled.svg',
+  ),
+  AppIconType.check: _IconSource(
+    pngAsset: 'assets/icons/icons/tick.png',
+    svgAsset: 'assets/icons/icons-svg/tick.svg',
+  ),
+  AppIconType.close: _IconSource(
+    pngAsset: 'assets/icons/icons/cross.png',
+    svgAsset: 'assets/icons/icons-svg/cross.svg',
+  ),
+  AppIconType.preview: _IconSource(
+    svgAsset: 'assets/icons/icons-svg/preview4.svg',
+  ),
+  AppIconType.unpreview: _IconSource(
+    svgAsset: 'assets/icons/icons-svg/preview4-2.svg',
+  ),
   AppIconType.brokenImage: _IconSource(
     pngAsset: 'assets/icons/icons/brokenimage.png',
     svgAsset: 'assets/icons/icons-svg/brokenimage.svg',
   ),
   AppIconType.refresh: _IconSource(
     pngAsset: 'assets/icons/icons/refresh.png',
-    svgAsset: 'assets/icons/icons-svg/refresh.svg'
+    svgAsset: 'assets/icons/icons-svg/refresh.svg',
   ),
   AppIconType.addText: _IconSource(
-  pngAsset: 'assets/icons/wall_addition_icons/addtext.png',
-  svgAsset: 'assets/icons/wall_addition_icons-svg/addtext.svg',
+    pngAsset: 'assets/icons/wall_addition_icons/addtext.png',
+    svgAsset: 'assets/icons/wall_addition_icons-svg/addtext.svg',
   ),
   AppIconType.addImage: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addimage.png',
@@ -138,7 +160,13 @@ class AppIcon extends StatelessWidget {
   final bool useOriginalColor;
   final Color? color;
 
-  const AppIcon(this.type, {super.key, this.size, this.color, this.useOriginalColor = false});
+  const AppIcon(
+    this.type, {
+    super.key,
+    this.size,
+    this.color,
+    this.useOriginalColor = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -151,8 +179,8 @@ class AppIcon extends StatelessWidget {
     final svgAsset = source.svgAsset;
     if (svgAsset != null) {
       final colorFilter = (resolvedColor == null || useOriginalColor)
-            ? null
-            : ColorFilter.mode(resolvedColor, BlendMode.srcIn);
+          ? null
+          : ColorFilter.mode(resolvedColor, BlendMode.srcIn);
 
       return SvgPicture.asset(
         svgAsset,
