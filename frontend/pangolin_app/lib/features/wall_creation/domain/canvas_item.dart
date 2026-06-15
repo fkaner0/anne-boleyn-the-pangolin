@@ -17,6 +17,7 @@ final class CanvasImageItem extends CanvasItem {
   final Uint8List? bytes;
   final double aspectRatio;
   final String? url;
+  final bool uploading;
 
   const CanvasImageItem({
     required super.id,
@@ -24,6 +25,7 @@ final class CanvasImageItem extends CanvasItem {
     required this.aspectRatio,
     this.bytes,
     this.url,
+    this.uploading = false,
   });
 
   @override
@@ -34,6 +36,18 @@ final class CanvasImageItem extends CanvasItem {
       bytes: bytes,
       aspectRatio: aspectRatio,
       url: url,
+      uploading: uploading,
+    );
+  }
+
+  CanvasImageItem uploaded({required String? url}) {
+    return CanvasImageItem(
+      id: id,
+      transform: transform,
+      bytes: bytes,
+      aspectRatio: aspectRatio,
+      url: url,
+      uploading: false,
     );
   }
 }

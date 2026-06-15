@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,7 @@ import 'package:pangolin_app/features/friends/data/friend_action_sender.dart';
 import 'package:pangolin_app/features/logging/data/button_click_logger.dart';
 import 'package:pangolin_app/features/messaging/data/shared_board_service.dart';
 import 'package:pangolin_app/features/messaging/domain/shared_element.dart';
+import 'package:pangolin_app/features/messaging/domain/shared_reply.dart';
 import 'package:pangolin_app/features/messaging/presentation/board_notifications_listener.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_board_chat_dialog.dart';
 import 'package:pangolin_app/features/messaging/presentation/widgets/shared_element_tile.dart';
@@ -18,7 +20,11 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picker.dart';
 import 'package:pangolin_app/features/wall_creation/data/uploader/wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 enum _ConnectionAction { remove, reportAndBlock, cancel }
 
@@ -34,7 +40,7 @@ class SharedBoardPage extends ConsumerStatefulWidget {
   const SharedBoardPage({
     super.key,
     required this.friendUserId,
-    this.profileFetcher, // we should use a lighter-weight api (don't currently have one)
+    this.profileFetcher,
     this.service,
     this.imagePicker,
     this.imageUploader,
@@ -62,7 +68,6 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   late final Future<String> _friendName;
   String _friendDisplayName = 'Them';
 
-  // TODO: this does NOT belong here
   Future<String> userNameFromId(int userId) async =>
       _profileFetcher.fetchProfile(userId).then((profile) => profile.name);
 
@@ -78,16 +83,18 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   final ValueNotifier<Map<int, SharedElement>> _elements = ValueNotifier({});
   bool _loading = true;
   bool _uploading = false;
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
+  Uint8List? _pendingImageBytes;
 
   @override
   void initState() {
     super.initState();
     _userId = ref.read(userIdProvider.notifier).currentUserIdThrow();
-    _friendName = userNameFromId(widget.friendUserId); // assign once, directly
+    _friendName = userNameFromId(widget.friendUserId);
     _friendName.then((name) {
       if (mounted) setState(() => _friendDisplayName = name);
     }, onError: (_) {});
-    _loadBoard();
+    _loadInitialBoard();
     listenToBoardNotifications(
       _service,
       _userId,
@@ -104,19 +111,33 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     super.dispose();
   }
 
+  Future<void> _loadInitialBoard() async {
+    const maxBackoff = Duration(seconds: 8);
+    var backoff = const Duration(seconds: 1);
+    while (mounted) {
+      try {
+        final board = await _service.fetchBoard(_userId, widget.friendUserId);
+        if (!mounted) return;
+        _elements.value = {for (final element in board) element.id: element};
+        setState(() => _loading = false);
+        return;
+      } catch (_) {
+        if (!mounted) return;
+        await Future<void>.delayed(backoff);
+        final next = backoff * 2;
+        backoff = next > maxBackoff ? maxBackoff : next;
+      }
+    }
+  }
+
   Future<void> _loadBoard() async {
     try {
       final board = await _service.fetchBoard(_userId, widget.friendUserId);
       if (!mounted) return;
       _elements.value = {for (final element in board) element.id: element};
-    } catch (_) {
-      if (mounted && _loading) _showMessage('Could not load the board.');
-    } finally {
-      if (mounted && _loading) setState(() => _loading = false);
-    }
+    } catch (_) {}
   }
 
-  // Shared navigation target for all app bar taps.
   void _navigateToProfile() {
     _log(ButtonIds.sharedBoardViewProfile);
     context.push(AppRoutes.viewProfile, extra: widget.friendUserId);
@@ -131,9 +152,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     if (picked == null || !mounted) return;
 
     final message = await _promptForInitialMessage(picked);
-    if (message == null || !mounted) return; // cancelled
+    if (message == null || !mounted) return;
 
-    setState(() => _uploading = true);
+    setState(() {
+      _uploading = true;
+      _pendingImageBytes = picked.bytes;
+    });
     try {
       final url = await _imageUploader.uploadImage(picked.bytes);
       await _service.sendImage(
@@ -146,7 +170,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
     } catch (_) {
       if (mounted) _showMessage('Could not send that image.');
     } finally {
-      if (mounted) setState(() => _uploading = false);
+      if (mounted) {
+        setState(() {
+          _uploading = false;
+          _pendingImageBytes = null;
+        });
+      }
     }
   }
 
@@ -215,7 +244,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       },
     );
 
-    if (result == null || !mounted) return; // cancelled
+    if (result == null || !mounted) return;
     if (result.topic.isEmpty && result.message.isEmpty) return;
 
     try {
@@ -271,6 +300,16 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   Future<void> _sendReply(int elementId, String text) async {
     _log(ButtonIds.sharedBoardSendReply);
 
+    final element = _elements.value[elementId];
+    if (element == null) return;
+
+    final reply = SharedReply(
+      senderId: _userId,
+      text: text,
+      datetime: DateTime.now().millisecondsSinceEpoch,
+    );
+    _elements.value = {..._elements.value, elementId: element.withReply(reply)};
+
     try {
       await _service.sendReply(
         sharedElementId: elementId,
@@ -280,6 +319,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       );
       await _loadBoard();
     } catch (_) {
+      _elements.value = {..._elements.value, elementId: element};
       if (mounted) _showMessage('Could not send that message.');
     }
   }
@@ -335,6 +375,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
             targetUserId: widget.friendUserId,
           ),
         );
+        break;
       case _ConnectionAction.reportAndBlock:
         await _leaveConnection(
           () => _friendActionSender.report(
@@ -343,6 +384,7 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
           ),
           confirmReport: true,
         );
+        break;
       case _ConnectionAction.cancel:
       case null:
         return;
@@ -448,80 +490,126 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // flexibleSpace sits behind the toolbar in the Z-order, so all
-        // existing buttons continue to receive their taps normally. Any
-        // tap that doesn't hit a button falls through to this handler.
-        flexibleSpace: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: _navigateToProfile,
-        ),
-        title: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _navigateToProfile,
-          child: FutureBuilder<String>(
-            future: _friendName,
-            builder: (context, snapshot) => Text(snapshot.data ?? 'Loading...'),
-          ),
-        ),
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.personRemove),
-            tooltip: 'Remove connection',
-            onPressed: _removeConnection,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: SafeArea(
-        child: ValueListenableBuilder<Map<int, SharedElement>>(
-          valueListenable: _elements,
-          builder: (context, elements, _) {
-            final items = elements.values.toList();
-            if (_loading && items.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (items.isEmpty) {
-              return const Center(child: Text('Nothing shared yet'));
-            }
-            return ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-              itemCount: items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 36),
-              itemBuilder: (context, index) {
-                final element = items[index];
-                return SharedElementTile(
-                  element: element,
-                  userId: _userId,
-                  friendName: _friendDisplayName,
-                  onTap: () {
-                    _log(ButtonIds.sharedBoardElement);
-                    _openChat(element.id);
-                  },
-                );
-              },
-            );
-          },
+        child: PangolinHeader(
+          title: _friendDisplayName,
+          onTap: _navigateToProfile,
+          onBack: () => Navigator.of(context).maybePop(),
+          actions: [
+            IconButton.filledTonal(
+              icon: const AppIcon(AppIconType.moreHoriz),
+              tooltip: 'Remove connection',
+              onPressed: _removeConnection,
+            ),
+          ],
+          bodyBuilder: (context, topInset) => _buildBoard(topInset),
         ),
       ),
       bottomNavigationBar: _BottomBar(
-        uploading: _uploading,
         onGrab: _grabFromWall,
         onUpload: _uploadImage,
         onAddText: _addText,
       ),
     );
   }
+
+  Widget _buildBoard(double topInset) {
+    return ValueListenableBuilder<Map<int, SharedElement>>(
+      valueListenable: _elements,
+      builder: (context, elements, _) {
+        final items = elements.values.toList();
+        final pendingBytes = _pendingImageBytes;
+
+        if (_loading && items.isEmpty) {
+          return const Center(child: RollingSpinner());
+        }
+
+        if (items.isEmpty && pendingBytes == null) {
+          return LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Nothing shared yet'),
+                      const SizedBox(height: 24),
+                      PangolinBanner(assets: _pangolinAssets),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final footerIndex = items.length + (pendingBytes != null ? 1 : 0);
+
+        return ListView.separated(
+          padding: EdgeInsets.fromLTRB(32, topInset + 28, 32, 28),
+          itemCount: footerIndex + 1,
+          separatorBuilder: (_, _) => const SizedBox(height: 36),
+          itemBuilder: (context, index) {
+            if (index == footerIndex) {
+              return PangolinBanner(assets: _pangolinAssets);
+            }
+
+            if (pendingBytes != null && index == items.length) {
+              return _UploadingImageTile(bytes: pendingBytes);
+            }
+
+            final element = items[index];
+            return SharedElementTile(
+              element: element,
+              userId: _userId,
+              friendName: _friendDisplayName,
+              onTap: () {
+                _log(ButtonIds.sharedBoardElement);
+                _openChat(element.id);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _UploadingImageTile extends StatelessWidget {
+  final Uint8List bytes;
+
+  const _UploadingImageTile({required this.bytes});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: SizedBox(
+          width: double.infinity,
+          height: MediaQuery.sizeOf(context).height / 5,
+          child: UploadingImagePlaceholder(bytes: bytes),
+        ),
+      ),
+    );
+  }
 }
 
 class _BottomBar extends StatelessWidget {
-  final bool uploading;
   final VoidCallback onGrab;
   final VoidCallback onUpload;
   final VoidCallback onAddText;
 
   const _BottomBar({
-    required this.uploading,
     required this.onGrab,
     required this.onUpload,
     required this.onAddText,

@@ -10,6 +10,8 @@ import 'package:pangolin_app/features/recommendation/data/profile_updater.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
+import 'package:pangolin_app/widgets/header_back_button.dart';
+import 'package:pangolin_app/widgets/header_banner.dart';
 import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
@@ -24,6 +26,8 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final VoidCallback? onSave;
   final VoidCallback? onSaved;
   final VoidCallback? onBack;
+  final bool primaryActionAsNext;
+  final double topInset;
 
   const BedroomWallCreatorPage({
     super.key,
@@ -33,6 +37,8 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.onSave,
     this.onSaved,
     this.onBack,
+    this.primaryActionAsNext = false,
+    this.topInset = 0,
   });
 
   @override
@@ -97,7 +103,13 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _addImage() async {
-    await _controller.addImage(center: _visibleCanvasCenter());
+    await _controller.addImage(
+      center: _visibleCanvasCenter(),
+      onChanged: _onControllerChanged,
+    );
+  }
+
+  void _onControllerChanged() {
     if (mounted) setState(() {});
   }
 
@@ -113,8 +125,10 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   }
 
   Future<void> _addImageFromPrompt(int promptId) async {
-    await _controller.addImageFromPrompt(promptId);
-    if (mounted) setState(() {});
+    await _controller.addImageFromPrompt(
+      promptId,
+      onChanged: _onControllerChanged,
+    );
   }
 
   void _addTextBoxFromPrompt(int promptId) {
@@ -262,44 +276,49 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
 
   @override
   Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: widget.topInset),
+      child: widget.primaryActionAsNext
+          ? _buildSetupScaffold(context)
+          : _buildStandaloneScaffold(context),
+    );
+  }
+
+  Widget _buildSetupScaffold(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: _dragOverBin
-            ? Theme.of(context).colorScheme.errorContainer
-            : null,
-        title: _interacting
-            ? AppIcon(
-                AppIconType.delete,
-                size: _dragOverBin ? 32 : 26,
-                color: _dragOverBin
-                    ? Theme.of(context).colorScheme.error
-                    : Theme.of(context).colorScheme.onSurfaceVariant,
-              )
-            : const Text('Create your wall'),
+            ? colorScheme.errorContainer
+            : Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        title: _interacting ? _binDeleteIcon(colorScheme) : null,
         centerTitle: true,
-        leading: IconButton.filledTonal(
-          icon: const AppIcon(AppIconType.back),
-          tooltip: 'Back',
-          onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
-        ),
         actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.textBackground),
-            tooltip: 'Background colour',
-            onPressed: _showBackgroundColourPicker,
+          Visibility(
+            visible: !_preview,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: _backgroundColourButton(),
           ),
           const SizedBox(width: 8),
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.preview),
-            tooltip: _preview ? 'Hide Preview' : 'Preview',
-            onPressed: _togglePreview,
-          ),
+          _previewButton(faded: _preview),
           const SizedBox(width: 8),
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.save),
-            tooltip: 'Save',
-            onPressed: _saving ? null : _onSavePressed,
+          Visibility(
+            visible: !_preview,
+            maintainSize: true,
+            maintainAnimation: true,
+            maintainState: true,
+            child: FilledButton(
+              onPressed: _saving ? null : _onSavePressed,
+              child: const Text('Next'),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -310,71 +329,182 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
               )
             : null,
       ),
+      body: SafeArea(top: false, child: _buildCanvasBody()),
+    );
+  }
+
+  Widget _buildStandaloneScaffold(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: Stack(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Positioned.fill(
-              child: BedroomWallViewport(
-                viewportKey: _viewportKey,
-                controller: _scrollController,
-                child: BedroomWallCanvas(
-                  backgroundColor: _controller.backgroundColor,
-                  canvas: _controller.canvas,
-                  stickerCatalog: _controller.stickerCatalog,
-                  fontCatalog: _controller.fontCatalog,
-                  items: _controller.items,
-                  prompts: _preview ? const [] : _controller.prompts,
-                  onItemTransform: (id, transform) {
-                    setState(() => _controller.updateTransform(id, transform));
-                  },
-                  onTextChanged: _controller.updateText,
-                  onFontChanged: (id, font) {
-                    setState(() => _controller.updateTextFont(id, font));
-                  },
-                  onTextColorChanged: (id, color) {
-                    setState(
-                      () => _controller.updateTextboxTextColor(id, color),
-                    );
-                  },
-                  onTextBackgroundColorChanged: (id, color) {
-                    setState(
-                      () => _controller.updateTextboxBackgroundColor(id, color),
-                    );
-                  },
-                  onPromptAddImage: _addImageFromPrompt,
-                  onPromptAddTextBox: _addTextBoxFromPrompt,
-                  onItemInteractionChanged: _onItemInteractionChanged,
-                  onItemDragUpdate: _onItemDragUpdate,
-                  editable: !_preview,
-                ),
-              ),
-            ),
-            if (!_preview)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 16,
-                child: IgnorePointer(
-                  ignoring: _interacting,
-                  child: AnimatedOpacity(
-                    opacity: _interacting ? 0.0 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Column(
+            _buildBannerHeader(context),
+            if (_saving) const LinearProgressIndicator(minHeight: 4),
+            Expanded(child: _buildCanvasBody()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannerHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final height = HeaderBanner.heightFor(context);
+
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: OverflowBox(
+        alignment: Alignment.topCenter,
+        maxHeight: double.infinity,
+        child: HeaderBanner(
+          overlay: Positioned.fill(
+            child: Stack(
+              children: [
+                if (_dragOverBin)
+                  Positioned.fill(
+                    child: ColoredBox(
+                      color: colorScheme.errorContainer.withValues(alpha: 0.85),
+                    ),
+                  ),
+                Positioned(
+                  top: -6,
+                  left: 8,
+                  right: 8,
+                  height: height,
+                  child: OverflowBox(
+                    maxHeight: double.infinity,
+                    alignment: Alignment.center,
+                    child: Row(
                       children: [
-                        PromptGenerator(onCreate: _addTextBoxWithText),
-                        CreatorToolBar(
-                          onAddTextBox: _addTextBox,
-                          onAddImage: _addImage,
-                          onAddSticker: _addSticker,
+                        _backButton(),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _interacting
+                              ? Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: _binDeleteIcon(colorScheme),
+                                )
+                              : Text(
+                                  'Create your wall',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                        _backgroundColourButton(),
+                        const SizedBox(width: 8),
+                        _previewButton(),
+                        const SizedBox(width: 8),
+                        IconButton.filledTonal(
+                          icon: const AppIcon(AppIconType.save),
+                          tooltip: 'Save',
+                          onPressed: _saving ? null : _onSavePressed,
                         ),
                       ],
                     ),
                   ),
                 ),
-              ),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _binDeleteIcon(ColorScheme colorScheme) => AppIcon(
+    AppIconType.delete,
+    size: _dragOverBin ? 32 : 26,
+    color: _dragOverBin ? colorScheme.error : colorScheme.onSurfaceVariant,
+  );
+
+  Widget _backButton() => HeaderBackButton(
+    onPressed: widget.onBack ?? () => Navigator.of(context).maybePop(),
+  );
+
+  Widget _backgroundColourButton() => IconButton.filledTonal(
+    icon: const AppIcon(AppIconType.textBackground),
+    tooltip: 'Background colour',
+    onPressed: _showBackgroundColourPicker,
+  );
+
+  Widget _previewButton({bool faded = false}) => Opacity(
+    opacity: faded ? 0.4 : 1.0,
+    child: IconButton.filledTonal(
+      icon: const AppIcon(AppIconType.preview, color: Color(0xFFFEF9F2)),
+      tooltip: _preview ? 'Hide Preview' : 'Preview',
+      onPressed: _togglePreview,
+    ),
+  );
+
+  Widget _buildCanvasBody() {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: BedroomWallViewport(
+            viewportKey: _viewportKey,
+            controller: _scrollController,
+            child: BedroomWallCanvas(
+              backgroundColor: _controller.backgroundColor,
+              canvas: _controller.canvas,
+              stickerCatalog: _controller.stickerCatalog,
+              fontCatalog: _controller.fontCatalog,
+              items: _controller.items,
+              prompts: _preview ? const [] : _controller.prompts,
+              onItemTransform: (id, transform) {
+                setState(() => _controller.updateTransform(id, transform));
+              },
+              onTextChanged: _controller.updateText,
+              onFontChanged: (id, font) {
+                setState(() => _controller.updateTextFont(id, font));
+              },
+              onTextColorChanged: (id, color) {
+                setState(() => _controller.updateTextboxTextColor(id, color));
+              },
+              onTextBackgroundColorChanged: (id, color) {
+                setState(
+                  () => _controller.updateTextboxBackgroundColor(id, color),
+                );
+              },
+              onPromptAddImage: _addImageFromPrompt,
+              onPromptAddTextBox: _addTextBoxFromPrompt,
+              onItemInteractionChanged: _onItemInteractionChanged,
+              onItemDragUpdate: _onItemDragUpdate,
+              editable: !_preview,
+            ),
+          ),
+        ),
+        if (!_preview)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 16,
+            child: IgnorePointer(
+              ignoring: _interacting,
+              child: AnimatedOpacity(
+                opacity: _interacting ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 200),
+                child: Column(
+                  children: [
+                    PromptGenerator(onCreate: _addTextBoxWithText),
+                    CreatorToolBar(
+                      onAddTextBox: _addTextBox,
+                      onAddImage: _addImage,
+                      onAddSticker: _addSticker,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

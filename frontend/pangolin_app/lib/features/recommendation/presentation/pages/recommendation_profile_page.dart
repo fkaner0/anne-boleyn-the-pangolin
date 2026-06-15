@@ -10,6 +10,7 @@ import 'package:pangolin_app/features/recommendation/data/profile_fetcher.dart';
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/bedroom_wall_viewport.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import '../../domain/profile.dart';
 import '../pages/bedroom_wall_detail_page.dart';
 import '../widgets/bedroom_wall_view.dart';
@@ -54,28 +55,21 @@ class RecommendationProfilePage extends ConsumerWidget {
       future: _load(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+          return const Scaffold(body: Center(child: RollingSpinner()));
         }
 
         if (snapshot.hasError) {
           return Scaffold(
             body: SafeArea(
-              child: Column(
-                children: [
-                  ProfileHeaderBar(
-                    name: 'Profile',
-                    location: 'Error',
-                    onBackPressed: () {
-                      _log(ButtonIds.bedroomWallBack, ref);
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  Expanded(
-                    child: Center(child: Text('Error: ${snapshot.error}')),
-                  ),
-                ],
+              child: ProfileHeaderBar(
+                name: 'Profile',
+                location: 'Error',
+                onBackPressed: () {
+                  _log(ButtonIds.bedroomWallBack, ref);
+                  Navigator.of(context).pop();
+                },
+                bodyBuilder: (context, topInset) =>
+                    Center(child: Text('Error: ${snapshot.error}')),
               ),
             ),
           );
@@ -85,50 +79,47 @@ class RecommendationProfilePage extends ConsumerWidget {
 
         return Scaffold(
           body: SafeArea(
-            child: Column(
-              children: [
-                ProfileHeaderBar(
-                  name: profile.name,
-                  location: profile.location,
-                  onBackPressed: () {
-                    _log(ButtonIds.bedroomWallBack, ref);
-                    Navigator.of(context).pop();
-                  },
-                ),
-                Expanded(
-                  child: BedroomWallViewport(
-                    child: BedroomWallView(
-                      profile: profile,
-                      stickerCatalog: stickerCatalog,
-                      fontCatalog: fontCatalog,
-                      onImageTap: (image) {
-                        _log(ButtonIds.bedroomWall, ref);
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => BedroomWallDetailPage(
-                              logger: logger,
-                              profile: profile,
-                              image: image,
-                            ),
+            child: ProfileHeaderBar(
+              name: profile.name,
+              location: profile.location,
+              onBackPressed: () {
+                _log(ButtonIds.bedroomWallBack, ref);
+                Navigator.of(context).pop();
+              },
+              bodyBuilder: (context, topInset) => BedroomWallViewport(
+                child: Padding(
+                  padding: EdgeInsets.only(top: topInset),
+                  child: BedroomWallView(
+                    profile: profile,
+                    stickerCatalog: stickerCatalog,
+                    fontCatalog: fontCatalog,
+                    onImageTap: (image) {
+                      _log(ButtonIds.bedroomWall, ref);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BedroomWallDetailPage(
+                            logger: logger,
+                            profile: profile,
+                            image: image,
                           ),
-                        );
-                      },
-                      onTextTap: (textbox) {
-                        _log(ButtonIds.bedroomWall, ref);
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => BedroomWallDetailPage(
-                              logger: logger,
-                              profile: profile,
-                              textbox: textbox,
-                            ),
+                        ),
+                      );
+                    },
+                    onTextTap: (textbox) {
+                      _log(ButtonIds.bedroomWall, ref);
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => BedroomWallDetailPage(
+                            logger: logger,
+                            profile: profile,
+                            textbox: textbox,
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         );

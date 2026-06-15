@@ -18,6 +18,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 import '../../../../support/auth_test_support.dart';
 
@@ -28,6 +29,8 @@ final Uint8List _onePixelPng = base64Decode(
 class _FakeService implements SharedBoardService {
   final StreamController<void> controller = StreamController<void>.broadcast();
   List<SharedElement> board = [];
+  int failuresBeforeSuccess = 0;
+  int fetchAttempts = 0;
   final List<String> sentImages = [];
   final List<String> sentReplies = [];
   final List<String> sentTexts = [];
@@ -37,8 +40,13 @@ class _FakeService implements SharedBoardService {
   Stream<void> notifications(int userId) => controller.stream;
 
   @override
-  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId) async =>
-      board;
+  Future<List<SharedElement>> fetchBoard(int userId, int friendUserId) async {
+    fetchAttempts++;
+    if (fetchAttempts <= failuresBeforeSuccess) {
+      throw Exception('board not ready');
+    }
+    return board;
+  }
 
   @override
   Future<void> sendImage({
@@ -139,6 +147,41 @@ void main() {
   testWidgets('renders the fetched board', (tester) async {
     await pumpBoard(tester, board: [textElement(1, 'look at this')]);
 
+    expect(find.text('look at this'), findsOneWidget);
+  });
+
+  testWidgets('keeps the spinner and retries until the initial load succeeds', (
+    tester,
+  ) async {
+    final service = _FakeService()
+      ..board = [textElement(1, 'look at this')]
+      ..failuresBeforeSuccess = 1;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [loggedInUserId(1)],
+        child: MaterialApp(
+          home: SharedBoardPage(
+            friendUserId: 2,
+            profileFetcher: const _FakeProfileFetcher('Sally'),
+            service: service,
+            imagePicker: _FakePicker(),
+            imageUploader: MockImageUploader(),
+            logger: MockButtonClickLogger(),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(RollingSpinner), findsOneWidget);
+    expect(find.text('look at this'), findsNothing);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    expect(service.fetchAttempts, 2);
+    expect(find.byType(RollingSpinner), findsNothing);
     expect(find.text('look at this'), findsOneWidget);
   });
 

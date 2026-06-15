@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import '../../domain/shared_element.dart';
 import '../../domain/shared_reply.dart';
 
@@ -114,8 +115,8 @@ class _Header extends StatelessWidget {
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height / 3 - 30,
           width: double.infinity,
-          child: Image.network(
-            element.content,
+          child: LoadingNetworkImage(
+            url: element.content,
             fit: BoxFit.fitWidth,
             errorBuilder: (context, error, stackTrace) => ColoredBox(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,

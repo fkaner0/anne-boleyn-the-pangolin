@@ -13,10 +13,11 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
-import 'package:pangolin_app/theme/palette_colors.dart';
+import 'package:pangolin_app/widgets/app_icon.dart';
 
 import 'pages/about_page.dart';
 import 'pages/intro_page.dart';
+import '../widgets/profile_setup_header.dart';
 
 class SignupShell extends ConsumerStatefulWidget {
   // final int userId;
@@ -28,7 +29,7 @@ class SignupShell extends ConsumerStatefulWidget {
 }
 
 class _SignupShellState extends ConsumerState<SignupShell> {
-  static const _steps = ['About', 'Wall', 'Intro'];
+  static const _steps = ['About', 'Wall', 'Details'];
 
   int _step = 0;
   bool _submitting = false;
@@ -95,11 +96,27 @@ class _SignupShellState extends ConsumerState<SignupShell> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: Stack(
           children: [
-            _SignupProgressBar(currentStep: _step, steps: _steps),
-            const Divider(height: 1),
-            Expanded(child: _buildStep()),
+            Positioned.fill(child: _buildStep()),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: ProfileSetupHeader(currentStep: _step, steps: _steps),
+              ),
+            ),
+            if (_step > 0)
+              Positioned(
+                top: ProfileSetupHeader.heightFor(context),
+                left: 8,
+                child: IconButton.filledTonal(
+                  icon: const AppIcon(AppIconType.back),
+                  tooltip: 'Back',
+                  onPressed: _goBack,
+                ),
+              ),
           ],
         ),
       ),
@@ -114,118 +131,17 @@ class _SignupShellState extends ConsumerState<SignupShell> {
         profileBuilder: _profileBuilder,
         onSave: _goNext,
         onBack: _goBack,
+        primaryActionAsNext: true,
+        topInset: ProfileSetupHeader.heightFor(context),
       ),
       2 => IntroPage(
         profileBuilder: _profileBuilder,
         wallController: _wallController,
         onNext: _finish,
         onBack: _goBack,
+        primaryActionAsSave: true,
       ),
       _ => const SizedBox.shrink(),
     };
-  }
-}
-
-class _SignupProgressBar extends StatelessWidget {
-  static const double _connectorWidth = 40;
-  static const double _ballSize = 28;
-
-  final int currentStep;
-  final List<String> steps;
-
-  const _SignupProgressBar({required this.currentStep, required this.steps});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final completedColor = colorScheme.primary;
-    final currentColor = context.paletteColors.pangolin;
-    final uncompletedColor = colorScheme.outline;
-
-    Color colorFor(int i) {
-      if (i < currentStep) return completedColor;
-      if (i == currentStep) return currentColor;
-      return uncompletedColor;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < steps.length; i++) ...[
-            _StepIndicator(
-              label: steps[i],
-              index: i + 1,
-              color: colorFor(i),
-              isActive: i == currentStep,
-              ballSize: _ballSize,
-            ),
-            if (i < steps.length - 1)
-              Container(
-                width: _connectorWidth,
-                height: 2,
-                margin: const EdgeInsets.only(top: _ballSize / 2 - 1),
-                color: i < currentStep ? completedColor : uncompletedColor,
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _StepIndicator extends StatelessWidget {
-  final String label;
-  final int index;
-  final Color color;
-  final bool isActive;
-  final double ballSize;
-
-  const _StepIndicator({
-    required this.label,
-    required this.index,
-    required this.color,
-    required this.isActive,
-    required this.ballSize,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final numberColor =
-        ThemeData.estimateBrightnessForColor(color) == Brightness.dark
-        ? Colors.white
-        : Colors.black;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: ballSize,
-          height: ballSize,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-          child: Center(
-            child: Text(
-              '$index',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: numberColor,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: color,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ],
-    );
   }
 }
