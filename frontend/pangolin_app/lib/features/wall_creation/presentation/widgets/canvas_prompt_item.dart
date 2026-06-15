@@ -79,7 +79,7 @@ class _ImageContent extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             maxLines: 3,
-            style: TextStyle(color: color, fontSize: 14, height: 1.3),
+            style: TextStyle(color: color, fontSize: 18, height: 1.3),
           ),
         ),
       ],
