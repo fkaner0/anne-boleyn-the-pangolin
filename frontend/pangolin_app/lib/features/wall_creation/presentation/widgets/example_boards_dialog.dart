@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
 class ExampleBoardsDialog extends StatefulWidget {
   const ExampleBoardsDialog({super.key});
@@ -137,6 +138,13 @@ class _Carousel extends StatelessWidget {
             images[index],
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded || frame != null) return child;
+              return ColoredBox(
+                color: colorScheme.surfaceContainerHighest,
+                child: const Center(child: RollingSpinner(size: 120)),
+              );
+            },
             errorBuilder: (context, error, stackTrace) =>
                 ColoredBox(color: colorScheme.surfaceContainerHighest),
           ),
