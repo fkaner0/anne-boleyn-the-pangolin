@@ -39,7 +39,8 @@ class SharedElement {
     read: read ?? this.read,
   );
 
-  SharedElement withReply(SharedReply reply) => copyWith(replies: [...replies, reply]);
+  SharedElement withReply(SharedReply reply) =>
+      copyWith(replies: [...replies, reply]);
 
   factory SharedElement.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String?;
