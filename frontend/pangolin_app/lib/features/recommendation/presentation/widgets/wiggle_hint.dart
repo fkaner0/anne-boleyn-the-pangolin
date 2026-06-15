@@ -13,7 +13,7 @@ class WiggleHint extends StatefulWidget {
     required this.child,
     this.enabled = true,
     this.delay = const Duration(seconds: 3),
-    this.interval = const Duration(seconds: 15),
+    this.interval = const Duration(seconds: 6),
   });
 
   @override
