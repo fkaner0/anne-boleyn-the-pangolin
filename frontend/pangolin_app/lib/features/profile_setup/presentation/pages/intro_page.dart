@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:pangolin_app/config/service_locator.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/field_label.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/main_image_picker.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/profile_setup_header.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/profile_text_field.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/features/recommendation/presentation/widgets/info_box.dart';
@@ -13,6 +14,7 @@ import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_w
 import 'package:pangolin_app/fonts/font_catalog.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 
 class IntroPage extends StatefulWidget {
   final ProfileBuilder profileBuilder;
@@ -21,6 +23,7 @@ class IntroPage extends StatefulWidget {
   final BedroomWallCreatorController? wallController;
   final VoidCallback? onNext;
   final VoidCallback? onBack;
+  final bool primaryActionAsSave;
 
   const IntroPage({
     super.key,
@@ -30,6 +33,7 @@ class IntroPage extends StatefulWidget {
     this.wallController,
     this.onNext,
     this.onBack,
+    this.primaryActionAsSave = false,
   });
 
   @override
@@ -57,6 +61,7 @@ class _IntroPageState extends State<IntroPage> {
   late final TextEditingController _ageController;
   late final TextEditingController _locationController;
   late final TextEditingController _bioController;
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   Uint8List? _mainImageBytes;
   bool _uploadingImage = false;
@@ -160,112 +165,158 @@ class _IntroPageState extends State<IntroPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('About me'),
-        leading: IconButton.filledTonal(
-          icon: const AppIcon(AppIconType.back),
-          tooltip: 'Back',
-          onPressed: widget.onBack ?? () {},
-        ),
-        actions: [
-          TextButton(
-            onPressed: _canSubmit ? _next : null,
-            child: const Text('Next'),
+    if (!widget.primaryActionAsSave) {
+      return Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text('About me'),
+          leading: IconButton.filledTonal(
+            icon: const AppIcon(AppIconType.back),
+            tooltip: 'Back',
+            onPressed: widget.onBack ?? () {},
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: _canSubmit ? _next : null,
+              child: const Text('Next'),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: _formChildren(context),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final headerHeight = ProfileSetupHeader.heightFor(context);
+    return Scaffold(
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            headerHeight + kToolbarHeight,
+            24,
+            24,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FieldLabel('Preview'),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outline,
+              ..._formChildren(context),
+              const SizedBox(height: 36),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  onPressed: _canSubmit ? _next : null,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: InfoBox(
-                  name: _name,
-                  age: _age,
-                  location: _location,
-                  bio: _bio,
-                  image: _mainImageProvider,
+                  icon: const AppIcon(AppIconType.save),
+                  label: const Text('Save'),
                 ),
               ),
               const SizedBox(height: 24),
-              FieldLabel('Name'),
-              ProfileTextField(
-                controller: _nameController,
-                hintText: 'Your name',
-                onChanged: (value) {
-                  _builder.setName(value);
-                  setState(() => _name = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Age'),
-              ProfileTextField(
-                controller: _ageController,
-                hintText: 'Your age',
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                onChanged: (value) {
-                  final age = int.tryParse(value);
-                  if (age != null) _builder.setAge(age);
-                  setState(() => _age = age);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Rough location'),
-              ProfileTextField(
-                controller: _locationController,
-                hintText: 'Where you are based',
-                onChanged: (value) {
-                  _builder.setLocation(value);
-                  setState(() => _location = value);
-                },
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Main image'),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Text(
-                  'Put something related to your art!',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-              MainImagePicker(
-                image: _mainImageProvider,
-                uploading: _uploadingImage,
-                onTap: _uploadingImage ? null : _pickMainImage,
-              ),
-              const SizedBox(height: 24),
-              FieldLabel('Short Bio'),
-              ProfileTextField(
-                controller: _bioController,
-                hintText: 'Summarise your vibe!',
-                minLines: 3,
-                maxLines: 5,
-                maxLength: 100,
-                onChanged: (value) {
-                  _builder.setBio(value);
-                  setState(() => _bio = value);
-                },
-              ),
+              PangolinBanner(assets: _pangolinAssets),
             ],
           ),
         ),
       ),
     );
+  }
+
+  List<Widget> _formChildren(BuildContext context) {
+    return [
+      FieldLabel('Preview'),
+      Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(color: Theme.of(context).colorScheme.outline),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InfoBox(
+          name: _name,
+          age: _age,
+          location: _location,
+          bio: _bio,
+          image: _mainImageProvider,
+        ),
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Name'),
+      ProfileTextField(
+        controller: _nameController,
+        hintText: 'Your name',
+        onChanged: (value) {
+          _builder.setName(value);
+          setState(() => _name = value);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Age'),
+      ProfileTextField(
+        controller: _ageController,
+        hintText: 'Your age',
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        onChanged: (value) {
+          final age = int.tryParse(value);
+          if (age != null) _builder.setAge(age);
+          setState(() => _age = age);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Rough location'),
+      ProfileTextField(
+        controller: _locationController,
+        hintText: 'Where you are based',
+        onChanged: (value) {
+          _builder.setLocation(value);
+          setState(() => _location = value);
+        },
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Main image'),
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          'Put something related to your art!',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ),
+      MainImagePicker(
+        image: _mainImageProvider,
+        uploading: _uploadingImage,
+        onTap: _uploadingImage ? null : _pickMainImage,
+      ),
+      const SizedBox(height: 24),
+      FieldLabel('Short Bio'),
+      ProfileTextField(
+        controller: _bioController,
+        hintText: 'Summarise your vibe!',
+        minLines: 3,
+        maxLines: 5,
+        maxLength: 100,
+        onChanged: (value) {
+          _builder.setBio(value);
+          setState(() => _bio = value);
+        },
+      ),
+    ];
   }
 }

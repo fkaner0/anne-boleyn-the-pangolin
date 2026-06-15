@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/loading_network_image.dart';
 import '../../domain/shared_element.dart';
 import '../../domain/shared_reply.dart';
 
@@ -40,8 +41,8 @@ class SharedElementTile extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: element.isImage
-                  ? Image.network(
-                      element.content,
+                  ? LoadingNetworkImage(
+                      url: element.content,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: MediaQuery.sizeOf(context).height / 5,
@@ -72,13 +73,26 @@ class SharedElementTile extends StatelessWidget {
                   horizontal: 14,
                   vertical: 10,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                child: Stack(
                   children: [
-                    for (final (index, reply) in recent.indexed) ...[
-                      if (index > 0) const SizedBox(height: 6),
-                      _message(context, reply),
-                    ],
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final (index, reply) in recent.indexed) ...[
+                          if (index > 0) const SizedBox(height: 6),
+                          _message(context, reply),
+                        ],
+                      ],
+                    ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: AppIcon(
+                        AppIconType.reply,
+                        size: 16,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),

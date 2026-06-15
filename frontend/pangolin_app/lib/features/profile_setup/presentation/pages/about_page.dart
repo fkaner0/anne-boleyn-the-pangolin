@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/features/profile_setup/widgets/add_chip_button.dart';
+import 'package:pangolin_app/features/profile_setup/widgets/profile_setup_header.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/passion_meter.dart';
 import 'package:pangolin_app/features/profile_setup/widgets/section_title.dart';
 import 'package:pangolin_app/features/recommendation/domain/profile_builder.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
 
 class AboutPage extends StatefulWidget {
   final VoidCallback onNext;
@@ -24,6 +26,7 @@ class _AboutPageState extends State<AboutPage> {
   bool _additionalInfoExpanded = false;
   final _newSubInterestController = TextEditingController();
   final _newOtherInterestController = TextEditingController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
 
   @override
   void dispose() {
@@ -76,24 +79,14 @@ class _AboutPageState extends State<AboutPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    final headerHeight = ProfileSetupHeader.heightFor(context);
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('About your craft'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.save),
-            tooltip: 'Save',
-            onPressed: _onNext,
-          ),
-        ],
-      ),
       body: SafeArea(
+        top: false,
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.fromLTRB(24, headerHeight + 16, 24, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -178,6 +171,26 @@ class _AboutPageState extends State<AboutPage> {
                   onRemoveOtherInterest: (interest) =>
                       setState(() => builder.removeOtherInterest(interest)),
                 ),
+                const SizedBox(height: 36),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: FilledButton(
+                    onPressed: _onNext,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 36,
+                        vertical: 16,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    child: const Text('Next'),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                PangolinBanner(assets: _pangolinAssets),
               ],
             ),
           ),

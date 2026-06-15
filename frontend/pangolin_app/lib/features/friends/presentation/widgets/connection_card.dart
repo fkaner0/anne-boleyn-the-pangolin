@@ -164,7 +164,7 @@ class _EmptyCollage extends StatelessWidget {
 }
 
 class _MainImageBadge extends StatelessWidget {
-  static const double _size = 60;
+  static const double _size = 72;
 
   final String url;
 
@@ -178,8 +178,7 @@ class _MainImageBadge extends StatelessWidget {
       width: _size,
       height: _size,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: colorScheme.surface, width: 2),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),

@@ -20,7 +20,7 @@ class CreatorToolBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -73,17 +73,13 @@ class _CircularToolButton extends StatelessWidget {
               width: 64,
               height: 64,
               child: Center(
-                child: AppIcon(
-                  icon,
-                  size: 36,
-                  color: colorScheme.onPrimaryContainer,
-                ),
+                child: AppIcon(icon, size: 36, color: colorScheme.onPrimary),
               ),
             ),
           ),
         ),
         const SizedBox(height: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        Text(label, style: const TextStyle(fontSize: 15)),
       ],
     );
   }

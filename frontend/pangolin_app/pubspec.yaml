@@ -74,10 +74,16 @@ flutter:
   assets:
     - assets/stickers/
     - assets/icons/icons/
+    - assets/icons/icons-svg/
     - assets/icons/text_customisation_icons/
+    - assets/icons/text_customisation_icons-svg/
     - assets/icons/wall_addition_icons/
+    - assets/icons/wall_addition_icons-svg/
     - assets/icons/menu_bar_icons/
     - assets/example_boards/
+    - assets/icons/menu_bar_icons-svg/
+    - assets/icons/header/
+    - assets/guys/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
