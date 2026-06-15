@@ -20,6 +20,8 @@ import org.postgresql.ds.PGSimpleDataSource
 import com.augustnagro.magnum.pg.PgCodec.given
 import com.augustnagro.magnum.SortOrder
 import com.augustnagro.magnum.Query
+import com.augustnagro.magnum.SqlLiteral
+import com.augustnagro.magnum.NullOrder
 
 object repo {
 
@@ -596,12 +598,14 @@ object repo {
       OR
       (${SharedBoard.Table.user1Id} = $user2Id AND ${SharedBoard.Table.user2Id} = $user1Id)
     """)
+
   private def elementsSpec(sharedBoardId: Int) = Spec[SharedBoardElement]
     .where(sql"${SharedBoardElement.Table.boardId} = $sharedBoardId")
-    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Asc)
+    .orderBy(SharedBoardElement.Table.timestamp.queryRepr, SortOrder.Desc, NullOrder.Last)
+
   private def repliesSpec(elementId: Int) = Spec[SharedBoardReply]
     .where(sql"${SharedBoardReply.Table.sharedBoardElementId} = $elementId")
-    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc)
+    .orderBy(SharedBoardReply.Table.timestamp.queryRepr, SortOrder.Asc, NullOrder.Last)
 
   def sendImageMessage(message: api.MessageImage): IO[Unit] = sendElement(
     senderId = message.senderId,
@@ -783,17 +787,28 @@ object repo {
     val pending = ConnectionPending.Table.alias("cp")
     val removed = ConnectionRemoved.Table.alias("cr")
     val sharedBoard = SharedBoard.Table.alias("sb")
+    val boardreply = SharedBoardReply.Table.alias("boardreply")
+    val boardelem = SharedBoardElement.Table.alias("boardelem")
 
     sql"""
-      SELECT *
+      SELECT ${sharedBoard.all}
       FROM $sharedBoard
+      LEFT JOIN $boardelem
+        ON ${boardelem.boardId} = ${sharedBoard.id}
+      LEFT JOIN $boardreply
+        ON ${boardreply.sharedBoardElementId} = ${boardelem.id}
       WHERE
         (${sharedBoard.user1Id} = $userId OR ${sharedBoard.user2Id} = $userId)
       AND ${sharedBoard.id} NOT IN (
-        (SELECT ${pending.boardId} FROM $pending WHERE ${pending.pendingForUser} = $userId)
-        UNION
-        (SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId)
-      )
+            (SELECT ${pending.boardId} FROM $pending WHERE ${pending.pendingForUser} = $userId)
+        UNION ALL
+            (SELECT ${removed.boardId} FROM $removed WHERE ${removed.removedByUser} = $userId)
+        )
+      GROUP BY ${sharedBoard.id}
+      ORDER BY GREATEST(
+        MAX(${boardelem.timestamp}),
+        MAX(${boardreply.timestamp})
+      ) DESC NULLS LAST
     """.query[SharedBoard].run()
   }
 
