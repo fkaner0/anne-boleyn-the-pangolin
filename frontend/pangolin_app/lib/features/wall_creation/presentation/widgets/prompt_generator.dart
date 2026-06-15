@@ -17,8 +17,13 @@ class _PromptGeneratorState extends State<PromptGenerator> {
     "I got into ... by ...",
     "I keep doing this because ...",
     "I really want to make ...",
-    "I want to learn to ...",
+    "I'd love to learn to ...",
     "I spend the rest of my time doing ...",
+    "I've always thought about starting ...",
+    "The best thing to do with a day off ...",
+    "Tell me your opinion on ...",
+    "Unpopular opinion, but: ...",
+    "My least favourite thing is ...",
   ];
 
   static const Duration _autoCollapse = Duration(seconds: 7);
