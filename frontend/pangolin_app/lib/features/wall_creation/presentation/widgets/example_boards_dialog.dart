@@ -51,12 +51,12 @@ class _ExampleBoardsDialogState extends State<ExampleBoardsDialog> {
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 460, maxHeight: 640),
+        constraints: const BoxConstraints(maxWidth: 400, maxHeight: 740),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 8,
+              flex: 10,
               child: _Carousel(
                 images: _images,
                 controller: _pageController,
@@ -73,7 +73,7 @@ class _ExampleBoardsDialogState extends State<ExampleBoardsDialog> {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -136,6 +136,7 @@ class _Carousel extends StatelessWidget {
           itemBuilder: (context, index) => Image.asset(
             images[index],
             fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
             errorBuilder: (context, error, stackTrace) =>
                 ColoredBox(color: colorScheme.surfaceContainerHighest),
           ),
