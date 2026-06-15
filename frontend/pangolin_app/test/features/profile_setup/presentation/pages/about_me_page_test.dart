@@ -168,7 +168,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(builder.build().bio.length, 100);
+    expect(builder.build().bio.length, 60);
   });
 
   Future<void> fillAllFields(WidgetTester tester) async {

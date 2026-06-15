@@ -4,7 +4,7 @@ import 'package:pangolin_app/widgets/app_icon.dart';
 import '../../domain/recommendation.dart';
 
 class InfoBox extends StatelessWidget {
-  static const double _cardHeight = 110;
+  static const double _cardHeight = 128;
 
   final String name;
   final int? age;
