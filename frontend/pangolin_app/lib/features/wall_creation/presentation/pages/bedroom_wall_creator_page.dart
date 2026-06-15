@@ -176,7 +176,7 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   double _binZoneBottom() {
     final renderObject = _viewportKey.currentContext?.findRenderObject();
     if (renderObject is RenderBox && renderObject.hasSize) {
-      return renderObject.localToGlobal(Offset.zero).dy;
+      return renderObject.localToGlobal(Offset.zero).dy + 50; // TODO: HORRIBLE magic number but I'm at my wits end
     }
     return MediaQuery.of(context).padding.top + kToolbarHeight;
   }
