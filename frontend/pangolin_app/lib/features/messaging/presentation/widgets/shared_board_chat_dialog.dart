@@ -95,7 +95,7 @@ class _SharedBoardChatDialogState extends State<SharedBoardChatDialog> {
               icon: const AppIcon(AppIconType.close),
               tooltip: 'Close',
               onPressed: () => {
-                // _markRead
+                // _markRead    //// TODO: for some reason it doesn't need to mark stuff as read? why
                 Navigator.of(context).pop()
               },
             ),
