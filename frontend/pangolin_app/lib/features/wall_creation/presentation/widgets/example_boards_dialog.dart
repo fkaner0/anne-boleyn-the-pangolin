@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:pangolin_app/widgets/app_icon.dart';
@@ -26,11 +28,33 @@ class ExampleBoardsDialog extends StatefulWidget {
 class _ExampleBoardsDialogState extends State<ExampleBoardsDialog> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  bool _ready = false;
+  bool _precacheStarted = false;
+  Timer? _fallbackTimer;
 
   List<String> get _images => ExampleBoardsDialog.imagePaths;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_precacheStarted) return;
+    _precacheStarted = true;
+    Future.wait([
+      for (final path in _images)
+        precacheImage(AssetImage(path), context).catchError((Object _) {}),
+    ]).whenComplete(_markReady);
+    _fallbackTimer = Timer(const Duration(seconds: 2), _markReady);
+  }
+
+  void _markReady() {
+    _fallbackTimer?.cancel();
+    _fallbackTimer = null;
+    if (mounted && !_ready) setState(() => _ready = true);
+  }
+
+  @override
   void dispose() {
+    _fallbackTimer?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -58,18 +82,24 @@ class _ExampleBoardsDialogState extends State<ExampleBoardsDialog> {
           children: [
             Expanded(
               flex: 10,
-              child: _Carousel(
-                images: _images,
-                controller: _pageController,
-                currentPage: _currentPage,
-                onPageChanged: (page) => setState(() => _currentPage = page),
-                onPrevious: _currentPage > 0
-                    ? () => _goToPage(_currentPage - 1)
-                    : null,
-                onNext: _currentPage < _images.length - 1
-                    ? () => _goToPage(_currentPage + 1)
-                    : null,
-              ),
+              child: _ready
+                  ? _Carousel(
+                      images: _images,
+                      controller: _pageController,
+                      currentPage: _currentPage,
+                      onPageChanged: (page) =>
+                          setState(() => _currentPage = page),
+                      onPrevious: _currentPage > 0
+                          ? () => _goToPage(_currentPage - 1)
+                          : null,
+                      onNext: _currentPage < _images.length - 1
+                          ? () => _goToPage(_currentPage + 1)
+                          : null,
+                    )
+                  : ColoredBox(
+                      color: theme.colorScheme.surfaceContainerHighest,
+                      child: const Center(child: RollingSpinner(size: 120)),
+                    ),
             ),
             Expanded(
               flex: 2,
@@ -138,13 +168,6 @@ class _Carousel extends StatelessWidget {
             images[index],
             fit: BoxFit.cover,
             alignment: Alignment.topCenter,
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded || frame != null) return child;
-              return ColoredBox(
-                color: colorScheme.surfaceContainerHighest,
-                child: const Center(child: RollingSpinner(size: 120)),
-              );
-            },
             errorBuilder: (context, error, stackTrace) =>
                 ColoredBox(color: colorScheme.surfaceContainerHighest),
           ),
