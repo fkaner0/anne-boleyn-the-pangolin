@@ -31,7 +31,7 @@ class DefaultPalette implements Palette {
   // Text.
   @override
   Color get textPrimary => const Color(0xDD000000);
-  @override
+  @override // unused afaik
   Color get textSecondary => const Color(0x8A000000);
 
   // Effects.

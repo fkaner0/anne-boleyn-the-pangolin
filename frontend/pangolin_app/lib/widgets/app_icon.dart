@@ -51,8 +51,8 @@ class _IconSource {
 const Map<AppIconType, _IconSource> _sources = {
   AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png', svgAsset: 'assets/icons/icons-svg/back.svg'),
   AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png', svgAsset: 'assets/icons/icons-svg/add.svg'),
-  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png', svgAsset: 'assets/icons/icons-svg/save-filled.svg'),
-  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png', svgAsset: 'assets/icons/icons-svg/send-filled.svg'),
+  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png', svgAsset: 'assets/icons/icons-svg/save-unfilled.svg'),
+  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png', svgAsset: 'assets/icons/icons-svg/send-unfilled.svg'),
   AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png', svgAsset: 'assets/icons/icons-svg/tick.svg'),
   AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png', svgAsset: 'assets/icons/icons-svg/cross.svg'),
   AppIconType.preview: _IconSource(svgAsset: 'assets/icons/icons-svg/preview4.svg'),
@@ -79,7 +79,7 @@ const Map<AppIconType, _IconSource> _sources = {
   ),
   AppIconType.textBackground: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/palettecolour.png',
-    svgAsset: 'assets/icons/text_customisation_icons-svg/palettecolour.svg',
+    svgAsset: 'assets/icons/text_customisation_icons-svg/palettecolour4.svg',
   ),
   AppIconType.fontCycle: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/font.png',
@@ -108,36 +108,37 @@ const Map<AppIconType, _IconSource> _sources = {
   ),
   AppIconType.meFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/mefilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/mefilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/mefilled.svg',
   ),
   AppIconType.meUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/meunfilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/meunfilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/meunfilled.svg',
   ),
   AppIconType.findFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/findfilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/findfilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/findfilled.svg',
   ),
   AppIconType.findUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/findunfilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/findunfilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/findunfilled.svg',
   ),
   AppIconType.palsFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/palsfilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/palsfilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/palsfilled.svg',
   ),
   AppIconType.palsUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/palsunfilled.png',
-    svgAsset: 'assets/icons/menu_bar_icons-svg/palsunfilled.svg',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/palsunfilled.svg',
   ),
 };
 
 class AppIcon extends StatelessWidget {
   final AppIconType type;
   final double? size;
+  final bool useOriginalColor;
   final Color? color;
 
-  const AppIcon(this.type, {super.key, this.size, this.color});
+  const AppIcon(this.type, {super.key, this.size, this.color, this.useOriginalColor = false});
 
   @override
   Widget build(BuildContext context) {
@@ -149,13 +150,15 @@ class AppIcon extends StatelessWidget {
     // prefers svg over png always
     final svgAsset = source.svgAsset;
     if (svgAsset != null) {
+      final colorFilter = (resolvedColor == null || useOriginalColor)
+            ? null
+            : ColorFilter.mode(resolvedColor, BlendMode.srcIn);
+
       return SvgPicture.asset(
         svgAsset,
         width: resolvedSize,
         height: resolvedSize,
-        // colorFilter: resolvedColor == null
-        //     ? null
-        //     : ColorFilter.mode(resolvedColor, BlendMode.srcIn),
+        colorFilter: colorFilter,
         fit: BoxFit.contain,
       );
     }
