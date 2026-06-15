@@ -66,6 +66,23 @@ class _SharedBoardChatDialogState extends State<SharedBoardChatDialog> {
     );
   }
 
+  // // duplicated with sharedBoardPage
+  // void _markRead(int elementId) {
+  //   final element = _elements.value[elementId];
+  //   if (element == null || element.read) return;
+
+  //   _elements.value = {
+  //     ..._elements.value,
+  //     elementId: element.copyWith(read: true),
+  //   };
+
+  //   unawaited(
+  //     _service
+  //         .markRead(sharedElementId: elementId, userId: _userId)
+  //         .catchError((_) {}),
+  //   );
+  // }
+
   Widget _buildContent(BuildContext context, SharedElement element) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -77,7 +94,10 @@ class _SharedBoardChatDialogState extends State<SharedBoardChatDialog> {
             child: IconButton(
               icon: const AppIcon(AppIconType.close),
               tooltip: 'Close',
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => {
+                // _markRead
+                Navigator.of(context).pop()
+              },
             ),
           ),
           _Header(element: element),

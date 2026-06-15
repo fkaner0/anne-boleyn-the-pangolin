@@ -29,76 +29,94 @@ class SharedElementTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHigh,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: element.isImage
-                  ? LoadingNetworkImage(
-                      url: element.content,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: MediaQuery.sizeOf(context).height / 5,
-                      errorBuilder: (context, error, stackTrace) => _fallback(
-                        colorScheme,
-                        const AppIcon(AppIconType.brokenImage),
-                      ),
-                    )
-                  : Container(
-                      padding: const EdgeInsets.all(20),
-                      color: colorScheme.surfaceContainerHighest,
-                      child: Text(
-                        element.content,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
+      child: Stack(
+        clipBehavior:
+            Clip.none, // allows the badge to overflow outside the card
+        children: [
+          // ── Card ──────────────────────────────────────────────────────
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHigh,
+              borderRadius: BorderRadius.circular(24),
             ),
-            if (recent.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ClipRRect(
                   borderRadius: BorderRadius.circular(16),
+                  child: element.isImage
+                      ? LoadingNetworkImage(
+                          url: element.content,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: MediaQuery.sizeOf(context).height / 5,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _fallback(
+                                colorScheme,
+                                const AppIcon(AppIconType.brokenImage),
+                              ),
+                        )
+                      : Container(
+                          padding: const EdgeInsets.all(20),
+                          color: colorScheme.surfaceContainerHighest,
+                          child: Text(
+                            element.content,
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ),
                 ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: Stack(
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                if (recent.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    child: Stack(
                       children: [
-                        for (final (index, reply) in recent.indexed) ...[
-                          if (index > 0) const SizedBox(height: 6),
-                          _message(context, reply),
-                        ],
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (final (index, reply) in recent.indexed) ...[
+                              if (index > 0) const SizedBox(height: 6),
+                              _message(context, reply),
+                            ],
+                          ],
+                        ),
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: AppIcon(
+                            AppIconType.reply,
+                            size: 16,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: AppIcon(
-                        AppIconType.reply,
-                        size: 16,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          // ── Notification badge ─────────────────────────────────────────
+          // Positioned outside the card bounds via Clip.none on the Stack.
+          Positioned(
+            top: -8,
+            right: -8,
+            child: _NotificationBadge(
+              count: element.read ? 0 : 1,
+              onPressed: onTap,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -137,6 +155,27 @@ class SharedElementTile extends StatelessWidget {
       child: ColoredBox(
         color: colorScheme.surfaceContainerHighest,
         child: Center(child: child),
+      ),
+    );
+  }
+}
+
+class _NotificationBadge extends StatelessWidget {
+  final int count;
+  final void Function()? onPressed;
+  const _NotificationBadge({required this.count, this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return const SizedBox.shrink();
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+      child: IconButton.filledTonal(
+        onPressed: onPressed ?? () => {},
+        icon: AppIcon(AppIconType.close, color: colorScheme.surface),
+        color: colorScheme.error,
       ),
     );
   }
