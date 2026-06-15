@@ -64,18 +64,19 @@ class SharedElementTile extends StatelessWidget {
             ),
             if (recent.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Container(
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
-                child: Stack(
-                  children: [
-                    Column(
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         for (final (index, reply) in recent.indexed) ...[
@@ -84,17 +85,24 @@ class SharedElementTile extends StatelessWidget {
                         ],
                       ],
                     ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
+                  ),
+                  Positioned(
+                    right: 4,
+                    bottom: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        shape: BoxShape.circle,
+                      ),
                       child: AppIcon(
                         AppIconType.reply,
                         size: 16,
-                        color: colorScheme.onSurfaceVariant,
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ],
