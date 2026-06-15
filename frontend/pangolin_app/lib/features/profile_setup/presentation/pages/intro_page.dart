@@ -157,6 +157,7 @@ class _IntroPageState extends State<IntroPage> {
         builder: (context) => BedroomWallCreatorPage(
           profileBuilder: _builder,
           controller: _wallController,
+          showExampleBoards: true,
         ),
       ),
     );

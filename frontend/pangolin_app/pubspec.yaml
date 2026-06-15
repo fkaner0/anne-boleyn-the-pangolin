@@ -80,6 +80,7 @@ flutter:
     - assets/icons/wall_addition_icons/
     - assets/icons/wall_addition_icons-svg/
     - assets/icons/menu_bar_icons/
+    - assets/example_boards/
     - assets/icons/menu_bar_icons-svg/
     - assets/icons/header/
     - assets/guys/
