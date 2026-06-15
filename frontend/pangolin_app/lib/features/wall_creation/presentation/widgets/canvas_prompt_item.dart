@@ -22,7 +22,7 @@ class CanvasPromptItem extends StatelessWidget {
 
   double get _width => baseWidth * transform.scale;
   double get _height =>
-      action == CanvasPromptAction.addImage ? _width : _width * 0.44;
+      action == CanvasPromptAction.addImage ? _width : _width * 0.34;
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +79,7 @@ class _ImageContent extends StatelessWidget {
             textAlign: TextAlign.center,
             overflow: TextOverflow.ellipsis,
             maxLines: 3,
-            style: TextStyle(color: color, fontSize: 11, height: 1.3),
+            style: TextStyle(color: color, fontSize: 14, height: 1.3),
           ),
         ),
       ],
@@ -105,7 +105,7 @@ class _TextContent extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
-            fontSize: 16,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             fontStyle: FontStyle.italic,
           ),
