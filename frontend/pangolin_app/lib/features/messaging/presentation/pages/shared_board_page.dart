@@ -26,7 +26,7 @@ import 'package:pangolin_app/widgets/pangolin_banner.dart';
 import 'package:pangolin_app/widgets/pangolin_header.dart';
 import 'package:pangolin_app/widgets/rolling_spinner.dart';
 
-enum _ConnectionAction { remove, reportAndBlock, cancel }
+enum _ConnectionAction { remove, block, reportAndBlock, cancel }
 
 class SharedBoardPage extends ConsumerStatefulWidget {
   final int friendUserId;
@@ -334,6 +334,12 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
             ),
             FilledButton.tonal(
               onPressed: () =>
+                  Navigator.of(context).pop(_ConnectionAction.block),
+              style: dangerStyle,
+              child: const Text('Block'),
+            ),
+            FilledButton.tonal(
+              onPressed: () =>
                   Navigator.of(context).pop(_ConnectionAction.reportAndBlock),
               style: dangerStyle,
               child: const Text('Report and Block'),
@@ -354,6 +360,15 @@ class _SharedBoardPageState extends ConsumerState<SharedBoardPage>
       case _ConnectionAction.remove:
         await _leaveConnection(
           () => _friendActionSender.remove(
+            currentUserId: _userId,
+            targetUserId: widget.friendUserId,
+          ),
+        );
+        break;
+      case _ConnectionAction.block:
+        await _leaveConnection(
+          () => _friendActionSender.remove(
+            // todo
             currentUserId: _userId,
             targetUserId: widget.friendUserId,
           ),
