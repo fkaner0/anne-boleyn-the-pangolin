@@ -89,7 +89,10 @@ class _CircularToolButton extends StatelessWidget {
             color: colorScheme.onPrimary.withAlpha(0xBB),
             borderRadius: BorderRadius.circular(6),
           ),
-          child: Text(label, style: TextStyle(fontSize: 12, color: colorScheme.primary)),
+          child: Text(
+            label,
+            style: TextStyle(fontSize: 12, color: colorScheme.primary),
+          ),
         ),
       ],
     );

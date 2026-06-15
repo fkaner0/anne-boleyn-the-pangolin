@@ -119,9 +119,7 @@ class _DashedRectPainter extends CustomPainter {
   final Color color;
   final double radius = 8;
 
-  const _DashedRectPainter({
-    required this.color,
-  });
+  const _DashedRectPainter({required this.color});
 
   static const double _dash = 5;
   static const double _gap = 4;
@@ -164,6 +162,5 @@ class _DashedRectPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DashedRectPainter old) =>
-      old.color != color;
+  bool shouldRepaint(_DashedRectPainter old) => old.color != color;
 }
