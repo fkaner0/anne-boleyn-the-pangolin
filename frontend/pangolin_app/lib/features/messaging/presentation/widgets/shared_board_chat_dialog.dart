@@ -96,7 +96,7 @@ class _SharedBoardChatDialogState extends State<SharedBoardChatDialog> {
               tooltip: 'Close',
               onPressed: () => {
                 // _markRead    //// TODO: for some reason it doesn't need to mark stuff as read? why
-                Navigator.of(context).pop()
+                Navigator.of(context).pop(),
               },
             ),
           ),
