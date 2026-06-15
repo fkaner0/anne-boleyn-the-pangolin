@@ -76,81 +76,72 @@ class _BedroomWallDetailPageState extends ConsumerState<BedroomWallDetailPage> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            ProfileHeaderBar(
-              name: widget.profile.name,
-              location: widget.profile.location,
-              onBackPressed: () {
-                _log(ButtonIds.wallDetailBack);
-                Navigator.of(context).pop();
-              },
-            ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Column(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: colorScheme.outline),
-                          boxShadow: [
-                            BoxShadow(
-                              color: context.paletteColors.shadow,
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+        child: ProfileHeaderBar(
+          name: widget.profile.name,
+          location: widget.profile.location,
+          onBackPressed: () {
+            _log(ButtonIds.wallDetailBack);
+            Navigator.of(context).pop();
+          },
+          bodyBuilder: (context, topInset) => SingleChildScrollView(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, topInset + 12, 16, 12),
+              child: Column(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: colorScheme.outline),
+                      boxShadow: [
+                        BoxShadow(
+                          color: context.paletteColors.shadow,
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: BedroomWallDetailContent(
-                            image: widget.image,
-                            textbox: widget.textbox,
-                          ),
-                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: BedroomWallDetailContent(
+                        image: widget.image,
+                        textbox: widget.textbox,
                       ),
-                      const SizedBox(height: 24),
-                      MessageComposer(
-                        hintText: prompt,
-                        // TODO: make this tidier
-                        onSend: (message) {
-                          _log(ButtonIds.wallDetailSend);
-                          widget.image != null
-                              ? _sharedBoardService.sendImage(
-                                  senderId: _currentUserId(),
-                                  receiverId: widget.profile.userId,
-                                  url: widget.image!.url,
-                                  message: message,
-                                )
-                              : _sharedBoardService.sendText(
-                                  senderId: _currentUserId(),
-                                  receiverId: widget.profile.userId,
-                                  text: widget.textbox!.body,
-                                  message: message,
-                                );
-                          context.push(
-                            AppRoutes.sharedBoard,
-                            extra: widget.profile.userId,
-                          );
-                        },
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+                  MessageComposer(
+                    hintText: prompt,
+                    // TODO: make this tidier
+                    onSend: (message) {
+                      _log(ButtonIds.wallDetailSend);
+                      widget.image != null
+                          ? _sharedBoardService.sendImage(
+                              senderId: _currentUserId(),
+                              receiverId: widget.profile.userId,
+                              url: widget.image!.url,
+                              message: message,
+                            )
+                          : _sharedBoardService.sendText(
+                              senderId: _currentUserId(),
+                              receiverId: widget.profile.userId,
+                              text: widget.textbox!.body,
+                              message: message,
+                            );
+                      context.push(
+                        AppRoutes.sharedBoard,
+                        extra: widget.profile.userId,
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

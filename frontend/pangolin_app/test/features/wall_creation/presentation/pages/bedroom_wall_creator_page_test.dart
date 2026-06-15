@@ -485,7 +485,7 @@ void main() {
   testWidgets('the bin zone follows the app bar when offset from the top', (
     tester,
   ) async {
-    await tester.binding.setSurfaceSize(const Size(400, 900));
+    await tester.binding.setSurfaceSize(const Size(400, 1000));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     final controller = controllerWith(null);

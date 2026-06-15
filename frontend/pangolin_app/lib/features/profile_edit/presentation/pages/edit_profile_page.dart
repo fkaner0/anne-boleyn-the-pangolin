@@ -25,6 +25,10 @@ import 'package:pangolin_app/router/main_tab_navigation.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
 import 'package:pangolin_app/widgets/app_icon.dart';
 import 'package:pangolin_app/widgets/island_nav_bar.dart';
+import 'package:pangolin_app/widgets/pangolin_banner.dart';
+import 'package:pangolin_app/widgets/pangolin_header.dart';
+import 'package:pangolin_app/widgets/pangolin_mascot.dart';
+import 'package:pangolin_app/widgets/rolling_spinner.dart';
 import 'package:pangolin_app/widgets/splodge.dart';
 
 const _hobbies = ['Painting', 'Pottery', 'Photography', 'Knitting'];
@@ -78,6 +82,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   Uint8List? _mainImageBytes;
 
+  final PangolinMascotController _mascot = PangolinMascotController();
+  late final List<String> _pangolinAssets = PangolinBanner.randomTrio();
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +94,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
 
   @override
   void dispose() {
+    _mascot.dispose();
     _nameController.dispose();
     _ageController.dispose();
     _locationController.dispose();
@@ -248,26 +256,37 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-        title: const Text('Edit Profile'),
-        actions: [
-          IconButton.filledTonal(
-            icon: const AppIcon(AppIconType.check),
-            tooltip: 'Save',
-            onPressed: _loading || _saving ? null : _save,
-          ),
-        ],
-        bottom: _saving
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(4),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            PangolinHeader(
+              title: 'Edit Profile',
+              contentInset: 24,
+              actions: [
+                IconButton.filledTonal(
+                  icon: const AppIcon(AppIconType.check),
+                  tooltip: 'Save',
+                  onPressed: _loading || _saving ? null : _save,
+                ),
+              ],
+              bodyBuilder: (context, topInset) =>
+                  NotificationListener<ScrollNotification>(
+                    onNotification: _mascot.handleScrollNotification,
+                    child: _buildBody(topInset),
+                  ),
+            ),
+            if (_saving)
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
                 child: LinearProgressIndicator(minHeight: 4),
-              )
-            : null,
+              ),
+          ],
+        ),
       ),
-      body: SafeArea(child: _buildBody()),
-      bottomNavigationBar: IslandNavBar(
+      bottomNavigationBar: PangolinNavBar(
+        mascotController: _mascot,
         current: IslandNavTab.editProfile,
         onEditProfile: () {},
         onRecommendations: () => MainTabNavigation.goToRecommendations(context),
@@ -276,16 +295,16 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(double topInset) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: RollingSpinner());
     }
     if (_loadError != null) {
       return Center(child: Text('Error: $_loadError'));
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.fromLTRB(24, topInset + 24, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,6 +409,8 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             maxLength: 100,
             onChanged: (value) => setState(() => _builder.setBio(value)),
           ),
+          const SizedBox(height: 32),
+          PangolinBanner(assets: _pangolinAssets),
         ],
       ),
     );
