@@ -406,7 +406,7 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
             hintText: 'Summarise your vibe!',
             minLines: 3,
             maxLines: 5,
-            maxLength: 100,
+            maxLength: 60,
             onChanged: (value) => setState(() => _builder.setBio(value)),
           ),
           const SizedBox(height: 32),

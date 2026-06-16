@@ -20,8 +20,6 @@ import 'pages/intro_page.dart';
 import '../widgets/profile_setup_header.dart';
 
 class SignupShell extends ConsumerStatefulWidget {
-  // final int userId;
-
   const SignupShell({super.key});
 
   @override
@@ -33,6 +31,7 @@ class _SignupShellState extends ConsumerState<SignupShell> {
 
   int _step = 0;
   bool _submitting = false;
+  bool _exampleBoardsShown = false;
 
   late ProfileBuilder _profileBuilder = ProfileBuilder();
 
@@ -112,9 +111,13 @@ class _SignupShellState extends ConsumerState<SignupShell> {
                 top: ProfileSetupHeader.heightFor(context),
                 left: 8,
                 child: IconButton.filledTonal(
-                  icon: const AppIcon(AppIconType.back),
+                  icon: AppIcon(
+                    AppIconType.back,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
                   tooltip: 'Back',
                   onPressed: _goBack,
+                  color: Theme.of(context).colorScheme.secondaryContainer,
                 ),
               ),
           ],
@@ -131,6 +134,8 @@ class _SignupShellState extends ConsumerState<SignupShell> {
         profileBuilder: _profileBuilder,
         onSave: _goNext,
         onBack: _goBack,
+        showExampleBoards: !_exampleBoardsShown,
+        onExampleBoardsShown: () => _exampleBoardsShown = true,
         primaryActionAsNext: true,
         topInset: ProfileSetupHeader.heightFor(context),
       ),

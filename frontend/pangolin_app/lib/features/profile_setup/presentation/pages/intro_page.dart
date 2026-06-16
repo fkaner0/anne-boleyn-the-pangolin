@@ -157,6 +157,7 @@ class _IntroPageState extends State<IntroPage> {
         builder: (context) => BedroomWallCreatorPage(
           profileBuilder: _builder,
           controller: _wallController,
+          showExampleBoards: true,
         ),
       ),
     );
@@ -310,7 +311,7 @@ class _IntroPageState extends State<IntroPage> {
         hintText: 'Summarise your vibe!',
         minLines: 3,
         maxLines: 5,
-        maxLength: 100,
+        maxLength: 60,
         onChanged: (value) {
           _builder.setBio(value);
           setState(() => _bio = value);

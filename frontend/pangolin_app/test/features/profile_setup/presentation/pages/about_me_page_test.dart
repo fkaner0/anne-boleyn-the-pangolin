@@ -168,7 +168,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(builder.build().bio.length, 100);
+    expect(builder.build().bio.length, 60);
   });
 
   Future<void> fillAllFields(WidgetTester tester) async {
@@ -245,6 +245,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Create your wall'), findsOneWidget);
 
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byTooltip('Back'));
     await tester.pumpAndSettle();
 
@@ -266,6 +269,9 @@ void main() {
     await fillAllFields(tester);
 
     await tester.tap(find.widgetWithText(TextButton, 'Next'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'OK'));
     await tester.pumpAndSettle();
     expect(find.text('Your text', skipOffstage: false), findsOneWidget);
 

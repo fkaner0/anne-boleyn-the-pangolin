@@ -9,6 +9,7 @@ enum AppIconType {
   check,
   close,
   preview,
+  unpreview,
   brokenImage,
   refresh,
   addText,
@@ -22,6 +23,7 @@ enum AppIconType {
   delete,
   edit,
   chevronRight,
+  chevronLeft,
   wallpaper,
   peopleAlt,
   message,
@@ -44,35 +46,67 @@ class _IconSource {
   final String? pngAsset;
   final IconData? materialIcon;
 
-  const _IconSource({this.pngAsset, this.materialIcon}) : svgAsset = null;
+  const _IconSource({this.pngAsset, this.svgAsset, this.materialIcon});
 }
 
 const Map<AppIconType, _IconSource> _sources = {
-  AppIconType.back: _IconSource(pngAsset: 'assets/icons/icons/back.png'),
-  AppIconType.add: _IconSource(pngAsset: 'assets/icons/icons/add.png'),
-  AppIconType.save: _IconSource(pngAsset: 'assets/icons/icons/save.png'),
-  AppIconType.send: _IconSource(pngAsset: 'assets/icons/icons/send.png'),
-  AppIconType.check: _IconSource(pngAsset: 'assets/icons/icons/tick.png'),
-  AppIconType.close: _IconSource(pngAsset: 'assets/icons/icons/cross.png'),
-  AppIconType.preview: _IconSource(pngAsset: 'assets/icons/icons/preview.png'),
+  AppIconType.back: _IconSource(
+    pngAsset: 'assets/icons/icons/back.png',
+    svgAsset: 'assets/icons/icons-svg/back.svg',
+  ),
+  AppIconType.add: _IconSource(
+    pngAsset: 'assets/icons/icons/add.png',
+    svgAsset: 'assets/icons/icons-svg/add.svg',
+  ),
+  AppIconType.save: _IconSource(
+    pngAsset: 'assets/icons/icons/save.png',
+    svgAsset: 'assets/icons/icons-svg/save-unfilled.svg',
+  ),
+  AppIconType.send: _IconSource(
+    pngAsset: 'assets/icons/icons/send.png',
+    svgAsset: 'assets/icons/icons-svg/send-unfilled.svg',
+  ),
+  AppIconType.check: _IconSource(
+    pngAsset: 'assets/icons/icons/tick.png',
+    svgAsset: 'assets/icons/icons-svg/tick.svg',
+  ),
+  AppIconType.close: _IconSource(
+    pngAsset: 'assets/icons/icons/cross.png',
+    svgAsset: 'assets/icons/icons-svg/cross.svg',
+  ),
+  AppIconType.preview: _IconSource(
+    svgAsset: 'assets/icons/icons-svg/preview4.svg',
+  ),
+  AppIconType.unpreview: _IconSource(
+    svgAsset: 'assets/icons/icons-svg/preview4-2.svg',
+  ),
   AppIconType.brokenImage: _IconSource(
     pngAsset: 'assets/icons/icons/brokenimage.png',
+    svgAsset: 'assets/icons/icons-svg/brokenimage.svg',
   ),
-  AppIconType.refresh: _IconSource(pngAsset: 'assets/icons/icons/refresh.png'),
+  AppIconType.refresh: _IconSource(
+    pngAsset: 'assets/icons/icons/refresh.png',
+    svgAsset: 'assets/icons/icons-svg/refresh.svg',
+  ),
   AppIconType.addText: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addtext.png',
+    svgAsset: 'assets/icons/wall_addition_icons-svg/addtext.svg',
   ),
   AppIconType.addImage: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addimage.png',
+    svgAsset: 'assets/icons/wall_addition_icons-svg/addimage.svg',
   ),
   AppIconType.textColour: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/textcolour.png',
+    svgAsset: 'assets/icons/text_customisation_icons-svg/textcolour.svg',
   ),
   AppIconType.textBackground: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/palettecolour.png',
+    svgAsset: 'assets/icons/text_customisation_icons-svg/palettecolour4.svg',
   ),
   AppIconType.fontCycle: _IconSource(
     pngAsset: 'assets/icons/text_customisation_icons/font.png',
+    svgAsset: 'assets/icons/text_customisation_icons-svg/font.svg',
   ),
   AppIconType.person: _IconSource(materialIcon: Icons.person),
   AppIconType.expandLess: _IconSource(materialIcon: Icons.expand_less),
@@ -80,6 +114,7 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.delete: _IconSource(materialIcon: Icons.delete),
   AppIconType.edit: _IconSource(materialIcon: Icons.edit),
   AppIconType.chevronRight: _IconSource(materialIcon: Icons.chevron_right),
+  AppIconType.chevronLeft: _IconSource(materialIcon: Icons.chevron_left),
   AppIconType.wallpaper: _IconSource(materialIcon: Icons.wallpaper),
   AppIconType.peopleAlt: _IconSource(materialIcon: Icons.people_alt_outlined),
   AppIconType.message: _IconSource(materialIcon: Icons.chat_bubble_outline),
@@ -89,36 +124,51 @@ const Map<AppIconType, _IconSource> _sources = {
   AppIconType.personRemove: _IconSource(materialIcon: Icons.person_remove),
   AppIconType.sticker: _IconSource(
     pngAsset: 'assets/icons/wall_addition_icons/addsticker.png',
+    svgAsset: 'assets/icons/wall_addition_icons-svg/addsticker2.svg',
   ),
   AppIconType.lightbulb: _IconSource(
     pngAsset: 'assets/icons/icons/lightbulb.png',
+    svgAsset: 'assets/icons/icons-svg/lightbulb.svg',
   ),
   AppIconType.meFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/mefilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/mefilled.svg',
   ),
   AppIconType.meUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/meunfilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/meunfilled.svg',
   ),
   AppIconType.findFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/findfilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/findfilled.svg',
   ),
   AppIconType.findUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/findunfilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/findunfilled.svg',
   ),
   AppIconType.palsFilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/palsfilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/palsfilled.svg',
   ),
   AppIconType.palsUnfilled: _IconSource(
     pngAsset: 'assets/icons/menu_bar_icons/palsunfilled.png',
+    // svgAsset: 'assets/icons/menu_bar_icons-svg/palsunfilled.svg',
   ),
 };
 
 class AppIcon extends StatelessWidget {
   final AppIconType type;
   final double? size;
+  final bool useOriginalColor;
   final Color? color;
 
-  const AppIcon(this.type, {super.key, this.size, this.color});
+  const AppIcon(
+    this.type, {
+    super.key,
+    this.size,
+    this.color,
+    this.useOriginalColor = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -127,15 +177,19 @@ class AppIcon extends StatelessWidget {
     final resolvedColor = color ?? iconTheme.color;
     final source = _sources[type]!;
 
+    // prefers svg over png always
     final svgAsset = source.svgAsset;
     if (svgAsset != null) {
+      final colorFilter = (resolvedColor == null || useOriginalColor)
+          ? null
+          : ColorFilter.mode(resolvedColor, BlendMode.srcIn);
+
       return SvgPicture.asset(
         svgAsset,
         width: resolvedSize,
         height: resolvedSize,
-        colorFilter: resolvedColor == null
-            ? null
-            : ColorFilter.mode(resolvedColor, BlendMode.srcIn),
+        colorFilter: colorFilter,
+        fit: BoxFit.contain,
       );
     }
 

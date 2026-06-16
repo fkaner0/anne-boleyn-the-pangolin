@@ -16,6 +16,7 @@ import 'package:pangolin_app/features/wall_creation/data/picker/image_file_picke
 import 'package:pangolin_app/features/wall_creation/data/uploader/mock_wall_image_uploader.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/controllers/bedroom_wall_creator_controller.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/widgets/creator_tool_bar.dart';
+import 'package:pangolin_app/features/wall_creation/presentation/widgets/example_boards_dialog.dart';
 import 'package:pangolin_app/features/wall_creation/presentation/pages/bedroom_wall_creator_page.dart';
 import 'package:pangolin_app/router/app_router.dart';
 import 'package:pangolin_app/stickers/sticker_catalog.dart';
@@ -73,6 +74,7 @@ void main() {
     WidgetTester tester, {
     BedroomWallCreatorController? controller,
     ProfileUpdater? profileUpdater,
+    bool showExampleBoards = false,
   }) {
     final router = GoRouter(
       initialLocation: AppRoutes.editWall,
@@ -82,6 +84,7 @@ void main() {
           builder: (_, _) => BedroomWallCreatorPage(
             controller: controller,
             profileUpdater: profileUpdater,
+            showExampleBoards: showExampleBoards,
           ),
         ),
         GoRoute(
@@ -107,6 +110,26 @@ void main() {
       fontCatalog: getIt<FontCatalog>(),
     );
   }
+
+  testWidgets('shows the example boards popup when asked', (tester) async {
+    await pumpPage(
+      tester,
+      controller: controllerWith(null),
+      showExampleBoards: true,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExampleBoardsDialog), findsOneWidget);
+  });
+
+  testWidgets('does not show the example boards popup by default', (
+    tester,
+  ) async {
+    await pumpPage(tester, controller: controllerWith(null));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ExampleBoardsDialog), findsNothing);
+  });
 
   test('updateTransform persists rotation', () {
     final controller = controllerWith(null);

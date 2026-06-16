@@ -16,6 +16,7 @@ import '../../data/uploader/wall_image_uploader.dart';
 import '../controllers/bedroom_wall_creator_controller.dart';
 import '../widgets/bedroom_wall_canvas.dart';
 import '../widgets/creator_tool_bar.dart';
+import '../widgets/example_boards_dialog.dart';
 import '../widgets/sticker_picker.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
@@ -29,6 +30,9 @@ class BedroomWallCreatorPage extends StatefulWidget {
   final bool primaryActionAsNext;
   final double topInset;
 
+  final bool showExampleBoards;
+  final VoidCallback? onExampleBoardsShown;
+
   const BedroomWallCreatorPage({
     super.key,
     this.controller,
@@ -37,6 +41,8 @@ class BedroomWallCreatorPage extends StatefulWidget {
     this.onSave,
     this.onSaved,
     this.onBack,
+    this.showExampleBoards = false,
+    this.onExampleBoardsShown,
     this.primaryActionAsNext = false,
     this.topInset = 0,
   });
@@ -73,6 +79,18 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   bool _dragOverBin = false;
   int? _draggingItemId;
   bool _preview = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.showExampleBoards) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        widget.onExampleBoardsShown?.call();
+        ExampleBoardsDialog.show(context);
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -176,7 +194,8 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   double _binZoneBottom() {
     final renderObject = _viewportKey.currentContext?.findRenderObject();
     if (renderObject is RenderBox && renderObject.hasSize) {
-      return renderObject.localToGlobal(Offset.zero).dy;
+      return renderObject.localToGlobal(Offset.zero).dy +
+          50; // TODO: HORRIBLE magic number but I'm at my wits end
     }
     return MediaQuery.of(context).padding.top + kToolbarHeight;
   }
@@ -438,7 +457,9 @@ class _BedroomWallCreatorPageState extends State<BedroomWallCreatorPage> {
   Widget _previewButton({bool faded = false}) => Opacity(
     opacity: faded ? 0.4 : 1.0,
     child: IconButton.filledTonal(
-      icon: const AppIcon(AppIconType.preview, color: Color(0xFFFEF9F2)),
+      icon: faded
+          ? AppIcon(AppIconType.unpreview)
+          : AppIcon(AppIconType.preview),
       tooltip: _preview ? 'Hide Preview' : 'Preview',
       onPressed: _togglePreview,
     ),
