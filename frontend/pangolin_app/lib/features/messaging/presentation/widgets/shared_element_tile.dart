@@ -67,10 +67,18 @@ class SharedElementTile extends StatelessWidget {
             if (recent.isNotEmpty) ...[
               if (hasHiddenReplies) ...[
                 const SizedBox(height: 4),
-                Center(child: Text("... ${replies.length} messages ...", style: TextStyle(color: colorScheme.shadow, fontStyle: FontStyle.italic, fontSize: 10))),
+                Center(
+                  child: Text(
+                    "... ${replies.length} messages ...",
+                    style: TextStyle(
+                      color: colorScheme.shadow,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 10,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 4),
-              ]
-              else ...[
+              ] else ...[
                 const SizedBox(height: 12),
               ],
               Stack(
