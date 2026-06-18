@@ -132,7 +132,7 @@ class SharedElementTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final isMine = reply.senderId == userId;
     final prefix = isMine ? 'You: ' : '$friendName: ';
-    final weight = element.read ? FontWeight.normal : FontWeight.bold;
+    final weight = FontWeight.normal;
 
     return Text.rich(
       TextSpan(
