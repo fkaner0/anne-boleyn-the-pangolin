@@ -34,6 +34,7 @@ class _FakeService implements SharedBoardService {
   final List<String> sentImages = [];
   final List<String> sentReplies = [];
   final List<String> sentTexts = [];
+  final List<int> markedRead = [];
 
   @override
   Stream<void> notifications(int userId) => controller.stream;
@@ -73,6 +74,12 @@ class _FakeService implements SharedBoardService {
     required String text,
     int? datetime,
   }) async => sentReplies.add(text);
+
+  @override
+  Future<void> markRead({
+    required int sharedElementId,
+    required int userId,
+  }) async => markedRead.add(sharedElementId);
 }
 
 class _FakePicker implements ImageFilePicker {
@@ -204,6 +211,18 @@ void main() {
 
     expect(find.text('No messages yet'), findsOneWidget);
     expect(find.widgetWithText(TextField, 'Write a message'), findsOneWidget);
+  });
+
+  testWidgets('opening an element marks it as read', (tester) async {
+    final service = await pumpBoard(
+      tester,
+      board: [textElement(1, 'look at this')],
+    );
+
+    await tester.tap(find.text('look at this'));
+    await tester.pumpAndSettle();
+
+    expect(service.markedRead, contains(1));
   });
 
   testWidgets('sending a reply from the popup calls the service', (

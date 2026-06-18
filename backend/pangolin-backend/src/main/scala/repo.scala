@@ -570,13 +570,14 @@ object repo {
   }
 
   def getSharedBoard(user1Id: Int, user2Id: Int) = inDatabase {
-    val elements = sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
+    val elements = sharedBoardRepo.findAll(sharedBoardSpec(user1Id, user2Id)).headOption.map { sharedBoard =>
       sharedBoardElementRepo.findAll(elementsSpec(sharedBoard.id)).map { element =>
         val replies = sharedBoardReplyRepo.findAll(repliesSpec(element.id)).map { reply =>
           api.SharedBoardReply(
             datetime = reply.timestamp,
             senderId = reply.senderId,
             text = reply.text,
+            read = reply.read,
           )
         }
         api.SharedBoardElement(
@@ -585,14 +586,14 @@ object repo {
           messages = replies,
           url = element.url,
           text = element.text,
-          read = element.read,
+          unread = replies.count(!_.read),
         )
       }
     }
     elements.map(api.SharedBoard(_))
   }
 
-  private def boardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
+  private def sharedBoardSpec(user1Id: Int, user2Id: Int) = Spec[SharedBoard]
     .where(sql"""
       (${SharedBoard.Table.user1Id} = $user1Id AND ${SharedBoard.Table.user2Id} = $user2Id)
       OR
@@ -680,7 +681,7 @@ object repo {
   }
 
   private def getBoard(user1Id: Int, user2Id: Int)(using DbCon): Option[SharedBoard] = {
-    sharedBoardRepo.findAll(boardSpec(user1Id, user2Id)).headOption
+    sharedBoardRepo.findAll(sharedBoardSpec(user1Id, user2Id)).headOption
   }
 
   private def makeBoard(senderId: Int, receiverId: Int)(using DbCon): SharedBoard = {
@@ -715,15 +716,16 @@ object repo {
     val sharedBoards = getAllCurrentFriends(userId)
     val friends = sharedBoards.map { case SharedBoard(boardId, user1Id, user2Id) =>
       val friendId = if user1Id == userId then user2Id else user1Id
-      val coverImages = sharedBoardElementRepo.findAll(coverImagesSpec(boardId))
       for {
         friendProfile <- profileRepo.findAll(profileFromAccountIdSpec(friendId)).headOption
-        coverImageUrls <- coverImages.map(_.url).sequence
+        coverImageUrls <- sharedBoardElementRepo.findAll(coverImagesSpec(boardId)).map(_.url).sequence
+        unreadMessages <- getBoardUnreadReplies(boardId = boardId, senderId = friendId) 
       } yield api.Friend(
         friendUserId = friendProfile.accountId,
         name = friendProfile.name,
         coverImages = coverImageUrls,
         mainImage = friendProfile.profileImageUrl,
+        unreadMessages = unreadMessages,
       )
     }.collect {
       case Some(x) => x
@@ -731,6 +733,19 @@ object repo {
     for {
       nPending <- numberPendingFriends(userId).headOption
     } yield (friends, nPending)
+  }
+
+  private def getBoardUnreadReplies(boardId: Int, senderId: Int)(using DbCon): Option[Int] = {
+    val element = SharedBoardElement.Table.alias("element")
+    val reply = SharedBoardReply.Table.alias("reply")
+    sql"""
+      SELECT COUNT(${reply.id})
+      FROM $reply
+      JOIN $element ON ${reply.sharedBoardElementId} = ${element.id}
+      WHERE ${element.boardId} = $boardId
+      AND ${reply.senderId} = $senderId
+      AND NOT ${reply.read}
+    """.query[Int].run().headOption
   }
 
   /// TODO: I THOUGHT WE SAID REPO SHLDNT KNOW ABOUT API? :<
@@ -848,6 +863,16 @@ object repo {
     """.query[Int].run()
     // the 'AND' at the end is redundant if we make sure the database stays consistent
     // (clearly some poor db design. sorry.)
+  }
+
+  def setElementRepliesAsRead(elementId: Int, receiverId: Int): IO[Unit] = inDatabase {
+    val reply = SharedBoardReply.Table
+    sql"""
+      UPDATE $reply
+      SET ${reply.read} = ${true}
+      WHERE ${reply.sharedBoardElementId} = $elementId
+      AND ${reply.senderId} <> $receiverId
+    """.update.run()
   }
 
   private def profileFromAccountIdSpec(userId: Int) = {

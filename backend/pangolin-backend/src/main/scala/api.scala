@@ -107,13 +107,14 @@ object api {
     messages: Vector[SharedBoardReply],
     url: Option[String],
     text: Option[String],
-    read: Boolean,
+    unread: Int,
   ) derives ReadWriter
 
   case class SharedBoardReply(
     datetime: Long,
     senderId: Int,
     text: String,
+    read: Boolean,
   ) derives ReadWriter
 
   case class MessageImage(
@@ -140,6 +141,11 @@ object api {
     datetime: Long,
   )  derives ReadWriter
 
+  case class MessageRead(
+    sharedElementId: Int,
+    userId: Int,
+  ) derives ReadWriter
+
   case class ButtonLog(
     userId: Int,
     buttonId: String,
@@ -156,6 +162,7 @@ object api {
     name: String,
     coverImages: Vector[String],
     mainImage: String,
+    unreadMessages: Int,
   ) derives ReadWriter
 
   case class PendingFriends(
@@ -230,6 +237,10 @@ object api {
   private val messageListenSseEndpoint = endpoint.get
     .in("message" / "listen" / path[Int]("receiverId"))
     .out(serverSentEventsBody[IO])
+
+  private val messageReadEndpoint = endpoint.post
+    .in("message" / "read")
+    .in(jsonBody[MessageRead])
 
   private val currentFriendsEndpoint = endpoint.get
     .in("friends" / "current" / path[Int]("userId"))
@@ -364,6 +375,15 @@ object api {
           .filter((id1, id2) => id1 == receiverId || id2 == receiverId)
           .map(_ => ServerSentEvent())
       }
+    }
+  )
+
+  private val messageReadRoutes = serverInterpreter.toRoutes(
+    messageReadEndpoint.serverLogicSuccess { messageRead =>
+      repo.setElementRepliesAsRead(
+        elementId = messageRead.sharedElementId,
+        receiverId = messageRead.userId,
+      )
     }
   )
 
@@ -547,6 +567,7 @@ object api {
     "/" -> messageImageRoutes(topic),
     "/" -> messageReplyRoutes(topic),
     "/" -> messageListenSseRoutes(topic),
+    "/" -> messageReadRoutes,
     "/" -> buttonLogRoutes,
     "/" -> currentFriendsRoutes,
     "/" -> pendingFriendsRoutes,

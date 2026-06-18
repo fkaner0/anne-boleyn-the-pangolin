@@ -11,7 +11,7 @@ void main() {
       'messages': [
         {'senderId': 2, 'text': 'nice', 'datetime': 1100},
       ],
-      'read': false,
+      'unread': 1,
     });
 
     expect(element.id, 3);
@@ -29,13 +29,32 @@ void main() {
       'datetime': 2000,
       'text': 'hello',
       'messages': const [],
-      'read': true,
+      'unread': 1,
     });
 
     expect(element.isImage, isFalse);
     expect(element.content, 'hello');
-    expect(element.read, isTrue);
     expect(element.replies, isEmpty);
+  });
+
+  test('is unread when there are unread messages', () {
+    final element = SharedElement.fromJson({
+      'sharedElemId': 4,
+      'text': 'hello',
+      'unread': 2,
+    });
+
+    expect(element.read, isFalse);
+  });
+
+  test('is read when there are no unread messages', () {
+    final element = SharedElement.fromJson({
+      'sharedElemId': 4,
+      'text': 'hello',
+      'unread': 0,
+    });
+
+    expect(element.read, isTrue);
   });
 
   test('latestReply returns the most recent reply', () {

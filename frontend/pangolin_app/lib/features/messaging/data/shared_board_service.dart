@@ -29,5 +29,7 @@ abstract interface class SharedBoardService {
     int? datetime,
   });
 
+  Future<void> markRead({required int sharedElementId, required int userId});
+
   static int now() => DateTime.now().millisecondsSinceEpoch;
 }

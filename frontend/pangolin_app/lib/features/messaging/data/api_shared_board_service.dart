@@ -118,4 +118,12 @@ class ApiSharedBoardService implements SharedBoardService {
       'datetime': datetime ?? SharedBoardService.now(),
     });
   }
+
+  @override
+  Future<void> markRead({required int sharedElementId, required int userId}) {
+    return _post('/message/read', {
+      'sharedElementId': sharedElementId,
+      'userId': userId,
+    });
+  }
 }

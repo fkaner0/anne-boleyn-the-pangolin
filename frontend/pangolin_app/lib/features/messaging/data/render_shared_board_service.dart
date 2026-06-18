@@ -68,4 +68,8 @@ class RenderSharedBoardService implements SharedBoardService {
     text: text,
     datetime: datetime,
   );
+
+  @override
+  Future<void> markRead({required int sharedElementId, required int userId}) =>
+      _delegate.markRead(sharedElementId: sharedElementId, userId: userId);
 }

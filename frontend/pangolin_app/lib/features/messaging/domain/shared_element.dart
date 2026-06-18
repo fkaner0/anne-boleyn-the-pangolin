@@ -23,16 +23,24 @@ class SharedElement {
 
   SharedReply? get latestReply => replies.isEmpty ? null : replies.last;
 
-  SharedElement withReply(SharedReply reply) {
-    return SharedElement(
-      id: id,
-      datetime: datetime,
-      kind: kind,
-      content: content,
-      replies: [...replies, reply],
-      read: read,
-    );
-  }
+  SharedElement copyWith({
+    int? id,
+    int? datetime,
+    SharedElementKind? kind,
+    String? content,
+    List<SharedReply>? replies,
+    bool? read,
+  }) => SharedElement(
+    id: id ?? this.id,
+    datetime: datetime ?? this.datetime,
+    kind: kind ?? this.kind,
+    content: content ?? this.content,
+    replies: replies ?? this.replies,
+    read: read ?? this.read,
+  );
+
+  SharedElement withReply(SharedReply reply) =>
+      copyWith(replies: [...replies, reply]);
 
   factory SharedElement.fromJson(Map<String, dynamic> json) {
     final url = json['url'] as String?;
@@ -49,7 +57,7 @@ class SharedElement {
               ?.map((m) => SharedReply.fromJson(m as Map<String, dynamic>))
               .toList() ??
           const [],
-      read: (json['read'] as bool?) ?? false,
+      read: ((json['unread'] as int?) ?? 0) == 0,
     );
   }
 }
