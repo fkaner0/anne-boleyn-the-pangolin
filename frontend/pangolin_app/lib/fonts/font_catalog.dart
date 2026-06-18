@@ -3,7 +3,6 @@ class FontCatalog {
 
   static const List<String> fonts = [
     'Archivo Black',
-    'Comic Sans',
     'EB Garamond',
     'Inspiration',
     'Tektur',

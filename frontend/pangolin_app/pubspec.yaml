@@ -117,9 +117,6 @@ flutter:
     - family: Playpen_Sans
       fonts:
         - asset: assets/fonts/Playpen_Sans/PlaypenSans-VariableFont_wght.ttf
-    - family: Comic Sans
-      fonts:
-        - asset: assets/fonts/Comic_Sans/COMIC.TTF
     - family: Quicksand
       fonts:
         - asset: assets/fonts/Quicksand/Quicksand-VariableFont_wght.ttf
